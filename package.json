@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "drizzle-orm": "^0.44.0",
+    "expo": "~57.0.0",
+    "expo-router": "~57.0.25",
+    "expo-sqlite": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "drizzle-kit": "^0.31.0",
+    "typescript": "~6.0.3"
+  },
+  "main": "expo-router/entry",
+  "name": "lift-app",
+  "private": true,
+  "scripts": {
+    "android": "expo run:android",
+    "db:generate": "drizzle-kit generate && node scripts/bundle-migrations.mjs",
+    "db:studio": "drizzle-kit studio",
+    "ios": "expo run:ios",
+    "start": "expo start",
+    "typecheck": "tsc --noEmit",
+    "web": "expo start --web"
+  },
+  "version": "0.1.0"
+}
