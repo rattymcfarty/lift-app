@@ -4,11 +4,15 @@
  * Privacy is a hard requirement for LIFT — the SQLite database must NEVER
  * leave the device via Google Drive auto-backup or device-to-device transfer.
  *
+ * expo-sqlite stores databases in <filesDir>/SQLite/ (domain="file"), NOT in
+ * the databases/ directory (domain="database") — see SQLiteModule.kt
+ * defaultDatabaseDirectory. The whole SQLite/ directory is excluded, which
+ * covers lift.db and every journal/WAL sidecar (-journal, -wal, -shm).
+ *
  * Writes two rule files (API <=30 uses fullBackupContent, API 31+ uses
  * dataExtractionRules) and points the <application> tag at both. Covers the
- * database plus its journal/WAL sidecars in BOTH cloud-backup and
- * device-transfer sections — a rule in only one section leaks on new-phone
- * setup.
+ * database in BOTH cloud-backup and device-transfer sections — a rule in
+ * only one section leaks on new-phone setup.
  *
  * Idempotent under repeated `expo prebuild` runs.
  */
@@ -16,11 +20,14 @@ const { withAndroidManifest, withDangerousMod } = require('@expo/config-plugins'
 const fs = require('fs');
 const path = require('path');
 
-const DB_FILES = ['lift.db', 'lift.db-journal', 'lift.db-wal'];
-
-const excludes = DB_FILES.map(
-  (f) => `        <exclude domain="database" path="${f}"/>`,
-).join('\n');
+// domain="file" is rooted at <filesDir>; expo-sqlite keeps lift.db in SQLite/.
+const excludes = [
+  '        <exclude domain="file" path="SQLite/"/>',
+  '        <exclude domain="file" path="SQLite/lift.db"/>',
+  '        <exclude domain="file" path="SQLite/lift.db-journal"/>',
+  '        <exclude domain="file" path="SQLite/lift.db-wal"/>',
+  '        <exclude domain="file" path="SQLite/lift.db-shm"/>',
+].join('\n');
 
 const FULL_BACKUP_XML = `<?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>

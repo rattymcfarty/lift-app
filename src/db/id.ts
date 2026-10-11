@@ -1,10 +1,10 @@
 /**
  * Client-side UUID v4 generation for sync-ready primary keys.
  *
- * Uses crypto.getRandomValues — cryptographically secure on every target:
- * Hermes (supported since RN 0.76), Node 19+, and modern browsers. Hermes
- * does NOT provide crypto.randomUUID(), and Math.random() is cryptographically
- * weak, so we build the v4 UUID from secure random bytes directly.
+ * Uses crypto.getRandomValues. On Hermes (React Native) Web Crypto is NOT
+ * built in — the app entry (app/_layout.tsx) loads the
+ * react-native-get-random-values polyfill before this module is imported.
+ * Under Node 19+ and modern browsers, globalThis.crypto exists natively.
  *
  * Deliberately imports no native modules: this file is imported by
  * drizzle-kit's schema tooling under Node, where native imports break the

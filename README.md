@@ -40,7 +40,7 @@ src/
                 soft deletes (deleted_at). See src/db/schema.ts.
   domain/       pure training logic (stats, records, streaks) + tests (P1)
   data/         local repository layer over Drizzle (P1)
-  theme/        theming token structure (values land in P1)
+  theme/        design tokens (light/dark/system), ThemeProvider, breakpoints
 ```
 
 ## Database

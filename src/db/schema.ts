@@ -4,7 +4,7 @@ import { newId } from './id';
 /**
  * Sync-ready base columns. EVERY table gets these from day one so a future
  * sync layer never needs a key migration:
- * - id:        UUID v4 text PK, generated client-side via expo-crypto (see ./id.ts)
+ * - id:        UUID v4 text PK, generated client-side via crypto.getRandomValues (see ./id.ts)
  * - createdAt / updatedAt: millisecond epoch timestamps, auto-populated
  * - deletedAt: soft delete; NULL = live row. Sync tombstones, never drops.
  */

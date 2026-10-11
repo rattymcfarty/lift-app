@@ -1,17 +1,38 @@
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../src/theme';
 
 /**
  * P0 placeholder screen. Phase 1 replaces this with the dashboard (R15).
- * Uses only React Native primitives so it runs inside Expo Go.
+ * Colors, spacing and the caption size come from theme tokens; the display
+ * title treatment predates the token scale and goes away with the P1
+ * dashboard. Runs on React Native primitives only (Expo Go compatible).
  */
 export default function Index() {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>LIFT</Text>
-      <Text style={styles.subtitle}>Longevity Intelligent Fitness Trainer</Text>
-      <Text style={styles.note}>Phase 0 scaffold — dashboard lands in P1.</Text>
-      <StatusBar style="auto" />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+          gap: theme.spacing.sm,
+        },
+      ]}
+    >
+      <Text style={[styles.title, { color: theme.colors.text }]}>LIFT</Text>
+      <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
+        Longevity Intelligent Fitness Trainer
+      </Text>
+      <Text
+        style={{
+          color: theme.colors.faint,
+          fontSize: theme.typography.size.caption,
+          marginTop: theme.spacing.md,
+        }}
+      >
+        Phase 0 scaffold — dashboard lands in P1.
+      </Text>
     </View>
   );
 }
@@ -21,22 +42,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0a0a0a',
-    gap: 8,
   },
   title: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#ffffff',
     letterSpacing: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#a1a1a1',
-  },
-  note: {
-    fontSize: 12,
-    color: '#525252',
-    marginTop: 16,
   },
 });
