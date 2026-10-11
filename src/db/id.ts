@@ -1,33 +1,33 @@
 /**
  * Client-side UUID v4 generation for sync-ready primary keys.
  *
- * Uses crypto.getRandomValues — cryptographically secure on every target
- * where the global exists (Node 19+, modern browsers).
+ * Uses crypto.getRandomValues — cryptographically secure on every target.
  *
- * IMPORTANT: Hermes (React Native) does NOT provide globalThis.crypto, so on
- * device we fall back to expo-crypto via a LAZY require. The require is lazy
- * (inside the function, never at module top level) because this file is
- * imported by drizzle-kit's schema tooling under plain Node, where a native
- * module import would break the bundler. Under Node the global always exists,
- * so the require branch never executes there.
+ * On Hermes (React Native) the global is provided by the
+ * react-native-get-random-values polyfill, imported FIRST in app/_layout.tsx
+ * (before any module that generates IDs can run). Under Node (drizzle-kit
+ * schema tooling) the global exists natively (Node 19+).
  *
- * Math.random() is cryptographically weak and must never be used for IDs.
+ * There is deliberately no Math.random() fallback and no lazy native-module
+ * require: IDs must be cryptographically secure, so a missing global fails
+ * loudly here instead of degrading silently — and a static require() of an
+ * uninstallable module would break Metro bundling (it resolves every
+ * literal require, even unreachable ones).
  */
 function randomUUID(): string {
-  const g = globalThis as {
-    crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array };
-  };
-  if (g.crypto?.getRandomValues) {
-    const bytes = new Uint8Array(16);
-    g.crypto.getRandomValues(bytes);
-    return formatV4(bytes);
+  const getRandomValues = (
+    globalThis as {
+      crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array };
+    }
+  ).crypto?.getRandomValues;
+  if (!getRandomValues) {
+    throw new Error(
+      'crypto.getRandomValues is not available — IDs cannot be generated securely',
+    );
   }
-  // Device fallback: expo-crypto ships inside Expo Go and dev builds.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { randomUUID: expoRandomUUID } = require('expo-crypto') as {
-    randomUUID: () => string;
-  };
-  return expoRandomUUID();
+  const bytes = new Uint8Array(16);
+  getRandomValues(bytes);
+  return formatV4(bytes);
 }
 
 function formatV4(bytes: Uint8Array): string {

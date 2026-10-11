@@ -61,15 +61,20 @@ export type { LongevityPillar };
  * transaction"). Per-key locks can't prevent cross-key races (e.g. logging a
  * set while its workout is being deleted). A single-user workout app does a
  * handful of writes per second, so a global write lock costs nothing and is
- * obviously correct. Reads don't take the lock. NEVER nest this.
+ * obviously correct. Reads don't take the lock.
+ *
+ * Concurrent callers QUEUE on the promise chain — each waits its turn.
+ * (An earlier version threw "must never be nested" for merely concurrent
+ * callers, which broke legitimate UI races like tapping Log on two cards.)
+ *
+ * NEVER call this re-entrantly from inside `fn` itself: the inner call
+ * would wait on a gate that only releases when the outer `fn` completes,
+ * i.e. a silent deadlock. No repository function nests (verified); keep it
+ * that way — the type system can't catch this one.
  */
 let writeGate: Promise<unknown> = Promise.resolve();
-let insideWriteLock = false;
 
 export async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
-  if (insideWriteLock) {
-    throw new Error('withWriteLock must never be nested — this would deadlock');
-  }
   const prev = writeGate;
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
@@ -77,11 +82,9 @@ export async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
   });
   writeGate = prev.then(() => gate);
   await prev;
-  insideWriteLock = true;
   try {
     return await fn();
   } finally {
-    insideWriteLock = false;
     release();
   }
 }
@@ -846,11 +849,20 @@ export async function searchExercises(query: string, limit = 50): Promise<Exerci
 export async function listExercises(filter?: {
   category?: ExerciseCategory;
   customOnly?: boolean;
+  /** Caps the rows returned (the exercise picker pages the library). */
+  limit?: number;
 }): Promise<Exercise[]> {
+  assertIntNonNegative(filter?.limit, 'limit');
   const conditions = [isNull(exercises.deletedAt)];
   if (filter?.category) conditions.push(eq(exercises.category, filter.category));
   if (filter?.customOnly) conditions.push(eq(exercises.isCustom, true));
-  return db.select().from(exercises).where(and(...conditions)).orderBy(asc(exercises.name));
+  const base = db
+    .select()
+    .from(exercises)
+    .where(and(...conditions))
+    .orderBy(asc(exercises.name));
+  if (filter?.limit != null) return base.limit(filter.limit);
+  return base;
 }
 
 /* ------------------------------------------------------------------ */
