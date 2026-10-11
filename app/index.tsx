@@ -146,6 +146,23 @@ export default function Home(): JSX.Element {
                 </Card>
               ) : null}
               <Button title="Start workout" onPress={() => router.push('/workout/new')} />
+              {/* P1b #8: history + progress entry points (secondary actions). */}
+              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title="History"
+                    variant="secondary"
+                    onPress={() => router.push('/history')}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title="Progress"
+                    variant="secondary"
+                    onPress={() => router.push('/progress')}
+                  />
+                </View>
+              </View>
               {recent.length > 0 ? (
                 <Text
                   style={{
