@@ -1,16 +1,25 @@
 /**
  * Client-side UUID v4 generation for sync-ready primary keys.
- * Prefers crypto.randomUUID(); falls back to a Math.random-based v4
- * so ID generation never crashes on older runtimes.
+ *
+ * Uses crypto.getRandomValues — cryptographically secure on every target:
+ * Hermes (supported since RN 0.76), Node 19+, and modern browsers. Hermes
+ * does NOT provide crypto.randomUUID(), and Math.random() is cryptographically
+ * weak, so we build the v4 UUID from secure random bytes directly.
+ *
+ * Deliberately imports no native modules: this file is imported by
+ * drizzle-kit's schema tooling under Node, where native imports break the
+ * bundler. expo-crypto's randomUUID() uses getRandomValues internally, so
+ * this is equivalent security without the native dependency.
  */
 export function newId(): string {
-  const c = (globalThis as unknown as { crypto?: Crypto }).crypto;
-  if (c && typeof c.randomUUID === 'function') {
-    return c.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
-    const r = (Math.random() * 16) | 0;
-    const v = ch === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  // Set version (4) and variant (10xx) bits per RFC 4122.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return (
+    `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}` +
+    `-${hex.slice(16, 20)}-${hex.slice(20)}`
+  );
 }

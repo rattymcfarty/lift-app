@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c3c0dcce-83cc-47c6-a530-41275b9d00ef",
+  "id": "6887d1a2-9b75-4787-b493-ef8adad276d9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "exercises": {
@@ -74,7 +74,29 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "exercises_kb_id_unique": {
+          "name": "exercises_kb_id_unique",
+          "columns": [
+            "kb_id"
+          ],
+          "isUnique": true
+        },
+        "exercises_updated_at_idx": {
+          "name": "exercises_updated_at_idx",
+          "columns": [
+            "updated_at"
+          ],
+          "isUnique": false
+        },
+        "exercises_deleted_at_idx": {
+          "name": "exercises_deleted_at_idx",
+          "columns": [
+            "deleted_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -140,7 +162,22 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "workouts_updated_at_idx": {
+          "name": "workouts_updated_at_idx",
+          "columns": [
+            "updated_at"
+          ],
+          "isUnique": false
+        },
+        "workouts_deleted_at_idx": {
+          "name": "workouts_deleted_at_idx",
+          "columns": [
+            "deleted_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

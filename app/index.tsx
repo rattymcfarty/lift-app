@@ -9,7 +9,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>LIFT</Text>
-      <Text style={styles.subtitle}>Logevity Intelligent Fitness Trainer</Text>
+      <Text style={styles.subtitle}>Longevity Intelligent Fitness Trainer</Text>
       <Text style={styles.note}>Phase 0 scaffold — dashboard lands in P1.</Text>
       <StatusBar style="auto" />
     </View>

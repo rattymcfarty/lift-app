@@ -1,4 +1,4 @@
-# LIFT — Logevity Intelligent Fitness Trainer
+# LIFT — Longevity Intelligent Fitness Trainer
 
 Free, MIT-licensed, local-first workout tracker with longevity-focused
 programming. **No accounts, no servers — your training data never leaves your
