@@ -180,6 +180,12 @@ export default function Home(): JSX.Element {
                   />
                 </View>
               </View>
+              {/* P1b #10: personal records entry point. */}
+              <Button
+                title="Personal Records"
+                variant="secondary"
+                onPress={() => router.push('/prs')}
+              />
               {recent.length > 0 ? (
                 <Text
                   style={{

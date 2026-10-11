@@ -541,6 +541,8 @@ export async function logSet(input: {
       .select({
         weDeletedAt: workoutExercises.deletedAt,
         wDeletedAt: workouts.deletedAt,
+        exerciseId: workoutExercises.exerciseId,
+        workoutId: workoutExercises.workoutId,
       })
       .from(workoutExercises)
       .innerJoin(workouts, eq(workoutExercises.workoutId, workouts.id))
@@ -587,6 +589,40 @@ export async function logSet(input: {
       notes: input.notes,
     };
     const [row] = await db.insert(sets).values(values).returning({ id: sets.id });
+    // P1b #10 — PR auto-detection: a completed set can set max_weight / est_1rm
+    // records. Raw queries only here: withWriteLock must never be called
+    // re-entrantly (deadlock — see its doc comment). Detection is best-effort:
+    // a PR write must never break set logging (the set is primary data, the
+    // PR is derived and can be recomputed).
+    if (values.completed) {
+      const weightKg = values.weightKg ?? 0;
+      const reps = values.reps ?? 0;
+      if (weightKg > 0) {
+        try {
+          await maybeRecordPR({
+            exerciseId: parent.exerciseId,
+            workoutId: parent.workoutId,
+            setId: row.id,
+            kind: 'max_weight',
+            value: weightKg,
+            unit: 'kg',
+          });
+          if (reps > 0) {
+            const epley = Math.round(weightKg * (1 + reps / 30) * 100) / 100;
+            await maybeRecordPR({
+              exerciseId: parent.exerciseId,
+              workoutId: parent.workoutId,
+              setId: row.id,
+              kind: 'est_1rm',
+              value: epley,
+              unit: 'kg',
+            });
+          }
+        } catch (e) {
+          console.warn('[prs] auto-detection failed for set', row.id, e);
+        }
+      }
+    }
     return row.id;
   });
 }
@@ -1161,6 +1197,67 @@ export async function recordPR(input: {
     const [row] = await db.insert(personalRecords).values(values).returning({ id: personalRecords.id });
     return row.id;
   });
+}
+
+/**
+ * P1b #10 — records a PR row when `value` beats the standing best for
+ * (exerciseId, kind). Compares against MAX(value): PR rows are only written
+ * when beaten, so the max is the record regardless of tombstone history.
+ *
+ * Raw queries only — MUST be called from inside an existing withWriteLock
+ * (e.g. logSet's auto-detection). Calling the withWriteLock-wrapped
+ * recordPR/getLatestPR here would deadlock.
+ */
+async function maybeRecordPR(input: {
+  exerciseId: string;
+  workoutId?: string;
+  setId?: string;
+  kind: string;
+  value: number;
+  unit: string;
+}): Promise<void> {
+  const [best] = await db
+    .select({ value: personalRecords.value })
+    .from(personalRecords)
+    .where(
+      and(
+        eq(personalRecords.exerciseId, input.exerciseId),
+        eq(personalRecords.kind, input.kind),
+        isNull(personalRecords.deletedAt),
+      ),
+    )
+    .orderBy(desc(personalRecords.value))
+    .limit(1);
+  const prev = best?.value;
+  if (prev !== undefined && input.value <= prev) return;
+  await db.insert(personalRecords).values({
+    exerciseId: input.exerciseId,
+    kind: input.kind,
+    value: input.value,
+    unit: input.unit,
+    achievedAt: new Date(),
+    workoutId: input.workoutId,
+    setId: input.setId,
+    previousValue: prev,
+  });
+}
+
+export interface PRWithExercise extends PersonalRecord {
+  exerciseName: string;
+}
+
+/**
+ * P1b #10 — every live PR with its exercise name, newest first.
+ * Read-only; no write lock needed.
+ */
+export async function listPRsWithExercises(): Promise<PRWithExercise[]> {
+  const rows = await db
+    .select({ pr: personalRecords, exerciseName: exercises.name })
+    .from(personalRecords)
+    .innerJoin(exercises, eq(personalRecords.exerciseId, exercises.id))
+    .where(isNull(personalRecords.deletedAt))
+    .orderBy(desc(personalRecords.achievedAt));
+  return rows.map((r) => ({ ...r.pr, exerciseName: r.exerciseName }));
 }
 
 export async function getPRsForExercise(exerciseId: string): Promise<PersonalRecord[]> {
