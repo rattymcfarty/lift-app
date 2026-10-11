@@ -8,6 +8,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { useDrizzleMigrations } from '../src/db/useMigrations';
+import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary';
 import { ThemeProvider, useTheme } from '../src/theme';
 
 function AppShell() {
@@ -56,7 +57,11 @@ function AppShell() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <AppShell />
+      {/* Catches migration failures (and any other AppShell render crash)
+          and shows the themed recovery screen instead of a hard crash. */}
+      <MigrationErrorBoundary>
+        <AppShell />
+      </MigrationErrorBoundary>
     </ThemeProvider>
   );
 }

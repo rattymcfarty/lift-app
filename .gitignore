@@ -21,6 +21,25 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# env
+# env — all variants; keep .env.example committed as documentation
 .env
-.env.local
+.env.*
+!.env.example
+
+# signing & credentials — must never be committed
+*.keystore
+*.jks
+*.key
+*.p8
+*.p12
+*.pem
+*.mobileprovision
+*.provisionprofile
+credentials.json
+google-services.json
+GoogleService-Info.plist
+
+# native build outputs
+*.apk
+*.aab
+*.ipa
