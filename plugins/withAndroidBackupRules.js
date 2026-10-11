@@ -4,30 +4,41 @@
  * Privacy is a hard requirement for LIFT — the SQLite database must NEVER
  * leave the device via Google Drive auto-backup or device-to-device transfer.
  *
- * expo-sqlite stores databases in <filesDir>/SQLite/ (domain="file"), NOT in
- * the databases/ directory (domain="database") — see SQLiteModule.kt
- * defaultDatabaseDirectory. The whole SQLite/ directory is excluded, which
- * covers lift.db and every journal/WAL sidecar (-journal, -wal, -shm).
+ * IMPORTANT: expo-sqlite stores its databases under
+ * <filesDir>/SQLite/ (see SQLiteModule.kt), NOT in the "database" domain
+ * (context.getDatabasePath). Excluding domain="database" matches nothing —
+ * the rules must use domain="file" with the SQLite/ prefix.
  *
  * Writes two rule files (API <=30 uses fullBackupContent, API 31+ uses
  * dataExtractionRules) and points the <application> tag at both. Covers the
- * database in BOTH cloud-backup and device-transfer sections — a rule in
- * only one section leaks on new-phone setup.
+ * database plus its journal/WAL/SHM sidecars in BOTH cloud-backup and
+ * device-transfer sections — a rule in only one section leaks on new-phone
+ * setup.
  *
  * Idempotent under repeated `expo prebuild` runs.
  */
-const { withAndroidManifest, withDangerousMod } = require('@expo/config-plugins');
+const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
-// domain="file" is rooted at <filesDir>; expo-sqlite keeps lift.db in SQLite/.
-const excludes = [
-  '        <exclude domain="file" path="SQLite/"/>',
-  '        <exclude domain="file" path="SQLite/lift.db"/>',
-  '        <exclude domain="file" path="SQLite/lift.db-journal"/>',
-  '        <exclude domain="file" path="SQLite/lift.db-wal"/>',
-  '        <exclude domain="file" path="SQLite/lift.db-shm"/>',
-].join('\n');
+// expo-sqlite database location: filesDir/SQLite/lift.db (+ sidecars).
+// domain="file" addresses filesDir; the SQLite/ prefix is required.
+// The whole SQLite/ directory is excluded (belt and braces: the directory
+// rule plus explicit files, so a sidecar variation can never slip through).
+// NOTE: only SQLite/ is excluded. Anything else the app writes to filesDir
+// (e.g. a future in-app export file) WILL be included in OS backups —
+// that is the user's own cloud copy, and the export flow tells them so.
+const DB_DIR_EXCLUDE = `        <exclude domain="file" path="SQLite/"/>`;
+const DB_FILES = [
+  'SQLite/lift.db',
+  'SQLite/lift.db-journal',
+  'SQLite/lift.db-wal',
+  'SQLite/lift.db-shm',
+];
+
+const excludes = [DB_DIR_EXCLUDE]
+  .concat(DB_FILES.map((f) => `        <exclude domain="file" path="${f}"/>`))
+  .join('\n');
 
 const FULL_BACKUP_XML = `<?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
