@@ -33,7 +33,8 @@
     "ios": "expo run:ios",
     "start": "expo start",
     "typecheck": "tsc --noEmit",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test:calculators": "node scripts/test-calculators.mjs"
   },
   "version": "0.1.0"
 }

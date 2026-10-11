@@ -163,6 +163,23 @@ export default function Home(): JSX.Element {
                   />
                 </View>
               </View>
+              {/* P1b #9: measurements + calculators entry points. */}
+              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title="Measure"
+                    variant="secondary"
+                    onPress={() => router.push('/measure')}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title="Calculators"
+                    variant="secondary"
+                    onPress={() => router.push('/calculators')}
+                  />
+                </View>
+              </View>
               {recent.length > 0 ? (
                 <Text
                   style={{
