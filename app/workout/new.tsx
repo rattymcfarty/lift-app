@@ -1,7 +1,6 @@
 /**
  * Start a workout: name it, then either start blank or from a routine
- * template. Routine management UI lands in P1b — this screen only lists
- * existing templates (empty state when there are none).
+ * template. "Manage routines" opens the P1b routine builder.
  */
 
 import { useCallback, useRef, useState, type JSX } from 'react';
@@ -244,11 +243,16 @@ export default function NewWorkoutScreen(): JSX.Element {
             ListEmptyComponent={
               <EmptyState
                 message="No routines yet."
-                hint="Routine templates arrive in P1b — start blank for now."
+                hint="Build a template once, then start workouts from it in one tap."
               />
             }
           />
         )}
+        <Button
+          title="Manage routines"
+          variant="secondary"
+          onPress={() => router.push('/routines')}
+        />
       </View>
     </SafeAreaView>
   );
