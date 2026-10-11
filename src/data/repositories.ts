@@ -43,6 +43,7 @@ import {
   type Workout,
   type WorkoutExercise,
 } from '../db/schema';
+import { KB_MEDIA_URL_PREFIXES } from './backupFormat';
 
 export { decodePillars, encodePillars };
 export type { LongevityPillar };
@@ -146,11 +147,12 @@ function assertCategory(category: string): asserts category is ExerciseCategory 
  * https://github.com/rattymcfarty/lift-kb-anything/… nor
  * https://github.com/rattymcfarty/lift-kb/../../attacker/… can slip through.
  * P2 (KB app-side) owns this list — keep it in sync with the publishing setup.
+ *
+ * Single source of truth lives in ./backupFormat (pure, importable without
+ * the DB); the backup importer reuses it so crafted backup files can't
+ * smuggle in off-allowlist media hosts either.
  */
-const KB_MEDIA_PATH_PREFIXES = [
-  'https://github.com/rattymcfarty/lift-kb/',
-  'https://rattymcfarty.github.io/lift-kb/',
-];
+const KB_MEDIA_PATH_PREFIXES = [...KB_MEDIA_URL_PREFIXES];
 
 function assertKbMediaUrl(url: string | null | undefined, field: string): void {
   if (url == null || url === '') return;
@@ -267,7 +269,6 @@ function deletedExercisePlaceholder(id: string): Exercise {
     equipment: '[]',
     category: 'other',
     instructions: null,
-    longevityNotes: null,
     mediaImageUrl: null,
     mediaVideoUrl: null,
     longevityPillars: '[]',
@@ -811,7 +812,6 @@ export async function upsertKbExercise(input: {
   equipment?: string[];
   category?: ExerciseCategory;
   instructions?: string;
-  longevityNotes?: string;
   mediaImageUrl?: string;
   mediaVideoUrl?: string;
   longevityPillars?: LongevityPillar[];
@@ -830,7 +830,6 @@ export async function upsertKbExercise(input: {
       equipment: JSON.stringify(input.equipment ?? []),
       category: input.category ?? 'strength',
       instructions: input.instructions ?? null,
-      longevityNotes: input.longevityNotes ?? null,
       mediaImageUrl: input.mediaImageUrl ?? null,
       mediaVideoUrl: input.mediaVideoUrl ?? null,
       longevityPillars: encodePillars(input.longevityPillars ?? []),
