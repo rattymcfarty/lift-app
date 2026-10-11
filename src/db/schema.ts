@@ -204,6 +204,8 @@ export const exercises = sqliteTable(
     category: text('category').notNull().default('strength').$type<ExerciseCategory>(),
     /** KB prose cache (instructions / coaching cues). */
     instructions: text('instructions'),
+    /** KB longevity lens prose (why this movement matters for healthspan). */
+    longevityNotes: text('longevity_notes'),
     /** KB media URLs (lazy-loaded; cache the refs, not the bytes).
      * Privacy: media MUST come from the KB bundle's own hosting (same trust
      * domain as channel.json). Arbitrary per-exercise hosts would leak which
@@ -243,6 +245,11 @@ export const routines = sqliteTable(
     estimatedMinutes: integer('estimated_minutes'),
     /** R2: pillar tags this routine targets, JSON-encoded. */
     longevityPillars: text('longevity_pillars').notNull().default('[]'),
+    /** Permanent KB program-session ID when seeded from lift-kb (P2).
+     * Format: "<program-id>--session-<day>". NULL = user-created. */
+    kbId: text('kb_id').unique(),
+    /** KB bundle version that seeded/updated this row. */
+    kbVersion: text('kb_version'),
   },
   (t) => [
     index('routines_updated_at_idx').on(t.updatedAt),
@@ -349,3 +356,29 @@ export const personalRecords = sqliteTable(
 
 export type PersonalRecord = typeof personalRecords.$inferSelect;
 export type NewPersonalRecord = typeof personalRecords.$inferInsert;
+
+/* ------------------------------------------------------------------ */
+/* kb_sync_state — KB channel/bundle sync bookkeeping (P2).            */
+/* Single row (id = 'kb'). Tracks which bundle version was imported    */
+/* and when the channel was last checked, so the app can surface       */
+/* "update available" without re-fetching. Not user data — excluded    */
+/* from export (see backupDb.ts).                                      */
+/* ------------------------------------------------------------------ */
+
+export const kbSyncState = sqliteTable('kb_sync_state', {
+  /** Always 'kb' — single-row table. */
+  id: text('id').primaryKey(),
+  /** Channel URL the state was fetched from. */
+  channelUrl: text('channel_url'),
+  /** Bundle version last successfully imported (channel.json `latest`). */
+  bundleVersion: text('bundle_version'),
+  /** Bundle sha256 last verified (channel.json `sha256`). */
+  bundleSha256: text('bundle_sha256'),
+  /** Epoch ms of the last channel check (success or fail). */
+  checkedAt: integer('checked_at'),
+  /** Epoch ms of the last successful import. */
+  importedAt: integer('imported_at'),
+});
+
+export type KbSyncState = typeof kbSyncState.$inferSelect;
+export type NewKbSyncState = typeof kbSyncState.$inferInsert;

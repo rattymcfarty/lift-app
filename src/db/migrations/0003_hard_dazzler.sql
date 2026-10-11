@@ -1,0 +1,1 @@
+ALTER TABLE `exercises` ADD `longevity_notes` text;
