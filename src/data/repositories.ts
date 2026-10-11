@@ -267,6 +267,7 @@ function deletedExercisePlaceholder(id: string): Exercise {
     equipment: '[]',
     category: 'other',
     instructions: null,
+    longevityNotes: null,
     mediaImageUrl: null,
     mediaVideoUrl: null,
     longevityPillars: '[]',
@@ -810,6 +811,7 @@ export async function upsertKbExercise(input: {
   equipment?: string[];
   category?: ExerciseCategory;
   instructions?: string;
+  longevityNotes?: string;
   mediaImageUrl?: string;
   mediaVideoUrl?: string;
   longevityPillars?: LongevityPillar[];
@@ -828,6 +830,7 @@ export async function upsertKbExercise(input: {
       equipment: JSON.stringify(input.equipment ?? []),
       category: input.category ?? 'strength',
       instructions: input.instructions ?? null,
+      longevityNotes: input.longevityNotes ?? null,
       mediaImageUrl: input.mediaImageUrl ?? null,
       mediaVideoUrl: input.mediaVideoUrl ?? null,
       longevityPillars: encodePillars(input.longevityPillars ?? []),

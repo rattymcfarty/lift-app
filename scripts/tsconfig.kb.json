@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2020",
+    "rootDir": "../src"
+  },
+  "files": [
+    "../src/kb/types.ts",
+    "../src/kb/validate.ts",
+    "../src/kb/transform.ts",
+    "../src/kb/channel.ts",
+    "../src/kb/bundle.ts"
+  ]
+}

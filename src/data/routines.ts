@@ -202,3 +202,149 @@ export async function listRoutinesWithStats(): Promise<RoutineListItem[]> {
     }),
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* KB program import (P2)                                               */
+/* ------------------------------------------------------------------ */
+
+export interface KbRoutineItemInput {
+  /** KB exercise ID (== exercises.id for seeded rows — deterministic PK). */
+  exerciseKbId: string;
+  position: number;
+  targetSets?: number;
+  targetReps?: string;
+  targetWeightKg?: number;
+  targetRpe?: number;
+  targetRestSeconds?: number;
+  notes?: string;
+}
+
+/**
+ * Insert-or-update for KB program sessions (P2). Matches on the permanent
+ * kb_id ("<program-id>--session-<day>"); never duplicates a seeded routine.
+ * Never resurrects a user-deleted routine, and skips the write entirely when
+ * neither the routine fields nor the item set changed (avoids churning
+ * updated_at on every sync).
+ *
+ * Items are fully replaced on content change: old items are soft-deleted
+ * (tombstone discipline preserved) and the new set inserted. Positions are
+ * re-derived from the input order.
+ */
+export async function upsertKbRoutine(input: {
+  kbId: string;
+  kbVersion: string;
+  name: string;
+  notes?: string;
+  estimatedMinutes?: number;
+  longevityPillars?: LongevityPillar[];
+  items: KbRoutineItemInput[];
+}): Promise<string> {
+  assertIntNonNegative(input.estimatedMinutes, 'estimatedMinutes');
+  for (const item of input.items) {
+    assertRpe(item.targetRpe);
+    assertIntNonNegative(item.targetSets, 'targetSets');
+    assertIntNonNegative(item.targetRestSeconds, 'targetRestSeconds');
+    assertIntNonNegative(item.position, 'position');
+    if (!item.exerciseKbId) throw new RangeError('routine item missing exerciseKbId');
+  }
+  return withWriteLock(async () => {
+    const [existing] = await db
+      .select()
+      .from(routines)
+      .where(eq(routines.kbId, input.kbId))
+      .limit(1);
+
+    const routineValues = {
+      name: input.name,
+      notes: input.notes ?? null,
+      estimatedMinutes: input.estimatedMinutes ?? null,
+      longevityPillars: encodePillars(input.longevityPillars ?? []),
+      kbVersion: input.kbVersion,
+    };
+
+    const normalizeItems = (items: KbRoutineItemInput[]) =>
+      items.map((it) => ({
+        exerciseId: it.exerciseKbId,
+        position: it.position,
+        targetSets: it.targetSets ?? null,
+        targetReps: it.targetReps ?? null,
+        targetWeightKg: it.targetWeightKg ?? null,
+        targetRpe: it.targetRpe ?? null,
+        targetRestSeconds: it.targetRestSeconds ?? null,
+        notes: it.notes ?? null,
+      }));
+
+    if (existing) {
+      // Never rewrite tombstones: a user-deleted routine stays deleted.
+      if (existing.deletedAt !== null) return existing.id;
+      const liveItems = await db
+        .select()
+        .from(routineExercises)
+        .where(and(eq(routineExercises.routineId, existing.id), isNull(routineExercises.deletedAt)))
+        .orderBy(routineExercises.position);
+      const unchangedRoutine = (Object.keys(routineValues) as (keyof typeof routineValues)[]).every(
+        (k) => (existing as unknown as Record<string, unknown>)[k] === routineValues[k],
+      );
+      const unchangedItems =
+        JSON.stringify(
+          liveItems.map((r) => ({
+            exerciseId: r.exerciseId,
+            position: r.position,
+            targetSets: r.targetSets,
+            targetReps: r.targetReps,
+            targetWeightKg: r.targetWeightKg,
+            targetRpe: r.targetRpe,
+            targetRestSeconds: r.targetRestSeconds,
+            notes: r.notes,
+          })),
+        ) === JSON.stringify(normalizeItems(input.items));
+      if (unchangedRoutine && unchangedItems) return existing.id;
+      await db.update(routines).set(routineValues).where(eq(routines.id, existing.id));
+      await replaceRoutineItems(existing.id, normalizeItems(input.items));
+      return existing.id;
+    }
+
+    // Deterministic PK: the KB session id IS the row id (same reasoning as
+    // upsertKbExercise — avoids FK remapping in any future sync layer).
+    const [row] = await db
+      .insert(routines)
+      .values({ id: input.kbId, kbId: input.kbId, ...routineValues })
+      .returning({ id: routines.id });
+    await replaceRoutineItems(row.id, normalizeItems(input.items));
+    return row.id;
+  });
+}
+
+/** Soft-delete current items, insert the new set. Caller holds the write lock. */
+async function replaceRoutineItems(
+  routineId: string,
+  items: Array<{
+    exerciseId: string;
+    position: number;
+    targetSets: number | null;
+    targetReps: string | null;
+    targetWeightKg: number | null;
+    targetRpe: number | null;
+    targetRestSeconds: number | null;
+    notes: string | null;
+  }>,
+): Promise<void> {
+  const now = new Date();
+  await db
+    .update(routineExercises)
+    .set({ deletedAt: now, updatedAt: now })
+    .where(and(eq(routineExercises.routineId, routineId), isNull(routineExercises.deletedAt)));
+  for (const item of items) {
+    await db.insert(routineExercises).values({
+      routineId,
+      exerciseId: item.exerciseId,
+      position: item.position,
+      targetSets: item.targetSets,
+      targetReps: item.targetReps,
+      targetWeightKg: item.targetWeightKg,
+      targetRpe: item.targetRpe,
+      targetRestSeconds: item.targetRestSeconds,
+      notes: item.notes,
+    });
+  }
+}
