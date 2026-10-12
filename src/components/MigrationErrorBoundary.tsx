@@ -275,20 +275,34 @@ export class MigrationErrorBoundary extends Component<
 > {
   state: BoundaryState = { error: null, nested: false };
 
+  /**
+   * True once this boundary has caught an error. An instance field rather
+   * than state: getDerivedStateFromError() sets state.error during the
+   * render phase, before componentDidCatch() runs in the commit phase, so
+   * reading this.state.error in componentDidCatch cannot distinguish a
+   * first error from a nested one.
+   */
+  private caughtOnce = false;
+
   static getDerivedStateFromError(error: unknown): Partial<BoundaryState> {
     return { error };
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error('[lift] migration boundary caught:', error, info.componentStack);
-    if (this.state.error) {
+    if (this.caughtOnce) {
       // The recovery screen threw too — stop recursing and show UI that
       // cannot throw (no theme hooks, no callbacks, hard-coded colors).
       this.setState({ nested: true });
+    } else {
+      this.caughtOnce = true;
     }
   }
 
   private retry = () => {
+    // A later unrelated error after a successful retry must not be
+    // misclassified as a nested error, so reset the flag here too.
+    this.caughtOnce = false;
     this.setState({ error: null, nested: false });
   };
 
