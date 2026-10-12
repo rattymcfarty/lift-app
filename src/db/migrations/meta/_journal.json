@@ -57,6 +57,13 @@
       "when": 1791809028179,
       "tag": "0007_white_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791817335717,
+      "tag": "0008_odd_spectrum",
+      "breakpoints": true
     }
   ]
 }

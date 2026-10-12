@@ -324,6 +324,32 @@ export type Measurement = typeof measurements.$inferSelect;
 export type NewMeasurement = typeof measurements.$inferInsert;
 
 /* ------------------------------------------------------------------ */
+/* cardio_logs — manual cardio minutes (P4b longevity pillar)          */
+/* The v1 pillar model is strength (derived from training) + cardio    */
+/* (manual entry). One row per cardio session the user logs.           */
+/* ------------------------------------------------------------------ */
+
+export const cardioLogs = sqliteTable(
+  'cardio_logs',
+  {
+    ...syncBase(),
+    minutes: integer('minutes').notNull(),
+    /** Free-form: 'run', 'bike', 'swim', 'walk', ... */
+    activity: text('activity'),
+    loggedAt: integer('logged_at', { mode: 'timestamp_ms' }).notNull(),
+    notes: text('notes'),
+  },
+  (t) => [
+    index('cardio_logs_logged_at_idx').on(t.loggedAt),
+    index('cardio_logs_updated_at_idx').on(t.updatedAt),
+    index('cardio_logs_deleted_at_idx').on(t.deletedAt),
+  ],
+);
+
+export type CardioLog = typeof cardioLogs.$inferSelect;
+export type NewCardioLog = typeof cardioLogs.$inferInsert;
+
+/* ------------------------------------------------------------------ */
 /* personal_records — PRs per exercise (P1b). kind examples:           */
 /* est_1rm, max_weight, max_reps, max_volume, longest_distance,        */
 /* fastest_time. value is in canonical units for the kind.             */
