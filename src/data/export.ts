@@ -38,7 +38,7 @@ function appVersion(): string {
 /**
  * Serializes the ENTIRE user database — including tombstones, so a restore
  * reproduces deletes instead of resurrecting them. Reads run inside a single
- * transaction so the eight table reads are a consistent snapshot (a set
+ * transaction so the table reads are a consistent snapshot (a set
  * logged mid-export can't produce orphans). Read-only; takes no write lock.
  */
 export async function buildBackupDocument(): Promise<ValidatedBackup> {

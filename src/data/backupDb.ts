@@ -8,7 +8,10 @@ import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import {
   exercises,
   measurements,
+  parqScreenings,
   personalRecords,
+  programEnrollments,
+  programSessionStates,
   routineExercises,
   routines,
   sets,
@@ -26,4 +29,7 @@ export const BACKUP_DB_TABLES: Record<BackupTableName, SQLiteTable> = {
   routine_exercises: routineExercises,
   measurements,
   personal_records: personalRecords,
+  program_enrollments: programEnrollments,
+  parq_screenings: parqScreenings,
+  program_session_states: programSessionStates,
 };

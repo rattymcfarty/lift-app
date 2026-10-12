@@ -33,6 +33,7 @@ function doc(over = {}) {
     tables: {
       workouts: [], workout_exercises: [], sets: [], exercises: [],
       routines: [], routine_exercises: [], measurements: [], personal_records: [],
+      program_enrollments: [], parq_screenings: [], program_session_states: [],
       ...over.tables,
     },
     ...over,
@@ -40,7 +41,7 @@ function doc(over = {}) {
 }
 function emptyIndex() {
   const m = () => new Map(); const s = () => new Set();
-  const tables = ['workouts', 'workout_exercises', 'sets', 'exercises', 'routines', 'routine_exercises', 'measurements', 'personal_records'];
+  const tables = ['workouts', 'workout_exercises', 'sets', 'exercises', 'routines', 'routine_exercises', 'measurements', 'personal_records', 'program_enrollments', 'parq_screenings', 'program_session_states'];
   const rows = {}, liveIds = {};
   for (const t of tables) { rows[t] = m(); liveIds[t] = s(); }
   return { rows, liveIds, liveChildren: new Map() };
@@ -394,6 +395,228 @@ function setRow(over = {}) {
   eq(updates.length, 2, 'swap: both updates apply');
   eq(actions.filter(a => a.kind === 'tombstone').length, 0, 'swap: nothing tombstoned');
   ok(actions.every(a => a.kind !== 'skip'), 'swap: nothing skipped');
+}
+
+/* ---------- P3 tables: validation ---------- */
+function enrollmentRow(over = {}) {
+  return {
+    id: 'en1', createdAt: T0, updatedAt: T0, deletedAt: null,
+    programId: 'prog-1', programKbId: null, kbVersion: null,
+    snapshot: '{"kind":"linear"}', enrolledAt: T0, status: 'active',
+    currentWeek: 1, currentDay: 1, longevityPillars: '[]',
+    progressionState: '{}', lastAdvancedWorkoutId: null,
+    ...over,
+  };
+}
+function parqRow(over = {}) {
+  return {
+    id: 'pq1', createdAt: T0, updatedAt: T0, deletedAt: null,
+    completedAt: T0, anyYes: false, answersJson: '[false,false,false,false,false,false,false]',
+    clearanceAcknowledgedAt: null,
+    ...over,
+  };
+}
+function sessionRow(over = {}) {
+  return {
+    id: 'ss1', createdAt: T0, updatedAt: T0, deletedAt: null,
+    enrollmentId: 'en1', week: 1, day: 1, routineKbId: 'prog-1--session-1',
+    scheduledDate: T0, status: 'scheduled', workoutId: null, resolvedAt: null,
+    ...over,
+  };
+}
+{
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow()],
+    parq_screenings: [parqRow()],
+    program_session_states: [sessionRow()],
+  } }));
+  ok(v.valid, 'P3 rows validate');
+}
+{
+  const d = doc({ tables: { ...doc().tables, program_enrollments: [enrollmentRow({ status: 'flying' })] } });
+  const r = validateBackup(d);
+  ok(!r.valid && r.errors.some(e => e.message.includes('enrollment status')), 'bad enrollment status rejected');
+}
+{
+  const d = doc({ tables: { ...doc().tables, program_session_states: [sessionRow({ status: 'napping' })] } });
+  const r = validateBackup(d);
+  ok(!r.valid && r.errors.some(e => e.message.includes('session status')), 'bad session status rejected');
+}
+{
+  const d = doc({ tables: { ...doc().tables, program_enrollments: [enrollmentRow({ snapshot: null })] } });
+  ok(!validateBackup(d).valid, 'missing enrollment required field rejected');
+}
+{
+  const d = doc({ tables: { ...doc().tables, program_session_states: [sessionRow({ week: 'one' })] } });
+  const r = validateBackup(d);
+  ok(!r.valid && r.errors.some(e => e.message.includes('integer')), 'string week rejected');
+}
+{
+  const d = doc({ tables: { ...doc().tables, parq_screenings: [parqRow({ anyYes: 'no' })] } });
+  const r = validateBackup(d);
+  ok(!r.valid && r.errors.some(e => e.message.includes('boolean')), 'string anyYes rejected');
+}
+{
+  const d = doc({ tables: { ...doc().tables, parq_screenings: [parqRow({ completedAt: 'yesterday' })] } });
+  ok(!validateBackup(d).valid, 'bad parq date rejected');
+}
+
+/* ---------- P3 tables: plan basics ---------- */
+{
+  // all three insert into an empty DB
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow()],
+    parq_screenings: [parqRow()],
+    program_session_states: [sessionRow()],
+  } }));
+  const actions = planImport(v.backup, emptyIndex());
+  const byTable = {};
+  for (const a of actions) { (byTable[a.table] = byTable[a.table] || []).push(a.kind); }
+  eq(byTable.program_enrollments, ['insert'], 'enrollment inserts');
+  eq(byTable.parq_screenings, ['insert'], 'parq inserts');
+  eq(byTable.program_session_states, ['insert'], 'session state inserts');
+  const order = actions.map(a => a.table);
+  ok(order.indexOf('program_enrollments') < order.indexOf('program_session_states'), 'enrollment planned before its session states');
+}
+{
+  // session state without its enrollment => orphaned
+  const v = validateBackup(doc({ tables: { ...doc().tables, program_session_states: [sessionRow()] } }));
+  const actions = planImport(v.backup, emptyIndex());
+  eq(actions[0].reason, 'orphaned', 'session state without enrollment skipped');
+}
+{
+  // session state with tombstoned enrollment => orphaned
+  const idx = emptyIndex();
+  idx.rows.program_enrollments.set('en1', localRef({ updatedAtMs: ms(T1), deletedAtMs: ms(T1) }));
+  const v = validateBackup(doc({ tables: { ...doc().tables, program_session_states: [sessionRow({ updatedAt: T2 })] } }));
+  const actions = planImport(v.backup, idx);
+  eq(actions[0].reason, 'orphaned', 'session state of tombstoned enrollment skipped');
+}
+{
+  // session state with null workoutId (allowed) inserts fine
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en1', {});
+  const v = validateBackup(doc({ tables: { ...doc().tables, program_session_states: [sessionRow()] } }));
+  const actions = planImport(v.backup, idx);
+  eq(actions[0].kind, 'insert', 'session state with null workoutId inserts');
+}
+{
+  // session state with dangling workoutId => orphaned
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en1', {});
+  const v = validateBackup(doc({ tables: { ...doc().tables, program_session_states: [sessionRow({ workoutId: 'ghost' })] } }));
+  const actions = planImport(v.backup, idx);
+  eq(actions[0].reason, 'orphaned', 'session state with dangling workoutId skipped');
+}
+
+/* ---------- P3: active-enrollment uniqueness ---------- */
+{
+  // local active E-old (T0), incoming active E-new (T2) same program => newer wins, loser tombstoned WITH session states
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en-old', { updatedAtMs: ms(T0), scopeKey: 'prog-1' });
+  addLocal(idx, 'program_session_states', 'ss-old', {
+    scopeKey: 'en-old:1:1',
+    parents: { [KC('program_session_states', 'enrollmentId')]: 'en-old' },
+  });
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow({ id: 'en-new', updatedAt: T2 })],
+    program_session_states: [sessionRow({ id: 'ss-new', enrollmentId: 'en-new', updatedAt: T2 })],
+  } }));
+  const actions = planImport(v.backup, idx);
+  const byKind = {};
+  for (const a of actions) { (byKind[a.kind] = byKind[a.kind] || []).push(a.id); }
+  ok(byKind.insert && byKind.insert.includes('en-new'), 'newer active enrollment inserted');
+  ok(byKind.tombstone && byKind.tombstone.includes('en-old'), 'older active enrollment tombstoned');
+  ok(byKind.tombstone && byKind.tombstone.includes('ss-old'), 'loser session states cascade-tombstoned');
+  ok(byKind.insert && byKind.insert.includes('ss-new'), 'winner session states inserted');
+}
+{
+  // incoming active OLDER than local active => incoming skipped, local untouched
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en-local', { updatedAtMs: ms(T2), scopeKey: 'prog-1' });
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow({ id: 'en-backup', updatedAt: T0 })],
+  } }));
+  const actions = planImport(v.backup, idx);
+  ok(actions.some(a => a.kind === 'skip' && a.id === 'en-backup' && a.reason === 'conflict'), 'older active enrollment skipped as conflict');
+  eq(actions.filter(a => a.kind === 'tombstone').length, 0, 'no tombstone when incoming loses');
+}
+{
+  // completed enrollments never collide: local completed + incoming active same program => both live
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en-done', { updatedAtMs: ms(T2), scopeKey: null });
+  idx.rows.program_enrollments.get('en-done').scopeKey = null; // completed: not in active scope
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow({ id: 'en-new', status: 'active', updatedAt: T2 })],
+  } }));
+  // simulate the completed status by patching the local ref's scope out (inScope=false)
+  const actions = planImport(v.backup, idx);
+  ok(actions.some(a => a.kind === 'insert' && a.id === 'en-new'), 'active enrollment inserts alongside completed');
+  eq(actions.filter(a => a.kind === 'tombstone').length, 0, 'completed enrollment untouched');
+}
+{
+  // two active enrollments for DIFFERENT programs => no conflict
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [
+      enrollmentRow({ id: 'en-a', programId: 'prog-a' }),
+      enrollmentRow({ id: 'en-b', programId: 'prog-b' }),
+    ],
+  } }));
+  const actions = planImport(v.backup, emptyIndex());
+  eq(actions.filter(a => a.kind === 'insert').length, 2, 'different programs do not conflict');
+}
+
+/* ---------- P3: session (week, day) composite uniqueness ---------- */
+{
+  // local live (en1,1,1) older; incoming newer at (en1,1,1) => incoming wins
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en1', {});
+  addLocal(idx, 'program_session_states', 'ss-old', {
+    updatedAtMs: ms(T0), scopeKey: 'en1:1:1',
+    parents: { [KC('program_session_states', 'enrollmentId')]: 'en1' },
+  });
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_session_states: [sessionRow({ id: 'ss-new', updatedAt: T2 })],
+  } }));
+  const actions = planImport(v.backup, idx);
+  const byKind = {};
+  for (const a of actions) { (byKind[a.kind] = byKind[a.kind] || []).push(a.id); }
+  ok(byKind.insert && byKind.insert.includes('ss-new'), 'newer session state inserted');
+  ok(byKind.tombstone && byKind.tombstone.includes('ss-old'), 'older session state tombstoned');
+}
+{
+  // same week, different day => no conflict
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en1', {});
+  addLocal(idx, 'program_session_states', 'ss-d1', {
+    updatedAtMs: ms(T0), scopeKey: 'en1:1:1',
+    parents: { [KC('program_session_states', 'enrollmentId')]: 'en1' },
+  });
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_session_states: [sessionRow({ id: 'ss-d2', day: 2, updatedAt: T2 })],
+  } }));
+  const actions = planImport(v.backup, idx);
+  ok(actions.some(a => a.kind === 'insert' && a.id === 'ss-d2'), 'different day inserts cleanly');
+  eq(actions.filter(a => a.kind === 'tombstone').length, 0, 'no conflict across days');
+}
+{
+  // enrollment tombstone cascades to its session states
+  const idx = emptyIndex();
+  addLocal(idx, 'program_enrollments', 'en1', { scopeKey: 'prog-1' });
+  addLocal(idx, 'program_session_states', 'ss1', {
+    scopeKey: 'en1:1:1',
+    parents: { [KC('program_session_states', 'enrollmentId')]: 'en1' },
+  });
+  addLocal(idx, 'program_session_states', 'ss2', {
+    scopeKey: 'en1:1:2',
+    parents: { [KC('program_session_states', 'enrollmentId')]: 'en1' },
+  });
+  const v = validateBackup(doc({ tables: { ...doc().tables,
+    program_enrollments: [enrollmentRow({ updatedAt: T2, deletedAt: T2 })],
+  } }));
+  const actions = planImport(v.backup, idx);
+  const tombs = actions.filter(a => a.kind === 'tombstone').map(a => a.id).sort();
+  eq(tombs, ['ss1', 'ss2'], 'enrollment tombstone cascades to session states');
 }
 
 /* ---------- summary ---------- */

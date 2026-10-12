@@ -14,7 +14,9 @@
  *     exportedAt: "<ISO-8601>",
  *     tables: { workouts: [...], workout_exercises: [...], sets: [...],
  *               exercises: [...], routines: [...], routine_exercises: [...],
- *               measurements: [...], personal_records: [...] }
+ *               measurements: [...], personal_records: [...],
+ *               program_enrollments: [...], parq_screenings: [...],
+ *               program_session_states: [...] }
  *   }
  *
  * Row keys are the Drizzle camelCase field names; dates are ISO-8601 strings.
@@ -48,6 +50,9 @@ export const BACKUP_TABLES = [
   'routine_exercises',
   'measurements',
   'personal_records',
+  'program_enrollments',
+  'parq_screenings',
+  'program_session_states',
 ] as const;
 export type BackupTableName = (typeof BACKUP_TABLES)[number];
 
@@ -56,9 +61,12 @@ export const BACKUP_TABLE_ORDER: readonly BackupTableName[] = [
   'exercises',
   'routines',
   'measurements',
+  'parq_screenings',
+  'program_enrollments',
   'workouts',
   'routine_exercises',
   'workout_exercises',
+  'program_session_states',
   'sets',
   'personal_records',
 ];
@@ -88,18 +96,46 @@ const FK_DEPS: Record<BackupTableName, readonly FkDep[]> = {
     { column: 'workoutId', parentTable: 'workouts', nullable: true },
     { column: 'setId', parentTable: 'sets', nullable: true },
   ],
+  program_enrollments: [],
+  parq_screenings: [],
+  program_session_states: [
+    { column: 'enrollmentId', parentTable: 'program_enrollments', nullable: false },
+    { column: 'workoutId', parentTable: 'workouts', nullable: true },
+  ],
 };
 
 interface PositionScope {
   parentColumn: string;
-  positionColumn: string;
+  /**
+   * Position column(s) within the parent scope. A single column name for the
+   * classic (parent, position) scopes; an array for composite keys
+   * (program_session_states is unique on enrollmentId + week + day); null
+   * for a parent-only scope (program_enrollments allows one ACTIVE
+   * enrollment per program).
+   */
+  positionColumn: string | readonly string[] | null;
+  /**
+   * Extra predicate: the row participates in the scope only when this
+   * returns true. Models partial unique indexes — the enrollment scope
+   * covers only active rows (completed/abandoned enrollments never collide).
+   */
+  inScope?: (row: Record<string, unknown>) => boolean;
 }
 
-/** Tables with a partial unique index on (parent, position) over live rows. */
+/** Tables with a partial unique index over live rows. */
 const POSITION_SCOPES: Partial<Record<BackupTableName, PositionScope>> = {
   workout_exercises: { parentColumn: 'workoutId', positionColumn: 'position' },
   routine_exercises: { parentColumn: 'routineId', positionColumn: 'position' },
   sets: { parentColumn: 'workoutExerciseId', positionColumn: 'setNumber' },
+  program_enrollments: {
+    parentColumn: 'programId',
+    positionColumn: null,
+    inScope: (row) => row['status'] === 'active',
+  },
+  program_session_states: {
+    parentColumn: 'enrollmentId',
+    positionColumn: ['week', 'day'],
+  },
 };
 
 /** NOT NULL columns (camelCase). deletedAt is nullable on every table. */
@@ -115,6 +151,15 @@ const REQUIRED_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: ['id', 'routineId', 'exerciseId', 'position', 'createdAt', 'updatedAt'],
   measurements: ['id', 'type', 'value', 'unit', 'measuredAt', 'createdAt', 'updatedAt'],
   personal_records: ['id', 'exerciseId', 'kind', 'value', 'unit', 'achievedAt', 'createdAt', 'updatedAt'],
+  program_enrollments: [
+    'id', 'programId', 'snapshot', 'enrolledAt', 'status', 'currentWeek',
+    'currentDay', 'longevityPillars', 'progressionState', 'createdAt', 'updatedAt',
+  ],
+  parq_screenings: ['id', 'completedAt', 'anyYes', 'answersJson', 'createdAt', 'updatedAt'],
+  program_session_states: [
+    'id', 'enrollmentId', 'week', 'day', 'routineKbId', 'scheduledDate',
+    'status', 'createdAt', 'updatedAt',
+  ],
 };
 
 /** Every column the importer may write (unknown keys are stripped). */
@@ -127,10 +172,23 @@ export const TABLE_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'routineId', 'exerciseId', 'position', 'targetSets', 'targetReps', 'targetWeightKg', 'targetRpe', 'targetRestSeconds', 'notes'],
   measurements: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'type', 'value', 'unit', 'measuredAt', 'notes'],
   personal_records: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'exerciseId', 'kind', 'value', 'unit', 'achievedAt', 'workoutId', 'setId', 'previousValue'],
+  program_enrollments: [
+    'id', 'createdAt', 'updatedAt', 'deletedAt', 'programId', 'programKbId',
+    'kbVersion', 'snapshot', 'enrolledAt', 'status', 'currentWeek', 'currentDay',
+    'longevityPillars', 'progressionState', 'lastAdvancedWorkoutId',
+  ],
+  parq_screenings: [
+    'id', 'createdAt', 'updatedAt', 'deletedAt', 'completedAt', 'anyYes',
+    'answersJson', 'clearanceAcknowledgedAt',
+  ],
+  program_session_states: [
+    'id', 'createdAt', 'updatedAt', 'deletedAt', 'enrollmentId', 'week', 'day',
+    'routineKbId', 'scheduledDate', 'status', 'workoutId', 'resolvedAt',
+  ],
 };
 
 /** Columns that must be Date objects on write (ISO strings in the document). */
-const DATE_FIELDS: Record<BackupTableName, readonly string[]> = {
+export const DATE_FIELDS: Record<BackupTableName, readonly string[]> = {
   workouts: ['createdAt', 'updatedAt', 'deletedAt', 'startedAt', 'endedAt'],
   workout_exercises: ['createdAt', 'updatedAt', 'deletedAt'],
   sets: ['createdAt', 'updatedAt', 'deletedAt'],
@@ -139,6 +197,9 @@ const DATE_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: ['createdAt', 'updatedAt', 'deletedAt'],
   measurements: ['createdAt', 'updatedAt', 'deletedAt', 'measuredAt'],
   personal_records: ['createdAt', 'updatedAt', 'deletedAt', 'achievedAt'],
+  program_enrollments: ['createdAt', 'updatedAt', 'deletedAt', 'enrolledAt'],
+  parq_screenings: ['createdAt', 'updatedAt', 'deletedAt', 'completedAt', 'clearanceAcknowledgedAt'],
+  program_session_states: ['createdAt', 'updatedAt', 'deletedAt', 'scheduledDate', 'resolvedAt'],
 };
 
 export function isDateField(table: BackupTableName, field: string): boolean {
@@ -160,6 +221,9 @@ const INT_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: ['position'],
   measurements: [],
   personal_records: [],
+  program_enrollments: ['currentWeek', 'currentDay'],
+  parq_screenings: [],
+  program_session_states: ['week', 'day'],
 };
 
 const NUMBER_FIELDS: Record<BackupTableName, readonly string[]> = {
@@ -171,9 +235,12 @@ const NUMBER_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: ['targetSets', 'targetWeightKg', 'targetRpe', 'targetRestSeconds'],
   measurements: ['value'],
   personal_records: ['value', 'previousValue'],
+  program_enrollments: [],
+  parq_screenings: [],
+  program_session_states: [],
 };
 
-const BOOL_FIELDS: Record<BackupTableName, readonly string[]> = {
+export const BOOL_FIELDS: Record<BackupTableName, readonly string[]> = {
   workouts: [],
   workout_exercises: [],
   sets: ['completed'],
@@ -182,9 +249,18 @@ const BOOL_FIELDS: Record<BackupTableName, readonly string[]> = {
   routine_exercises: [],
   measurements: [],
   personal_records: [],
+  program_enrollments: [],
+  parq_screenings: ['anyYes'],
+  program_session_states: [],
 };
 
 const EXERCISE_CATEGORIES = ['strength', 'cardio', 'mobility', 'balance', 'other'] as const;
+
+/** program_enrollments.status values (schema: active | completed | abandoned). */
+const ENROLLMENT_STATUSES = ['active', 'completed', 'abandoned'] as const;
+
+/** program_session_states.status values (see SESSION_STATUSES in schema.ts). */
+const SESSION_STATUSES = ['scheduled', 'done', 'missed', 'skipped'] as const;
 
 /** Cascade edges for tombstones: parent -> live children that must die with it. */
 const CASCADE_EDGES: Record<BackupTableName, readonly { childTable: BackupTableName; parentColumn: string }[]> = {
@@ -202,6 +278,9 @@ const CASCADE_EDGES: Record<BackupTableName, readonly { childTable: BackupTableN
   routine_exercises: [],
   measurements: [],
   personal_records: [],
+  program_enrollments: [{ childTable: 'program_session_states', parentColumn: 'enrollmentId' }],
+  parq_screenings: [],
+  program_session_states: [],
 };
 
 export function getCascadeEdges(
@@ -218,14 +297,30 @@ export function getCascadeEdges(
 export function getScopeKey(table: BackupTableName, row: Record<string, unknown>): string | null {
   const scope = POSITION_SCOPES[table];
   if (!scope) return null;
+  return scopeKeyFor(scope, row);
+}
+
+/**
+ * Computes the scope key for a row under a PositionScope, or null when the
+ * row doesn't participate (tombstoned, fails the partial-index predicate,
+ * or has a malformed key). Shared by getScopeKey (DB rows) and normalizeRow
+ * (backup rows) so both sides agree on key shape.
+ */
+function scopeKeyFor(scope: PositionScope, row: Record<string, unknown>): string | null {
   const deleted = row['deletedAt'];
   if (deleted !== null && deleted !== undefined) return null;
+  if (scope.inScope && !scope.inScope(row)) return null;
   const parentId = row[scope.parentColumn];
-  const position = row[scope.positionColumn];
-  if (typeof parentId === 'string' && typeof position === 'number') {
-    return `${parentId}:${position}`;
+  if (typeof parentId !== 'string') return null;
+  if (scope.positionColumn === null) return parentId;
+  const cols = Array.isArray(scope.positionColumn) ? scope.positionColumn : [scope.positionColumn];
+  const parts: string[] = [];
+  for (const col of cols) {
+    const p = row[col];
+    if (typeof p !== 'number') return null;
+    parts.push(String(p));
   }
-  return null;
+  return `${parentId}:${parts.join(':')}`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -392,6 +487,20 @@ export function validateBackup(doc: unknown): ValidationResult {
             return;
           }
         }
+        if (table === 'program_enrollments') {
+          const status = row['status'];
+          if (!(ENROLLMENT_STATUSES as readonly string[]).includes(status as string)) {
+            errors.push({ table, index, message: `invalid enrollment status: ${JSON.stringify(status)}` });
+            return;
+          }
+        }
+        if (table === 'program_session_states') {
+          const status = row['status'];
+          if (!(SESSION_STATUSES as readonly string[]).includes(status as string)) {
+            errors.push({ table, index, message: `invalid session status: ${JSON.stringify(status)}` });
+            return;
+          }
+        }
         clean.push(row);
       });
       rowsByTable[table] = clean;
@@ -460,14 +569,7 @@ function normalizeRow(table: BackupTableName, row: Record<string, unknown>): Nor
   const scope = POSITION_SCOPES[table];
   const deletedAtMs = parseDateMs(row['deletedAt']);
   const updatedAtMs = parseDateMs(row['updatedAt']) ?? 0;
-  let scopeKey: string | null = null;
-  if (scope && deletedAtMs === null) {
-    const parentId = row[scope.parentColumn];
-    const position = row[scope.positionColumn];
-    if (typeof parentId === 'string' && typeof position === 'number') {
-      scopeKey = `${parentId}:${position}`;
-    }
-  }
+  const scopeKey = scope && deletedAtMs === null ? scopeKeyFor(scope, row) : null;
   // Whitelist fields so a hand-edited document can't smuggle unknown columns
   // into the INSERT/UPDATE.
   const fields: Record<string, unknown> = {};
@@ -518,6 +620,9 @@ export function planImport(backup: ValidatedBackup, local: LocalIndex): ImportAc
     routine_exercises: new Set(local.liveIds.routine_exercises),
     measurements: new Set(local.liveIds.measurements),
     personal_records: new Set(local.liveIds.personal_records),
+    program_enrollments: new Set(local.liveIds.program_enrollments),
+    parq_screenings: new Set(local.liveIds.parq_screenings),
+    program_session_states: new Set(local.liveIds.program_session_states),
   };
   // Local ids already planned for death (tombstone updates + cascades).
   // Children are always in later tables than their parents, so by the time a
@@ -531,6 +636,9 @@ export function planImport(backup: ValidatedBackup, local: LocalIndex): ImportAc
     routine_exercises: new Set(),
     measurements: new Set(),
     personal_records: new Set(),
+    program_enrollments: new Set(),
+    parq_screenings: new Set(),
+    program_session_states: new Set(),
   };
 
   const markDead = (table: BackupTableName, id: string): void => {
@@ -782,6 +890,9 @@ export function summarizePlan(actions: ImportAction[]): ImportSummary {
     routine_exercises: emptyCounts(),
     measurements: emptyCounts(),
     personal_records: emptyCounts(),
+    program_enrollments: emptyCounts(),
+    parq_screenings: emptyCounts(),
+    program_session_states: emptyCounts(),
   } as Record<BackupTableName, TableImportCounts>;
   for (const a of actions) {
     const c = tables[a.table];

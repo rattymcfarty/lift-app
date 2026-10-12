@@ -39,6 +39,7 @@
     "typecheck": "tsc --noEmit",
     "web": "expo start --web",
     "test:backup": "node scripts/test-backup.mjs",
+    "test:backup:roundtrip": "node scripts/test-backup-roundtrip.mjs",
     "test:calculators": "node scripts/test-calculators.mjs",
     "test:programs": "node scripts/test-programs.mjs",
     "test:progression": "node scripts/test-progression.mjs"
