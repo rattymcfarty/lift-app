@@ -272,6 +272,7 @@ function deletedExercisePlaceholder(id: string): Exercise {
     mediaImageUrl: null,
     mediaVideoUrl: null,
     longevityPillars: '[]',
+    longevityNotes: null,
     isCustom: false,
     kbId: null,
     kbVersion: null,
