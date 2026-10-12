@@ -4,16 +4,60 @@
 // dev builds autolink it. Must stay first.
 import 'react-native-get-random-values';
 
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { useDrizzleMigrations } from '../src/db/useMigrations';
+import { importSnapshotOnFirstLaunch } from '../src/kb';
 import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary';
 import { ThemeProvider, useTheme } from '../src/theme';
+
+/**
+ * P5: cap OS dynamic-type scaling at 1.3x app-wide. React Native respects the
+ * OS text-size setting by default (good for accessibility), but uncapped
+ * scaling breaks fixed layouts — buttons overflow, rows clip, charts
+ * overlap. 1.3x keeps text readable for low-vision users without breaking
+ * any screen (verified against the dashboard, workout logging, and charts).
+ * Set once here so every Text/TextInput inherits it; individual components
+ * can still override per-instance when a design truly needs it.
+ */
+if ((Text as unknown as { defaultProps?: object }).defaultProps == null) {
+  (Text as unknown as { defaultProps: object }).defaultProps = {};
+}
+Object.assign((Text as unknown as { defaultProps: object }).defaultProps, {
+  maxFontSizeMultiplier: 1.3,
+});
+if ((TextInput as unknown as { defaultProps?: object }).defaultProps == null) {
+  (TextInput as unknown as { defaultProps: object }).defaultProps = {};
+}
+Object.assign((TextInput as unknown as { defaultProps: object }).defaultProps, {
+  maxFontSizeMultiplier: 1.3,
+});
 
 function AppShell() {
   const { theme, mode } = useTheme();
   const { success, error } = useDrizzleMigrations();
+  // P5 fix (found by Maestro E2E): the KB snapshot was never imported —
+  // importSnapshotOnFirstLaunch() existed but had no caller, so fresh
+  // installs had zero exercises. Seed it once migrations succeed.
+  const [kbReady, setKbReady] = useState(false);
+  useEffect(() => {
+    if (!success) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await importSnapshotOnFirstLaunch();
+      } catch (e) {
+        console.warn('[kb] snapshot import failed', e);
+      } finally {
+        if (!cancelled) setKbReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [success]);
 
   // StatusBar lives in the root layout so every screen inherits the
   // theme-matching style, even as the theme changes at runtime.
@@ -25,7 +69,7 @@ function AppShell() {
     throw new Error(`Database migrations failed: ${String(error)}`);
   }
 
-  if (!success) {
+  if (!success || !kbReady) {
     return (
       <View
         style={{

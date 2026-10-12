@@ -43,7 +43,8 @@
     "test:calculators": "node scripts/test-calculators.mjs",
     "test:programs": "node scripts/test-programs.mjs",
     "test:progression": "node scripts/test-progression.mjs",
-    "test:stats": "node scripts/test-stats.mjs"
+    "test:stats": "node scripts/test-stats.mjs",
+    "test:e2e": "maestro test .maestro/workout-flow.yaml"
   },
   "version": "0.1.0"
 }

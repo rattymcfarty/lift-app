@@ -40,6 +40,7 @@ import { getCurrentSessionTargets, type CurrentSessionTargets } from '../src/pro
 import { catchUpProgramAdvancement } from '../src/programs/sessions';
 import { listEnrollments } from '../src/programs/enrollments';
 import { useTheme } from '../src/theme';
+import { useBreakpoint } from '../src/theme/breakpoints';
 import { formatDuration, formatWorkoutDay } from '../src/components/workout/format';
 import { Button, Card, EmptyState } from '../src/components/workout/ui';
 import { Sparkline } from '../src/components/dashboard/Sparkline';
@@ -108,6 +109,9 @@ export default function Home(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const { width: windowWidth } = useWindowDimensions();
+  // P5: on tablet/wide screens the 2x2 stats grid becomes a single 4-across
+  // row — same data, better use of horizontal space. Phones keep 2x2.
+  const { isWide } = useBreakpoint();
 
   const [active, setActive] = useState<WorkoutDetail | null>(null);
   const [recent, setRecent] = useState<Workout[]>([]);
@@ -346,12 +350,12 @@ export default function Home(): JSX.Element {
                         ? 'Enroll in a program for guided progression, or train freely.'
                         : 'Log your first workout — every set is stored on this device only.'}
                     </Text>
-                    <Button title="Start workout" onPress={() => router.push('/workout/new')} />
+                    <Button title="Start workout" testID="home-start-workout" onPress={() => router.push('/workout/new')} />
                   </View>
                 )}
               </Card>
 
-              {/* STATS GRID */}
+              {/* STATS GRID — 2x2 on phones, 4-across on tablet/wide (P5) */}
               <View>
                 <Text
                   style={{
@@ -363,36 +367,69 @@ export default function Home(): JSX.Element {
                 >
                   THIS WEEK
                 </Text>
-                <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                  <View style={{ flex: 1 }}>
-                    <StatCell label="Volume" value={formatKg(stats?.thisWeekVolumeKg ?? 0)} />
+                {isWide ? (
+                  <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                    <View style={{ flex: 1 }}>
+                      <StatCell label="Volume" value={formatKg(stats?.thisWeekVolumeKg ?? 0)} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <StatCell label="Workouts" value={String(stats?.thisWeekWorkouts ?? 0)} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <StatCell
+                        label="Streak"
+                        value={`${stats?.streakWeeks ?? 0} wk`}
+                        hint={(stats?.streakWeeks ?? 0) === 0 && hasData ? 'Log this week to restart' : undefined}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <StatCell
+                        label="Consistency"
+                        value={consistency?.score != null ? `${consistency.score}%` : '—'}
+                        hint={
+                          consistency?.score == null
+                            ? 'Log workouts to measure'
+                            : consistency.basis === 'program'
+                              ? 'of planned sessions'
+                              : 'of recent weeks active'
+                        }
+                      />
+                    </View>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <StatCell label="Workouts" value={String(stats?.thisWeekWorkouts ?? 0)} />
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
-                  <View style={{ flex: 1 }}>
-                    <StatCell
-                      label="Streak"
-                      value={`${stats?.streakWeeks ?? 0} wk`}
-                      hint={(stats?.streakWeeks ?? 0) === 0 && hasData ? 'Log this week to restart' : undefined}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <StatCell
-                      label="Consistency"
-                      value={consistency?.score != null ? `${consistency.score}%` : '—'}
-                      hint={
-                        consistency?.score == null
-                          ? 'Log workouts to measure'
-                          : consistency.basis === 'program'
-                            ? 'of planned sessions'
-                            : 'of recent weeks active'
-                      }
-                    />
-                  </View>
-                </View>
+                ) : (
+                  <>
+                    <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                      <View style={{ flex: 1 }}>
+                        <StatCell label="Volume" value={formatKg(stats?.thisWeekVolumeKg ?? 0)} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <StatCell label="Workouts" value={String(stats?.thisWeekWorkouts ?? 0)} />
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
+                      <View style={{ flex: 1 }}>
+                        <StatCell
+                          label="Streak"
+                          value={`${stats?.streakWeeks ?? 0} wk`}
+                          hint={(stats?.streakWeeks ?? 0) === 0 && hasData ? 'Log this week to restart' : undefined}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <StatCell
+                          label="Consistency"
+                          value={consistency?.score != null ? `${consistency.score}%` : '—'}
+                          hint={
+                            consistency?.score == null
+                              ? 'Log workouts to measure'
+                              : consistency.basis === 'program'
+                                ? 'of planned sessions'
+                                : 'of recent weeks active'
+                          }
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
               </View>
 
               {/* SPARKLINE */}
