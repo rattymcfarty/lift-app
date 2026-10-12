@@ -6,20 +6,23 @@
  * expo-sqlite (`npm run test:backup`), and so a bug here can never open the
  * database at import time.
  *
- * Format (version 1):
+ * Format (version 2; v1 backups without cardio_logs are still accepted):
  *   {
  *     format: "lift-backup",
- *     version: 1,
+ *     version: 2,
  *     appVersion: "0.1.0",            // informational only
  *     exportedAt: "<ISO-8601>",
  *     tables: { workouts: [...], workout_exercises: [...], sets: [...],
  *               exercises: [...], routines: [...], routine_exercises: [...],
  *               measurements: [...], personal_records: [...],
  *               program_enrollments: [...], parq_screenings: [...],
- *               program_session_states: [...] }
+ *               program_session_states: [...], cardio_logs: [...] }
  *   }
  *
- * Row keys are the Drizzle camelCase field names; dates are ISO-8601 strings.
+ * Tables added after v1 was cut (e.g. cardio_logs) are optional on import:
+ * a backup that predates the table restores fine — the missing table is
+ * treated as empty. Row keys are the Drizzle camelCase field names; dates
+ * are ISO-8601 strings.
  * Tombstones (deletedAt != null) are exported so deletes survive a round-trip.
  *
  * Merge rules (planImport):
@@ -39,7 +42,9 @@
  */
 
 export const BACKUP_FORMAT = 'lift-backup' as const;
-export const BACKUP_VERSION = 1;
+/** v2: adds the cardio_logs table (P4b). v1 builds reject v2 backups
+ * explicitly rather than silently dropping cardio history. */
+export const BACKUP_VERSION = 2;
 
 export const BACKUP_TABLES = [
   'workouts',
@@ -53,7 +58,13 @@ export const BACKUP_TABLES = [
   'program_enrollments',
   'parq_screenings',
   'program_session_states',
+  'cardio_logs',
 ] as const;
+
+/** Tables added after the v1 format cut. Old backups predate them, so a
+ * missing array means "empty", not "damaged". Every other table is still
+ * required — a truncated backup must fail loudly. */
+const OPTIONAL_TABLES: ReadonlySet<string> = new Set(['cardio_logs']);
 export type BackupTableName = (typeof BACKUP_TABLES)[number];
 
 /** Insert order: parents before children, so FK targets always exist first. */
@@ -62,6 +73,7 @@ export const BACKUP_TABLE_ORDER: readonly BackupTableName[] = [
   'routines',
   'measurements',
   'parq_screenings',
+  'cardio_logs',
   'program_enrollments',
   'workouts',
   'routine_exercises',
@@ -98,6 +110,7 @@ const FK_DEPS: Record<BackupTableName, readonly FkDep[]> = {
   ],
   program_enrollments: [],
   parq_screenings: [],
+  cardio_logs: [],
   program_session_states: [
     { column: 'enrollmentId', parentTable: 'program_enrollments', nullable: false },
     { column: 'workoutId', parentTable: 'workouts', nullable: true },
@@ -156,6 +169,7 @@ const REQUIRED_FIELDS: Record<BackupTableName, readonly string[]> = {
     'currentDay', 'longevityPillars', 'progressionState', 'createdAt', 'updatedAt',
   ],
   parq_screenings: ['id', 'completedAt', 'anyYes', 'answersJson', 'createdAt', 'updatedAt'],
+  cardio_logs: ['id', 'minutes', 'loggedAt', 'createdAt', 'updatedAt'],
   program_session_states: [
     'id', 'enrollmentId', 'week', 'day', 'routineKbId', 'scheduledDate',
     'status', 'createdAt', 'updatedAt',
@@ -167,8 +181,8 @@ export const TABLE_FIELDS: Record<BackupTableName, readonly string[]> = {
   workouts: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'startedAt', 'endedAt', 'notes', 'longevityPillars', 'routineId'],
   workout_exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'workoutId', 'exerciseId', 'position', 'notes', 'restSeconds'],
   sets: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'workoutExerciseId', 'setNumber', 'reps', 'weightKg', 'rpe', 'rir', 'durationSeconds', 'distanceM', 'completed', 'notes'],
-  exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'primaryMuscles', 'secondaryMuscles', 'equipment', 'category', 'instructions', 'mediaImageUrl', 'mediaVideoUrl', 'longevityPillars', 'isCustom', 'kbId', 'kbVersion'],
-  routines: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'notes', 'estimatedMinutes', 'longevityPillars'],
+  exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'primaryMuscles', 'secondaryMuscles', 'equipment', 'category', 'instructions', 'mediaImageUrl', 'mediaVideoUrl', 'longevityNotes', 'longevityPillars', 'isCustom', 'kbId', 'kbVersion'],
+  routines: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'notes', 'estimatedMinutes', 'longevityPillars', 'kbId', 'kbVersion'],
   routine_exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'routineId', 'exerciseId', 'position', 'targetSets', 'targetReps', 'targetWeightKg', 'targetRpe', 'targetRestSeconds', 'notes'],
   measurements: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'type', 'value', 'unit', 'measuredAt', 'notes'],
   personal_records: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'exerciseId', 'kind', 'value', 'unit', 'achievedAt', 'workoutId', 'setId', 'previousValue'],
@@ -185,6 +199,10 @@ export const TABLE_FIELDS: Record<BackupTableName, readonly string[]> = {
     'id', 'createdAt', 'updatedAt', 'deletedAt', 'enrollmentId', 'week', 'day',
     'routineKbId', 'scheduledDate', 'status', 'workoutId', 'resolvedAt',
   ],
+  cardio_logs: [
+    'id', 'createdAt', 'updatedAt', 'deletedAt', 'minutes', 'activity',
+    'loggedAt', 'notes',
+  ],
 };
 
 /** Columns that must be Date objects on write (ISO strings in the document). */
@@ -200,6 +218,7 @@ export const DATE_FIELDS: Record<BackupTableName, readonly string[]> = {
   program_enrollments: ['createdAt', 'updatedAt', 'deletedAt', 'enrolledAt'],
   parq_screenings: ['createdAt', 'updatedAt', 'deletedAt', 'completedAt', 'clearanceAcknowledgedAt'],
   program_session_states: ['createdAt', 'updatedAt', 'deletedAt', 'scheduledDate', 'resolvedAt'],
+  cardio_logs: ['createdAt', 'updatedAt', 'deletedAt', 'loggedAt'],
 };
 
 export function isDateField(table: BackupTableName, field: string): boolean {
@@ -224,6 +243,7 @@ const INT_FIELDS: Record<BackupTableName, readonly string[]> = {
   program_enrollments: ['currentWeek', 'currentDay'],
   parq_screenings: [],
   program_session_states: ['week', 'day'],
+  cardio_logs: ['minutes'],
 };
 
 const NUMBER_FIELDS: Record<BackupTableName, readonly string[]> = {
@@ -238,6 +258,7 @@ const NUMBER_FIELDS: Record<BackupTableName, readonly string[]> = {
   program_enrollments: [],
   parq_screenings: [],
   program_session_states: [],
+  cardio_logs: [],
 };
 
 export const BOOL_FIELDS: Record<BackupTableName, readonly string[]> = {
@@ -252,6 +273,7 @@ export const BOOL_FIELDS: Record<BackupTableName, readonly string[]> = {
   program_enrollments: [],
   parq_screenings: ['anyYes'],
   program_session_states: [],
+  cardio_logs: [],
 };
 
 const EXERCISE_CATEGORIES = ['strength', 'cardio', 'mobility', 'balance', 'other'] as const;
@@ -281,6 +303,7 @@ const CASCADE_EDGES: Record<BackupTableName, readonly { childTable: BackupTableN
   program_enrollments: [{ childTable: 'program_session_states', parentColumn: 'enrollmentId' }],
   parq_screenings: [],
   program_session_states: [],
+  cardio_logs: [],
 };
 
 export function getCascadeEdges(
@@ -335,7 +358,8 @@ export interface BackupValidationError {
 
 export interface ValidatedBackup {
   format: typeof BACKUP_FORMAT;
-  version: 1;
+  /** 1 = pre-cardio_logs, 2 = current. */
+  version: 1 | typeof BACKUP_VERSION;
   appVersion: string;
   exportedAt: string;
   tables: Record<BackupTableName, Record<string, unknown>[]>;
@@ -403,12 +427,16 @@ export function validateBackup(doc: unknown): ValidationResult {
     errors.push({ message: `not a LIFT backup (format is ${JSON.stringify(doc['format'])})` });
   }
   const version = doc['version'];
-  if (version !== BACKUP_VERSION) {
+  // Accept v1 (pre-cardio_logs) and v2 (current). v1 backups predate the
+  // cardio_logs table — OPTIONAL_TABLES treats the missing array as empty.
+  // Anything else is rejected loudly; silently dropping unknown tables
+  // would lose user data.
+  if (version !== 1 && version !== BACKUP_VERSION) {
     errors.push({
       message:
         typeof version === 'number' && version > BACKUP_VERSION
           ? `unsupported backup version ${version} (this app reads version ${BACKUP_VERSION}); update the app first`
-          : `unsupported backup version ${JSON.stringify(version)} (expected ${BACKUP_VERSION})`,
+          : `unsupported backup version ${JSON.stringify(version)} (expected 1 or ${BACKUP_VERSION})`,
     });
   }
   if (doc['exportedAt'] !== undefined && parseDateMs(doc['exportedAt']) === null) {
@@ -420,17 +448,27 @@ export function validateBackup(doc: unknown): ValidationResult {
 
   const tables = doc['tables'];
   const rowsByTable = {} as Record<BackupTableName, Record<string, unknown>[]>;
+  // The version was validated above: 1 or BACKUP_VERSION (2).
+  const isV1 = version === 1;
   if (!isRecord(tables)) {
     errors.push({ message: 'backup has no "tables" object' });
   } else {
     for (const table of BACKUP_TABLES) {
       const rows = tables[table];
+      // v1 predates cardio_logs — a missing array means "empty", not
+      // "damaged". v2 must include it; a v2 backup without it is truncated
+      // and fails loudly.
+      if (rows === undefined && isV1 && OPTIONAL_TABLES.has(table)) {
+        rowsByTable[table] = [];
+        continue;
+      }
       if (!Array.isArray(rows)) {
         errors.push({ table, message: `missing or invalid table array "${table}"` });
         continue;
       }
       const clean: Record<string, unknown>[] = [];
       const seenIds = new Set<string>();
+      const seenKbIds = new Set<string>();
       rows.forEach((row, index) => {
         if (!isRecord(row)) {
           errors.push({ table, index, message: 'row is not an object' });
@@ -487,6 +525,16 @@ export function validateBackup(doc: unknown): ValidationResult {
             return;
           }
         }
+        if (table === 'cardio_logs') {
+          // logCardio enforces 1–1440 on write; enforce it on import too so
+          // a hand-edited backup can't inject 0/negative minutes that would
+          // drag the weekly cardio total down.
+          const minutes = row['minutes'];
+          if (typeof minutes !== 'number' || !Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
+            errors.push({ table, index, message: `cardio minutes out of range (1–1440): ${JSON.stringify(minutes)}` });
+            return;
+          }
+        }
         if (table === 'program_enrollments') {
           const status = row['status'];
           if (!(ENROLLMENT_STATUSES as readonly string[]).includes(status as string)) {
@@ -501,6 +549,23 @@ export function validateBackup(doc: unknown): ValidationResult {
             return;
           }
         }
+        if (table === 'exercises' || table === 'routines') {
+          // kb_id is UNIQUE across all rows (tombstones included). A backup
+          // row colliding with another backup row's kbId would hit the
+          // UNIQUE constraint mid-transaction and fail the whole import.
+          // Clashes with LOCAL rows can't happen: KB seeds use deterministic
+          // IDs (id === kbId, see repositories.ts), so a matching kbId means
+          // a matching id (an update, not an insert); custom rows have
+          // kbId null.
+          const kbId = row['kbId'];
+          if (typeof kbId === 'string' && kbId.length > 0) {
+            if (seenKbIds.has(kbId)) {
+              errors.push({ table, index, message: `duplicate kbId "${kbId}" in table "${table}"` });
+              return;
+            }
+            seenKbIds.add(kbId);
+          }
+        }
         clean.push(row);
       });
       rowsByTable[table] = clean;
@@ -512,7 +577,10 @@ export function validateBackup(doc: unknown): ValidationResult {
     valid: true,
     backup: {
       format: BACKUP_FORMAT,
-      version: BACKUP_VERSION,
+      // Preserve the input version (1 or 2) for debugging and future
+      // migrations. planImport doesn't branch on it — v1's missing
+      // cardio_logs is already normalized to [] above.
+      version: version as 1 | typeof BACKUP_VERSION,
       appVersion: typeof doc['appVersion'] === 'string' ? doc['appVersion'] : 'unknown',
       exportedAt: typeof doc['exportedAt'] === 'string' ? doc['exportedAt'] : '',
       tables: rowsByTable,
@@ -592,11 +660,6 @@ interface Occupant {
  * Computes the full merge plan without touching the database.
  * Deterministic: tables in FK dependency order, rows in document order;
  * on any tie the existing / earlier-planned row wins.
- */
-/**
- * Computes the full merge plan without touching the database.
- * Deterministic: tables in FK dependency order, rows in document order;
- * on any tie the existing / earlier-planned row wins.
  *
  * Per table, planning runs in two phases:
  *  1. Preliminary actions (insert/update/skip) with FK checks, but NO scope
@@ -623,6 +686,7 @@ export function planImport(backup: ValidatedBackup, local: LocalIndex): ImportAc
     program_enrollments: new Set(local.liveIds.program_enrollments),
     parq_screenings: new Set(local.liveIds.parq_screenings),
     program_session_states: new Set(local.liveIds.program_session_states),
+    cardio_logs: new Set(local.liveIds.cardio_logs),
   };
   // Local ids already planned for death (tombstone updates + cascades).
   // Children are always in later tables than their parents, so by the time a
@@ -639,6 +703,7 @@ export function planImport(backup: ValidatedBackup, local: LocalIndex): ImportAc
     program_enrollments: new Set(),
     parq_screenings: new Set(),
     program_session_states: new Set(),
+    cardio_logs: new Set(),
   };
 
   const markDead = (table: BackupTableName, id: string): void => {
@@ -893,6 +958,7 @@ export function summarizePlan(actions: ImportAction[]): ImportSummary {
     program_enrollments: emptyCounts(),
     parq_screenings: emptyCounts(),
     program_session_states: emptyCounts(),
+    cardio_logs: emptyCounts(),
   } as Record<BackupTableName, TableImportCounts>;
   for (const a of actions) {
     const c = tables[a.table];

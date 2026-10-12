@@ -34,6 +34,7 @@ function doc(over = {}) {
       workouts: [], workout_exercises: [], sets: [], exercises: [],
       routines: [], routine_exercises: [], measurements: [], personal_records: [],
       program_enrollments: [], parq_screenings: [], program_session_states: [],
+      cardio_logs: [],
       ...over.tables,
     },
     ...over,
@@ -41,7 +42,7 @@ function doc(over = {}) {
 }
 function emptyIndex() {
   const m = () => new Map(); const s = () => new Set();
-  const tables = ['workouts', 'workout_exercises', 'sets', 'exercises', 'routines', 'routine_exercises', 'measurements', 'personal_records', 'program_enrollments', 'parq_screenings', 'program_session_states'];
+  const tables = ['workouts', 'workout_exercises', 'sets', 'exercises', 'routines', 'routine_exercises', 'measurements', 'personal_records', 'program_enrollments', 'parq_screenings', 'program_session_states', 'cardio_logs'];
   const rows = {}, liveIds = {};
   for (const t of tables) { rows[t] = m(); liveIds[t] = s(); }
   return { rows, liveIds, liveChildren: new Map() };
@@ -86,9 +87,46 @@ ok(!validateBackup({ format: 'nope' }).valid, 'wrong format rejected');
   ok(!validateBackup(bad).valid, 'missing table rejected');
 }
 {
+  // Real v1 backup: version 1 AND no cardio_logs array (v1 predates it).
+  // Must restore fine — cardio_logs is treated as empty.
+  const old = doc({ version: 1 });
+  delete old.tables.cardio_logs;
+  const r = validateBackup(old);
+  ok(r.valid, 'v1 backup without cardio_logs still valid');
+  eq(r.backup.tables.cardio_logs.length, 0, 'missing cardio_logs becomes empty array');
+  eq(r.backup.version, 1, 'v1 version preserved');
+}
+{
+  // v2 backup missing cardio_logs is TRUNCATED and must fail loudly.
+  // (v1 without cardio_logs is fine — it predates the table.)
+  const v2 = doc(); delete v2.tables.cardio_logs;
+  const r = validateBackup(v2);
+  ok(!r.valid, 'v2 backup without cardio_logs rejected as truncated');
+}
+{
   const d = doc({ tables: { ...doc().tables, exercises: [row({ id: 'x' }), row({ id: 'x' })] } });
   const r = validateBackup(d);
   ok(!r.valid && r.errors.some(e => e.message.includes('duplicate id')), 'duplicate id rejected');
+}
+{
+  // Cardio minutes out of range are rejected (matches logCardio's 1–1440).
+  const clog = (over) => row({ loggedAt: T0, ...over });
+  const badMin = doc({ tables: { ...doc().tables, cardio_logs: [clog({ id: 'c1', minutes: 0 })] } });
+  ok(!validateBackup(badMin).valid, 'cardio 0 minutes rejected');
+  const badNeg = doc({ tables: { ...doc().tables, cardio_logs: [clog({ id: 'c2', minutes: -30 })] } });
+  ok(!validateBackup(badNeg).valid, 'cardio negative minutes rejected');
+  const badBig = doc({ tables: { ...doc().tables, cardio_logs: [clog({ id: 'c3', minutes: 2000 })] } });
+  ok(!validateBackup(badBig).valid, 'cardio >1440 minutes rejected');
+  const good = doc({ tables: { ...doc().tables, cardio_logs: [clog({ id: 'c4', minutes: 30 })] } });
+  ok(validateBackup(good).valid, 'cardio 30 minutes accepted');
+}
+{
+  // Duplicate kbId within one table is rejected (UNIQUE constraint).
+  const dup = doc({ tables: { ...doc().tables, exercises: [row({ id: 'e1', kbId: 'kb-x' }), row({ id: 'e2', kbId: 'kb-x' })] } });
+  const r = validateBackup(dup);
+  ok(!r.valid && r.errors.some(e => e.message.includes('duplicate kbId')), 'duplicate kbId rejected');
+  const okKb = doc({ tables: { ...doc().tables, exercises: [row({ id: 'e1', kbId: 'kb-x' }), row({ id: 'e2', kbId: 'kb-y' })] } });
+  ok(validateBackup(okKb).valid, 'distinct kbIds accepted');
 }
 {
   const d = doc({ tables: { ...doc().tables, exercises: [row({ updatedAt: 'not-a-date' })] } });

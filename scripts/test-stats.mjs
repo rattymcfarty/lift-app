@@ -3,11 +3,12 @@
  * Stats layer unit tests (P4a) — zero new dependencies.
  *
  * Compiles the pure stats modules (types, volume, frequency, strength,
- * consistency) with the project's own tsc into a temp dir, then runs
- * src/stats/stats.test.cjs against the compiled output. The barrel
- * (./index.ts) intentionally excludes ./queries (expo-sqlite), so it is
- * not compiled here. The DB-backed queries are typechecked, not
- * unit-tested — they need expo-sqlite, which doesn't run under plain node.
+ * consistency, balance) with the project's own tsc into a temp dir, then runs
+ * src/stats/stats.test.cjs and src/stats/balance.test.cjs against the
+ * compiled output. The barrel (./index.ts) intentionally excludes ./queries
+ * (expo-sqlite), so it is not compiled here. The DB-backed queries are
+ * typechecked, not unit-tested — they need expo-sqlite, which doesn't run
+ * under plain node.
  *
  * Usage: npm run test:stats
  */
@@ -31,6 +32,8 @@ try {
       'src/stats/frequency.ts',
       'src/stats/strength.ts',
       'src/stats/consistency.ts',
+      'src/stats/balance.ts',
+      'src/stats/pillars.ts',
       '--ignoreConfig',
       '--outDir', tmp,
       '--module', 'commonjs',
@@ -41,12 +44,15 @@ try {
     { cwd: root, stdio: 'inherit' },
   );
   copyFileSync(join(root, 'src/stats/stats.test.cjs'), join(tmp, 'stats.test.cjs'));
-  execFileSync('node', [join(tmp, 'stats.test.cjs')], {
-    cwd: tmp,
-    stdio: 'inherit',
-    // DST tests need a timezone with DST transitions; CI often runs UTC.
-    env: { ...process.env, TZ: 'America/New_York' },
-  });
+  copyFileSync(join(root, 'src/stats/balance.test.cjs'), join(tmp, 'balance.test.cjs'));
+  for (const test of ['stats.test.cjs', 'balance.test.cjs']) {
+    execFileSync('node', [join(tmp, test)], {
+      cwd: tmp,
+      stdio: 'inherit',
+      // DST tests need a timezone with DST transitions; CI often runs UTC.
+      env: { ...process.env, TZ: 'America/New_York' },
+    });
+  }
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

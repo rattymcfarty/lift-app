@@ -3,7 +3,7 @@
  * DB round-trip test for the backup system.
  *
  * Complements scripts/test-backup.mjs (pure unit tests): this exercises the
- * REAL database schema — migrations 0000..0007 applied to an in-memory
+ * REAL database schema — migrations 0000..0008 applied to an in-memory
  * SQLite database via node:sqlite, with foreign keys enforced — through a
  * full export → wipe → import cycle:
  *
@@ -81,6 +81,7 @@ try {
     measurements: 'measurements', personal_records: 'personal_records',
     program_enrollments: 'program_enrollments', parq_screenings: 'parq_screenings',
     program_session_states: 'program_session_states',
+    cardio_logs: 'cardio_logs',
   };
 
   // ---- seed every backup table ----
@@ -103,6 +104,7 @@ try {
   seed('personal_records', [base({ id: 'pr1', exercise_id: 'e1', kind: 'max_weight', value: 60, unit: 'kg', achieved_at: T0, workout_id: 'w1', set_id: 's1' })]);
   seed('measurements', [base({ id: 'm1', type: 'weight', value: 72.5, unit: 'kg', measured_at: T0 })]);
   seed('parq_screenings', [base({ id: 'pq1', completed_at: T0, any_yes: 0, answers_json: '[false,false,false,false,false,false,false]' })]);
+  seed('cardio_logs', [base({ id: 'c1', minutes: 30, activity: 'run', logged_at: T0, notes: 'morning run' })]);
   // active + completed enrollment for the SAME program: partial unique index
   // allows this (only one ACTIVE), and both must survive the round-trip.
   seed('program_enrollments', [
@@ -202,6 +204,8 @@ try {
   ok(pq && pq.any_yes === 0 && pq.answers_json === '[false,false,false,false,false,false,false]', 'parq values restored');
   const bothEnrollments = db.prepare('SELECT COUNT(*) AS n FROM "program_enrollments" WHERE "program_id" = ?').get('prog-1').n;
   ok(bothEnrollments === 2, 'active + completed enrollments for one program both restored (partial unique held)');
+  const cl = db.prepare('SELECT * FROM "cardio_logs" WHERE "id" = ?').get('c1');
+  ok(cl && cl.minutes === 30 && cl.activity === 'run' && cl.logged_at === T0, 'cardio log values restored');
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
