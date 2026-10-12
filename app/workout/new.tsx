@@ -1,9 +1,12 @@
 /**
  * Start a workout: name it, then either start blank or from a routine
  * template. "Manage routines" opens the P1b routine builder.
+ *
+ * P4a: accepts an optional `routineId` nav param (from the dashboard's
+ * "Start this session" card) to auto-start from that routine.
  */
 
-import { useCallback, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +17,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   createWorkout,
@@ -26,6 +29,7 @@ import {
 import type { Routine } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { assertSessionLinkable, linkWorkoutToSession } from '../../src/programs/sessions';
 
 function defaultWorkoutName(): string {
   const now = new Date();
@@ -71,21 +75,34 @@ async function resolveActiveConflict(): Promise<'cancelled' | 'proceeded'> {
 export default function NewWorkoutScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
+  const params = useLocalSearchParams<{
+    routineId?: string;
+    enrollmentId?: string;
+    week?: string;
+    day?: string;
+  }>();
   const [name, setName] = useState(defaultWorkoutName());
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // P4a: distinguishes "routine list failed to load" from "routine not
+  // found" for the auto-start error message.
+  const [routinesFailed, setRoutinesFailed] = useState(false);
   // Re-entrancy guard: the disabled button state updates async, so two
   // rapid taps could otherwise create two workouts (the routine path has a
   // DB-level 60s guard; the blank path needs this).
   const startingRef = useRef(false);
+  // P4a: auto-start from the routineId param exactly once per mount.
+  const autoStartedRef = useRef(false);
 
   const load = useCallback(async () => {
     try {
       setRoutines(await listRoutines());
+      setRoutinesFailed(false);
     } catch {
       setRoutines([]);
+      setRoutinesFailed(true);
     } finally {
       setLoading(false);
     }
@@ -124,11 +141,13 @@ export default function NewWorkoutScreen(): JSX.Element {
     }
   };
 
-  const handleStartFromRoutine = async (routine: Routine): Promise<void> => {
+  const handleStartFromRoutine = async (routine: Routine, opts?: { useRoutineName?: boolean }): Promise<void> => {
     if (startingRef.current) return;
     startingRef.current = true;
     try {
-      const trimmed = name.trim();
+      // P4a: program auto-start uses the routine's name so the history
+      // entry keeps the session's identity instead of "Workout · <date>".
+      const trimmed = opts?.useRoutineName ? '' : name.trim();
       if ((await resolveActiveConflict()) === 'cancelled') return;
       setStarting(true);
       setError(null);
@@ -148,6 +167,63 @@ export default function NewWorkoutScreen(): JSX.Element {
       setStarting(false);
     }
   };
+
+  // P4a: when opened with ?routineId= (dashboard "Start this session"),
+  // auto-start from that routine once routines have loaded. When session
+  // params are present, link the created workout to the program session so
+  // finishing it advances the enrollment.
+  useEffect(() => {
+    if (loading || autoStartedRef.current) return;
+    const rid = params.routineId;
+    if (!rid) return;
+    autoStartedRef.current = true;
+    if (routinesFailed) {
+      setError('Could not load routines. Please try again.');
+      return;
+    }
+    const routine = routines.find((r) => r.id === rid);
+    if (!routine) {
+      setError('The program session\u2019s routine was not found.');
+      return;
+    }
+    void (async () => {
+      const week = params.week != null ? parseInt(params.week, 10) : NaN;
+      const day = params.day != null ? parseInt(params.day, 10) : NaN;
+      const hasSession =
+        params.enrollmentId != null && Number.isFinite(week) && Number.isFinite(day);
+      // handleStartFromRoutine navigates away on success; for session
+      // linking we need the workout id, so create directly here.
+      if (!hasSession) {
+        await handleStartFromRoutine(routine, { useRoutineName: true });
+        return;
+      }
+      if (startingRef.current) return;
+      startingRef.current = true;
+      try {
+        if ((await resolveActiveConflict()) === 'cancelled') return;
+        setStarting(true);
+        setError(null);
+        // Verify the session can be linked BEFORE creating the workout —
+        // otherwise a link failure orphans an active workout (P4a).
+        await assertSessionLinkable(params.enrollmentId as string, week, day);
+        const workoutId = await startWorkoutFromRoutine(routine.id, undefined);
+        if (!workoutId) {
+          setError('That routine has no exercises to start from.');
+          return;
+        }
+        await linkWorkoutToSession(params.enrollmentId as string, week, day, workoutId);
+        goToWorkout(workoutId);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not start the workout.');
+      } finally {
+        startingRef.current = false;
+        setStarting(false);
+      }
+    })();
+    // All route params in deps; handleStartFromRoutine is intentionally
+    // omitted (plain function, would re-trigger). autoStartedRef guards
+    // against repeat runs.
+  }, [loading, routines, routinesFailed, params.routineId, params.enrollmentId, params.week, params.day]);
 
   return (
     <SafeAreaView

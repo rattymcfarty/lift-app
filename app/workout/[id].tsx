@@ -31,6 +31,8 @@ import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { ExerciseCard } from '../../src/components/workout/ExerciseCard';
+import { advanceEnrollmentForWorkout } from '../../src/programs/sessions';
+import { invalidateConsistencyCache } from '../../src/stats/queries';
 
 /**
  * Elapsed-time readout with its own ticking state, so the once-per-second
@@ -158,6 +160,17 @@ export default function ActiveWorkoutScreen(): JSX.Element {
               try {
                 const w = await finishWorkout(workoutId);
                 if (!w) throw new Error('Workout no longer exists.');
+                // P4a: if this workout was started from a program session,
+                // advance the enrollment (idempotent; no-op otherwise).
+                // Invalidate the dashboard's refresh throttle so the new
+                // consistency score shows immediately.
+                try {
+                  await advanceEnrollmentForWorkout(workoutId);
+                } catch (e) {
+                  console.warn('[workout] program advancement failed', e);
+                } finally {
+                  invalidateConsistencyCache();
+                }
                 router.replace(`/workout/${workoutId}/summary`);
               } catch (e) {
                 Alert.alert(
@@ -187,6 +200,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
             void (async () => {
               try {
                 await softDeleteWorkout(workoutId);
+                invalidateConsistencyCache();
                 router.replace('/');
               } catch (e) {
                 // Stay on the screen: nothing was deleted, so leaving

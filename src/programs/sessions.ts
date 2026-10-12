@@ -23,7 +23,7 @@
  * All writes go through the global write lock inside runInTransaction.
  */
 
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull, or } from 'drizzle-orm';
 import { db, runInTransaction } from '../db/client';
 import {
   programSessionStates,
@@ -119,7 +119,16 @@ export async function refreshSessionStates(
         .where(
           and(
             eq(programSessionStates.enrollmentId, enrollmentId),
-            eq(programSessionStates.status, 'scheduled'),
+            // 'scheduled' rows are evaluated normally; 'missed' rows with a
+            // linked workout are re-evaluated (P4a: user did it late via
+            // the dashboard — the linked finished workout marks it done).
+            or(
+              eq(programSessionStates.status, 'scheduled'),
+              and(
+                eq(programSessionStates.status, 'missed'),
+                isNotNull(programSessionStates.workoutId),
+              ),
+            ),
             isNull(programSessionStates.deletedAt),
           ),
         )
@@ -129,6 +138,27 @@ export async function refreshSessionStates(
 
       for (const row of rows) {
         const schedMs = row.scheduledDate.getTime();
+        // If this row already has a linked workout that's still in
+        // progress, leave it alone — a finished workout must not steal
+        // the link (P4a).
+        if (row.workoutId) {
+          const [linked] = await db
+            .select({ endedAt: workouts.endedAt, deletedAt: workouts.deletedAt })
+            .from(workouts)
+            .where(eq(workouts.id, row.workoutId))
+            .limit(1);
+          if (linked && !linked.deletedAt && !linked.endedAt) continue;
+          if (!linked || linked.deletedAt) {
+            // Dead link (workout deleted or missing): clear it so the
+            // row stops churning and can be re-linked or re-evaluated.
+            await db
+              .update(programSessionStates)
+              .set({ workoutId: null, updatedAt: now })
+              .where(eq(programSessionStates.id, row.id));
+            if (row.status === 'missed') continue; // stays missed, no rewrite
+            row.workoutId = null;
+          }
+        }
         // 1. Look for a logged workout for this session's routine.
         const [routine] = await db
           .select({ id: routines.id })
@@ -138,8 +168,14 @@ export async function refreshSessionStates(
           )
           .limit(1);
         if (routine) {
+          // If this row already has a linked workout (P4a: set at session
+          // start), it stays the match — a closer finished workout must not
+          // steal the link from an in-progress one.
+          const ownLinked = row.workoutId;
           // Workouts already linked to another session can't be reused —
           // otherwise one workout marks adjacent-day sessions done twice.
+          // The row's OWN linked workout (set at session start, P4a) stays
+          // eligible: it must still mark this row done when finished.
           const linked = await db
             .select({ workoutId: programSessionStates.workoutId })
             .from(programSessionStates)
@@ -156,7 +192,13 @@ export async function refreshSessionStates(
             .select()
             .from(workouts)
             .where(
-              and(eq(workouts.routineId, routine.id), isNull(workouts.deletedAt)),
+              and(
+                eq(workouts.routineId, routine.id),
+                isNull(workouts.deletedAt),
+                // In-progress workouts (endedAt null) must not mark a
+                // session done — the user might discard it. P4a fix.
+                isNotNull(workouts.endedAt),
+              ),
             );
           // Date-window filter in JS keeps the query index-friendly.
           // Training a day early still counts (EARLY_LINK_MS before the
@@ -165,16 +207,30 @@ export async function refreshSessionStates(
           // in row order — adjacent sessions share the same routine.
           let match: (typeof candidates)[number] | undefined;
           let bestDelta = Infinity;
-          for (const w of candidates) {
-            if (linkedIds.has(w.id)) continue;
-            const started = w.startedAt.getTime();
-            if (started < schedMs - EARLY_LINK_MS || started > schedMs + WORKOUT_LINK_WINDOW_MS) {
-              continue;
-            }
-            const delta = Math.abs(started - schedMs);
-            if (delta < bestDelta) {
-              bestDelta = delta;
-              match = w;
+          // Prefer the row's own explicitly-linked workout over any
+          // date-matched candidate (P4a).
+          if (ownLinked) {
+            match = candidates.find((w) => w.id === ownLinked);
+          }
+          if (!match) {
+            for (const w of candidates) {
+              // Skip workouts linked to a DIFFERENT session. The row's own
+              // linked workout (P4a: set at session start) remains eligible.
+              if (linkedIds.has(w.id) && w.id !== row.workoutId) continue;
+              const started = w.startedAt.getTime();
+              // The row's own explicitly-linked workout bypasses the date
+              // window: the user started it via "Start this session", so it
+              // IS the session's workout regardless of calendar drift (P4a).
+              if (w.id !== row.workoutId) {
+                if (started < schedMs - EARLY_LINK_MS || started > schedMs + WORKOUT_LINK_WINDOW_MS) {
+                  continue;
+                }
+              }
+              const delta = Math.abs(started - schedMs);
+              if (delta < bestDelta) {
+                bestDelta = delta;
+                match = w;
+              }
             }
           }
           if (match) {
@@ -191,13 +247,32 @@ export async function refreshSessionStates(
             continue;
           }
         }
-        // 2. Past due → missed.
+        // 2. Past due → missed. But not while its workout is still in
+        // progress: a session started at hour 47 and finished at hour 49
+        // must not be marked missed by a refresh in between (P4a fix).
         if (nowMs > schedMs + DAY_MS + MISSED_GRACE_MS) {
-          await db
-            .update(programSessionStates)
-            .set({ status: 'missed', resolvedAt: now, updatedAt: now })
-            .where(eq(programSessionStates.id, row.id));
-          newlyMissed++;
+          let inProgress = false;
+          if (row.workoutId) {
+            const [w] = await db
+              .select({ endedAt: workouts.endedAt })
+              .from(workouts)
+              .where(
+                and(
+                  eq(workouts.id, row.workoutId),
+                  isNull(workouts.deletedAt),
+                  isNull(workouts.endedAt),
+                ),
+              )
+              .limit(1);
+            inProgress = !!w;
+          }
+          if (!inProgress) {
+            await db
+              .update(programSessionStates)
+              .set({ status: 'missed', resolvedAt: now, updatedAt: now })
+              .where(eq(programSessionStates.id, row.id));
+            newlyMissed++;
+          }
         }
       }
     }),
@@ -398,4 +473,184 @@ export async function markSessionDone(
         .where(eq(programSessionStates.id, row.id));
     }),
   );
+}
+
+/**
+ * Link a workout to a program session at creation time (P4a). Sets the
+ * workoutId without changing status — the session is still 'scheduled'
+ * until the workout is finished and advanceEnrollment runs. Idempotent.
+ */
+export async function linkWorkoutToSession(
+  enrollmentId: string,
+  week: number,
+  day: number,
+  workoutId: string,
+): Promise<void> {
+  // Rows may not exist yet on a fresh enrollment — ensure them first
+  // (same as markSessionDone).
+  await ensureSessionStates(enrollmentId);
+  await withWriteLock(() =>
+    runInTransaction(async () => {
+      const [row] = await db
+        .select()
+        .from(programSessionStates)
+        .where(
+          and(
+            eq(programSessionStates.enrollmentId, enrollmentId),
+            eq(programSessionStates.week, week),
+            eq(programSessionStates.day, day),
+            isNull(programSessionStates.deletedAt),
+          ),
+        )
+        .limit(1);
+      if (!row) throw new ProgramError(`no session state for week ${week} day ${day}`);
+      // 'missed' rows CAN be linked: starting a missed session late is the
+      // "do it today" resolution. 'done' and 'skipped' rows reject: re-doing
+      // a completed session would orphan the earlier link, and a skipped
+      // session is an explicit user choice (un-skip it on the Program
+      // screen first).
+      if (row.status === 'done' || row.status === 'skipped') {
+        throw new ProgramError(
+          `cannot link workout: session week ${week} day ${day} is ${row.status}`,
+        );
+      }
+      if (row.workoutId === workoutId) return; // Idempotent.
+      // A workout linked to a different session can't be re-linked (P4a).
+      if (row.workoutId != null) {
+        throw new ProgramError(
+          `session week ${week} day ${day} already has a workout in progress`,
+        );
+      }
+      const [other] = await db
+        .select({ id: programSessionStates.id })
+        .from(programSessionStates)
+        .where(
+          and(
+            eq(programSessionStates.workoutId, workoutId),
+            isNull(programSessionStates.deletedAt),
+          ),
+        )
+        .limit(1);
+      if (other && other.id !== row.id) {
+        throw new ProgramError(`workout is already linked to another session`);
+      }
+      await db
+        .update(programSessionStates)
+        .set({ workoutId, updatedAt: new Date() })
+        .where(eq(programSessionStates.id, row.id));
+    }),
+  );
+}
+
+/**
+ * Advance the program enrollment when a linked workout is finished (P4a).
+ * Only advances when the linked session IS the enrollment's current
+ * pointer (week, day) — otherwise a date-matched or out-of-order workout
+ * would spuriously move the program. No-op otherwise. Idempotent.
+ */
+export async function advanceEnrollmentForWorkout(workoutId: string): Promise<void> {
+  const { advanceEnrollment } = await import('./engine');
+  const [row] = await db
+    .select()
+    .from(programSessionStates)
+    .where(
+      and(
+        eq(programSessionStates.workoutId, workoutId),
+        isNull(programSessionStates.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!row) return;
+  const { enrollment } = await getEnrollment(row.enrollmentId);
+  if (enrollment.status !== 'active') return;
+  if (row.week !== enrollment.currentWeek || row.day !== enrollment.currentDay) {
+    // Not the pointer session — date-matched or out-of-order. The program
+    // advances only through its own flow, not calendar coincidence.
+    return;
+  }
+  await advanceEnrollment(row.enrollmentId, workoutId);
+}
+
+/**
+ * Self-healing sweep (P4a): advance the enrollment for the pointer session
+ * when it's linked to a finished workout but was never advanced (e.g. the
+ * app was killed between finish and advance). Only the CURRENT pointer
+ * session is eligible — historical sessions never move the program.
+ *
+ * The link may come from the dashboard's "Start this session" OR from
+ * refreshSessionStates date-matching a freeform workout of the same
+ * routine. Both mean the user did the session's work; in either case the
+ * pointer advancing is the consistent behavior.
+ */
+export async function catchUpProgramAdvancement(enrollmentId: string): Promise<void> {
+  const { advanceEnrollment } = await import('./engine');
+  const { enrollment } = await getEnrollment(enrollmentId);
+  if (enrollment.status !== 'active') return;
+  const [row] = await db
+    .select({
+      workoutId: programSessionStates.workoutId,
+    })
+    .from(programSessionStates)
+    .innerJoin(workouts, eq(workouts.id, programSessionStates.workoutId))
+    .where(
+      and(
+        eq(programSessionStates.enrollmentId, enrollmentId),
+        eq(programSessionStates.week, enrollment.currentWeek),
+        eq(programSessionStates.day, enrollment.currentDay),
+        isNull(programSessionStates.deletedAt),
+        isNotNull(programSessionStates.workoutId),
+        isNull(workouts.deletedAt),
+        isNotNull(workouts.endedAt),
+      ),
+    )
+    .limit(1);
+  if (!row?.workoutId) return;
+  try {
+    await advanceEnrollment(enrollmentId, row.workoutId);
+  } catch (e) {
+    // advanceEnrollment is idempotent; a throw here means genuinely
+    // bad state (not "already advanced"). Log it.
+    console.warn('[programs] catch-up advancement failed', e);
+  }
+}
+
+/**
+ * Check that a session can accept a workout link (P4a). Used by the
+ * dashboard's "Start this session" flow BEFORE creating the workout, so
+ * a link failure doesn't orphan an active workout.
+ */
+export async function assertSessionLinkable(
+  enrollmentId: string,
+  week: number,
+  day: number,
+): Promise<void> {
+  await ensureSessionStates(enrollmentId);
+  const [row] = await db
+    .select({
+      status: programSessionStates.status,
+      workoutId: programSessionStates.workoutId,
+    })
+    .from(programSessionStates)
+    .where(
+      and(
+        eq(programSessionStates.enrollmentId, enrollmentId),
+        eq(programSessionStates.week, week),
+        eq(programSessionStates.day, day),
+        isNull(programSessionStates.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!row) throw new ProgramError(`no session state for week ${week} day ${day}`);
+  // 'missed' is linkable (doing it late); 'done' and 'skipped' reject.
+  if (row.status === 'done' || row.status === 'skipped') {
+    throw new ProgramError(`session week ${week} day ${day} is ${row.status}, cannot start`);
+  }
+  // Mirror linkWorkoutToSession's guards so the pre-check's "no orphan"
+  // promise holds: a row with any existing link (including a stale one
+  // from a deleted workout) must not pass the check.
+  if (row.workoutId != null) {
+    throw new ProgramError(
+      `session week ${week} day ${day} already has a workout linked`,
+    );
+  }
 }

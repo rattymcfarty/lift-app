@@ -11,7 +11,7 @@
  * - Canonical units: kg for weight, seconds for duration, meters for distance.
  * - No UI imports here — the logging UI (workstream #3) consumes these.
  */
-import { and, asc, desc, eq, gt, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 import { db, runInTransaction } from '../db/client';
 import {
   decodePillars,
@@ -20,6 +20,7 @@ import {
   exercises,
   measurements,
   personalRecords,
+  programSessionStates,
   routineExercises,
   routines,
   sets,
@@ -303,17 +304,27 @@ export async function getActiveWorkout(): Promise<WorkoutDetail | null> {
 /** Returns the updated row, or null if the workout doesn't exist / is deleted. */
 export async function finishWorkout(id: string, endedAt: Date = new Date()): Promise<Workout | null> {
   assertValidDate(endedAt, 'endedAt');
-  return withWriteLock(async () => {
-    const [row] = await db
-      .update(workouts)
-      .set({ endedAt })
-      .where(and(eq(workouts.id, id), isNull(workouts.deletedAt)))
-      .returning();
-    if (row && row.startedAt && endedAt < row.startedAt) {
-      throw new RangeError('endedAt cannot be before startedAt');
-    }
-    return row ?? null;
-  });
+  return withWriteLock(() =>
+    runInTransaction(async () => {
+      const [existing] = await db
+        .select({ startedAt: workouts.startedAt })
+        .from(workouts)
+        .where(and(eq(workouts.id, id), isNull(workouts.deletedAt)))
+        .limit(1);
+      if (!existing) return null;
+      // Validate BEFORE writing (P4a fix): the old code wrote the bad
+      // endedAt first, then threw — leaving corrupt duration in the DB.
+      if (existing.startedAt && endedAt < existing.startedAt) {
+        throw new RangeError('endedAt cannot be before startedAt');
+      }
+      const [row] = await db
+        .update(workouts)
+        .set({ endedAt })
+        .where(and(eq(workouts.id, id), isNull(workouts.deletedAt)))
+        .returning();
+      return row ?? null;
+    }),
+  );
 }
 
 export type WorkoutPatch = Partial<Pick<Workout, 'name' | 'notes' | 'startedAt' | 'endedAt'>> & {
@@ -367,6 +378,22 @@ export async function softDeleteWorkout(id: string): Promise<void> {
         .update(personalRecords)
         .set({ deletedAt: now })
         .where(and(eq(personalRecords.workoutId, id), isNull(personalRecords.deletedAt)));
+      // P4a: unlink from any program session that hasn't counted it yet.
+      // 'scheduled' and 'missed' rows are unlinked (P4a lets missed rows
+      // be started late); a 'done' session keeps its historical link.
+      await db
+        .update(programSessionStates)
+        .set({ workoutId: null, updatedAt: now })
+        .where(
+          and(
+            eq(programSessionStates.workoutId, id),
+            or(
+              eq(programSessionStates.status, 'scheduled'),
+              eq(programSessionStates.status, 'missed'),
+            ),
+            isNull(programSessionStates.deletedAt),
+          ),
+        );
       await db
         .update(workoutExercises)
         .set({ deletedAt: now })

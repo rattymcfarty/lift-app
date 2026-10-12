@@ -42,7 +42,8 @@
     "test:backup:roundtrip": "node scripts/test-backup-roundtrip.mjs",
     "test:calculators": "node scripts/test-calculators.mjs",
     "test:programs": "node scripts/test-programs.mjs",
-    "test:progression": "node scripts/test-progression.mjs"
+    "test:progression": "node scripts/test-progression.mjs",
+    "test:stats": "node scripts/test-stats.mjs"
   },
   "version": "0.1.0"
 }
