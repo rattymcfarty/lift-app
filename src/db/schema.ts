@@ -1,5 +1,5 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
-import { isNull } from 'drizzle-orm';
+import { isNull, sql } from 'drizzle-orm';
 import { newId } from './id';
 
 /**
@@ -382,3 +382,55 @@ export const kbSyncState = sqliteTable('kb_sync_state', {
 
 export type KbSyncState = typeof kbSyncState.$inferSelect;
 export type NewKbSyncState = typeof kbSyncState.$inferInsert;
+
+/* ------------------------------------------------------------------ */
+/* program_enrollments — P3 programs engine                            */
+/*                                                                     */
+/* One row per user enrollment in a training program. The `snapshot`   */
+/* column freezes the full ProgramDefinition JSON at enroll time:      */
+/* later edits to the program (KB bundle updates, local edits) NEVER   */
+/* affect an in-flight enrollment — the snapshot is the source of      */
+/* truth the progression engine (#13) reads.                           */
+/*                                                                     */
+/* Lifecycle: active → completed | abandoned. Rows are never           */
+/* hard-deleted; history is kept. The partial unique index enforces    */
+/* at most one ACTIVE enrollment per program (completed/abandoned      */
+/* rows don't collide, so re-enrolling after finishing works).         */
+/* ------------------------------------------------------------------ */
+
+export const programEnrollments = sqliteTable(
+  'program_enrollments',
+  {
+    ...syncBase(),
+    /** DSL program id (KB program id, or local UUID). */
+    programId: text('program_id').notNull(),
+    /** KB program id when kb-sourced; NULL for local programs. */
+    programKbId: text('program_kb_id'),
+    /** KB bundle version frozen at enroll time (informational). */
+    kbVersion: text('kb_version'),
+    /** Frozen ProgramDefinition JSON — see src/programs/snapshot.ts. */
+    snapshot: text('snapshot').notNull(),
+    enrolledAt: integer('enrolled_at', { mode: 'timestamp_ms' }).notNull(),
+    /** active | completed | abandoned. */
+    status: text('status').notNull().default('active'),
+    /** 1-based position pointer; advanced by the progression engine (#13). */
+    currentWeek: integer('current_week').notNull().default(1),
+    /** 1-based day-of-week pointer within the current week. */
+    currentDay: integer('current_day').notNull().default(1),
+    /** R2: pillar tags resolved from the program's routines at enroll. */
+    longevityPillars: text('longevity_pillars').notNull().default('[]'),
+  },
+  (t) => [
+    index('program_enrollments_status_idx').on(t.status),
+    index('program_enrollments_program_id_idx').on(t.programId),
+    index('program_enrollments_updated_at_idx').on(t.updatedAt),
+    index('program_enrollments_deleted_at_idx').on(t.deletedAt),
+    // Partial: one active enrollment per program; finished rows don't collide.
+    uniqueIndex('program_enrollments_active_program_unique')
+      .on(t.programId)
+      .where(sql`${t.status} = 'active' and ${t.deletedAt} is null`),
+  ],
+);
+
+export type ProgramEnrollment = typeof programEnrollments.$inferSelect;
+export type NewProgramEnrollment = typeof programEnrollments.$inferInsert;
