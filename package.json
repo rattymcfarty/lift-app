@@ -40,7 +40,8 @@
     "web": "expo start --web",
     "test:backup": "node scripts/test-backup.mjs",
     "test:calculators": "node scripts/test-calculators.mjs",
-    "test:programs": "node scripts/test-programs.mjs"
+    "test:programs": "node scripts/test-programs.mjs",
+    "test:progression": "node scripts/test-progression.mjs"
   },
   "version": "0.1.0"
 }

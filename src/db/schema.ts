@@ -419,6 +419,19 @@ export const programEnrollments = sqliteTable(
     currentDay: integer('current_day').notNull().default(1),
     /** R2: pillar tags resolved from the program's routines at enroll. */
     longevityPillars: text('longevity_pillars').notNull().default('[]'),
+    /**
+     * #13: per-exercise working weights, JSON-encoded:
+     * `{ "<exerciseId>": { "weightKg": number } }`.
+     * Updated by advanceEnrollment() from logged performance; read by
+     * getCurrentSessionTargets(). Deload weeks never write here.
+     */
+    progressionState: text('progression_state').notNull().default('{}'),
+    /**
+     * #13: idempotency key for advanceEnrollment(). Records the workout
+     * that last advanced the pointer — a retry/double-tap with the same
+     * workout id is a safe no-op instead of double-progressing.
+     */
+    lastAdvancedWorkoutId: text('last_advanced_workout_id'),
   },
   (t) => [
     index('program_enrollments_status_idx').on(t.status),

@@ -131,8 +131,23 @@ export function validateProgramDefinition(def: unknown): string[] {
   }
 
   // v1 scope enforcement: only linear progression exists.
+  // incrementKg / maxWeightKg are optional (#13 engine defaults);
+  // when present they must be sane (R2: no absurd jumps, no absurd caps).
   if (!isRecord(def.progression) || def.progression.kind !== 'linear') {
     errors.push("progression.kind must be 'linear' (v1 scope)");
+  } else {
+    const inc = def.progression.incrementKg;
+    if (inc !== undefined) {
+      if (typeof inc !== 'number' || !Number.isFinite(inc) || inc <= 0 || inc > 25) {
+        errors.push('progression.incrementKg must be a finite number in (0, 25] when present');
+      }
+    }
+    const max = def.progression.maxWeightKg;
+    if (max !== undefined) {
+      if (typeof max !== 'number' || !Number.isFinite(max) || max <= 0 || max > 1000) {
+        errors.push('progression.maxWeightKg must be a finite number in (0, 1000] when present');
+      }
+    }
   }
 
   if (!Array.isArray(def.pillars)) {

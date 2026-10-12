@@ -51,9 +51,23 @@ export interface ProgramPhase {
  * Progression scheme. v1 implements linear progression only (#13);
  * the validator rejects any other kind so the DSL can't promise
  * what the engine won't honor.
+ *
+ * incrementKg / maxWeightKg are optional for backward compatibility with
+ * snapshots frozen before #13 (which carry only { kind: 'linear' }) — the
+ * engine (#13) applies DEFAULT_INCREMENT_KG when incrementKg is absent.
  */
 export interface ProgramProgression {
   kind: 'linear';
+  /**
+   * kg added to an exercise's working weight when all its sets hit the top
+   * of the target rep range. Default 2.5 when absent.
+   */
+  incrementKg?: number;
+  /**
+   * Hard ceiling (R2 longevity guardrail): progression never raises an
+   * exercise's working weight above this. Absent = uncapped.
+   */
+  maxWeightKg?: number;
 }
 
 export type ProgramSource =
