@@ -150,6 +150,22 @@ export function validateProgramDefinition(def: unknown): string[] {
     }
   }
 
+  // Safety rails (#14): optional; when present, caps must be sane.
+  // Absent = longevity-first defaults (RPE 9, RIR 1) via getSafetyCaps.
+  if (def.safety !== undefined) {
+    if (!isRecord(def.safety)) {
+      errors.push('safety must be an object');
+    } else {
+      const s = def.safety as Record<string, unknown>;
+      if (s.maxRpe !== undefined && !(typeof s.maxRpe === 'number' && s.maxRpe >= 1 && s.maxRpe <= 10)) {
+        errors.push('safety.maxRpe must be a number 1–10');
+      }
+      if (s.minRir !== undefined && !(typeof s.minRir === 'number' && s.minRir >= 0 && s.minRir <= 10)) {
+        errors.push('safety.minRir must be a number 0–10');
+      }
+    }
+  }
+
   if (!Array.isArray(def.pillars)) {
     errors.push('pillars must be an array');
   } else {

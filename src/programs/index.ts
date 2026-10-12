@@ -32,3 +32,17 @@ export type {
   ResolvedProgressionConfig,
   SessionExerciseTargets,
 } from './progression';
+// Pure safety rules only — DB-backed operations (./safety, ./sessions,
+// ./enrollments) are imported directly, mirroring the enrollments pattern.
+export {
+  PARQ_QUESTIONS,
+  PARQ_QUESTION_COUNT,
+  PARQ_FRESHNESS_MS,
+  checkRpeCaps,
+  MISSED_GRACE_MS,
+  WORKOUT_LINK_WINDOW_MS,
+  startOfDay,
+  scheduledDateFor,
+  programSessions,
+} from './safetyRules';
+export type { RpeCapViolation } from './safetyRules';

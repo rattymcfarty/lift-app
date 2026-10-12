@@ -25,6 +25,7 @@ import {
 import { withWriteLock } from '../data/repositories';
 import { ProgramError, phaseForWeek, programRoutineKbIds } from './compile';
 import { freezeSnapshot, parseSnapshot } from './snapshot';
+import { requireParqGateOpen } from './safety';
 import type { ProgramDefinition } from './types';
 import { validateProgramDefinition } from './validate';
 
@@ -50,12 +51,15 @@ function unionPillars(rows: Pick<Routine, 'longevityPillars'>[]): LongevityPilla
 }
 
 /**
- * Enroll in a program. Validates the DSL, resolves every session's routine
- * template (all must already be imported — KB import creates them), freezes
- * the snapshot, and inserts a single active enrollment.
+ * Enroll in a program. Validates the DSL, enforces the PAR-Q+ gate
+ * (blocks when the gate is closed — see src/programs/safety.ts),
+ * resolves every session's routine template (all must already be
+ * imported — KB import creates them), freezes the snapshot, and inserts
+ * a single active enrollment.
  *
- * Throws ProgramError when: the DSL is invalid, any referenced routine is
- * missing, or an active enrollment for the same program already exists.
+ * Throws ProgramError when: the PAR-Q+ gate is closed, the DSL is
+ * invalid, any referenced routine is missing, or an active enrollment
+ * for the same program already exists.
  */
 export async function enrollProgram(program: ProgramDefinition): Promise<EnrolledProgram> {
   const errors = validateProgramDefinition(program);
@@ -63,8 +67,17 @@ export async function enrollProgram(program: ProgramDefinition): Promise<Enrolle
     throw new ProgramError(`cannot enroll invalid program: ${errors.join('; ')}`);
   }
 
+  // Safety rail (#14): the PAR-Q+ gate BLOCKS enrollment — it never
+  // warns-and-continues. Enforced here (not just in the UI) so no
+  // caller can accidentally bypass it. Checked before the lock for a
+  // fast fail, then re-checked inside the transaction so a screening
+  // written concurrently can't slip through the check-then-act gap.
+  await requireParqGateOpen();
+
   return withWriteLock(() =>
     runInTransaction(async () => {
+      await requireParqGateOpen();
+
       const kbIds = programRoutineKbIds(program);
       const routineRows = await db
         .select()
@@ -115,7 +128,13 @@ export async function enrollProgram(program: ProgramDefinition): Promise<Enrolle
           longevityPillars: encodePillars(resolved),
         })
         .returning();
-      return toEnrolledProgram(row);
+      const enrolled = toEnrolledProgram(row);
+      // Generate the session calendar rows. Dynamic import avoids a
+      // sessions↔enrollments module cycle; ensureSessionStates is
+      // idempotent so a retry is safe.
+      const { ensureSessionStates } = await import('./sessions');
+      await ensureSessionStates(enrolled.enrollment.id);
+      return enrolled;
     }),
   );
 }

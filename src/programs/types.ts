@@ -74,6 +74,29 @@ export type ProgramSource =
   | { kind: 'kb'; kbId: string; kbVersion: string }
   | { kind: 'local' };
 
+/**
+ * Safety rails (P3 #14) — longevity-first guardrails, frozen into the
+ * enrollment snapshot like everything else.
+ *
+ * Both fields are OPTIONAL for backward compatibility with snapshots
+ * frozen before #14 (which carry no safety section — the engine treats
+ * absent caps as "no cap"). When present, the set-logging flow warns
+ * (never blocks) on violation: longevity-first means never pushing to
+ * failure.
+ */
+export interface ProgramSafetyCaps {
+  /**
+   * Hard ceiling on Rate of Perceived Exertion (1–10). A logged set with
+   * RPE above this triggers an explicit warning in the logging flow.
+   */
+  maxRpe?: number;
+  /**
+   * Floor on Reps In Reserve (0–10). A logged set with RIR below this
+   * triggers an explicit warning in the logging flow.
+   */
+  minRir?: number;
+}
+
 export interface ProgramDefinition {
   schemaVersion: typeof PROGRAM_DSL_VERSION;
   /** Permanent id: KB program id, or a local UUID for hand-built programs. */
@@ -93,6 +116,12 @@ export interface ProgramDefinition {
    */
   pillars: LongevityPillar[];
   source: ProgramSource;
+  /**
+   * Safety rails (#14). Optional — when absent, the longevity-first
+   * defaults apply (RPE 9, RIR 1); see getSafetyCaps in safety.ts.
+   * Pre-#14 snapshots carry no safety section and get the defaults.
+   */
+  safety?: ProgramSafetyCaps;
 }
 
 /** Enrollment lifecycle. Rows are never hard-deleted — history is kept. */

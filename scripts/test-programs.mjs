@@ -28,6 +28,7 @@ try {
       'src/programs/validate.ts',
       'src/programs/compile.ts',
       'src/programs/snapshot.ts',
+      'src/programs/safetyRules.ts',
       'src/programs/index.ts',
       'src/db/schema.ts',
       'src/db/id.ts',
@@ -45,11 +46,20 @@ try {
     join(root, 'src/programs/programDsl.test.cjs'),
     join(tmp, 'programDsl.test.cjs'),
   );
+  copyFileSync(
+    join(root, 'src/programs/safety.test.cjs'),
+    join(tmp, 'safety.test.cjs'),
+  );
   execFileSync('node', [join(tmp, 'programDsl.test.cjs')], {
     cwd: tmp,
     stdio: 'inherit',
     // Compiled output lives in /tmp; point module resolution at the
     // project's node_modules for drizzle-orm (imported via db/schema).
+    env: { ...process.env, NODE_PATH: join(root, 'node_modules') },
+  });
+  execFileSync('node', [join(tmp, 'safety.test.cjs')], {
+    cwd: tmp,
+    stdio: 'inherit',
     env: { ...process.env, NODE_PATH: join(root, 'node_modules') },
   });
 } finally {

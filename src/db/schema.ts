@@ -447,3 +447,111 @@ export const programEnrollments = sqliteTable(
 
 export type ProgramEnrollment = typeof programEnrollments.$inferSelect;
 export type NewProgramEnrollment = typeof programEnrollments.$inferInsert;
+
+/* ------------------------------------------------------------------ */
+/* parq_screenings — P3 safety rails (#14)                             */
+/*                                                                     */
+/* Physical Activity Readiness Questionnaire (PAR-Q+) screenings.      */
+/* One row per completed questionnaire. The gate (see                  */
+/* src/programs/safety.ts) requires a fresh screening before program   */
+/* enrollment: none on file, or the latest completed >12 months ago,   */
+/* blocks enrollment. Any "yes" answer blocks until the user records   */
+/* an explicit medical-clearance acknowledgment (timestamped, stored   */
+/* — a recorded acknowledgment, not a bypass).                         */
+/*                                                                     */
+/* All data stays on-device (R8). Answers are stored as a compact      */
+/* boolean array so a re-screening can show what changed; nothing      */
+/* leaves the device.                                                  */
+/* ------------------------------------------------------------------ */
+
+export const parqScreenings = sqliteTable(
+  'parq_screenings',
+  {
+    ...syncBase(),
+    /** When the questionnaire was completed. */
+    completedAt: integer('completed_at', { mode: 'timestamp_ms' }).notNull(),
+    /** True when any question was answered "yes". */
+    anyYes: integer('any_yes', { mode: 'boolean' }).notNull().default(false),
+    /** JSON array of 7 booleans — answers in PARQ_QUESTIONS order. */
+    answersJson: text('answers_json').notNull().default('[]'),
+    /**
+     * Set when the user explicitly acknowledges they have medical
+     * clearance after an any-yes screening. NULL = not acknowledged.
+     */
+    clearanceAcknowledgedAt: integer('clearance_acknowledged_at', {
+      mode: 'timestamp_ms',
+    }),
+  },
+  (t) => [
+    index('parq_screenings_completed_at_idx').on(t.completedAt),
+    index('parq_screenings_deleted_at_idx').on(t.deletedAt),
+    index('parq_screenings_updated_at_idx').on(t.updatedAt),
+  ],
+);
+
+export type ParqScreening = typeof parqScreenings.$inferSelect;
+export type NewParqScreening = typeof parqScreenings.$inferInsert;
+
+/* ------------------------------------------------------------------ */
+/* program_session_states — P3 safety rails (#14)                      */
+/*                                                                     */
+/* One row per scheduled session instance of an enrollment, generated */
+/* from the frozen snapshot at enrollment time (see                    */
+/* src/programs/sessions.ts ensureSessionStates). Tracks the calendar  */
+/* reality of each session independently of the progression engine's   */
+/* (week, day) pointer:                                               */
+/* - scheduled: upcoming, calendar date not yet passed                 */
+/* - done:      a workout was logged for this session                 */
+/* - missed:    scheduled date passed with no logged workout           */
+/* - skipped:   user explicitly skipped (no progression penalty)       */
+/*                                                                     */
+/* Scheduling model (documented, predictable): program week 1 starts   */
+/* on the enrollment calendar date; session (week W, day D) is         */
+/* scheduled for enrolledAt-date + (W-1)*7 + (D-1) days. Day numbers   */
+/* are program-relative (day 1 = first training day), not calendar     */
+/* weekdays — the DSL carries no weekday mapping.                       */
+/* ------------------------------------------------------------------ */
+
+export const SESSION_STATUSES = ['scheduled', 'done', 'missed', 'skipped'] as const;
+export type SessionStatus = (typeof SESSION_STATUSES)[number];
+
+export const programSessionStates = sqliteTable(
+  'program_session_states',
+  {
+    ...syncBase(),
+    enrollmentId: text('enrollment_id')
+      .notNull()
+      .references(() => programEnrollments.id),
+    /** 1-based program week. */
+    week: integer('week').notNull(),
+    /** 1-based program-relative day (matches DSL ProgramSession.day). */
+    day: integer('day').notNull(),
+    /** Stable routine key for this session (from the frozen snapshot). */
+    routineKbId: text('routine_kb_id').notNull(),
+    /** Calendar date this session is scheduled for (start of day, ms). */
+    scheduledDate: integer('scheduled_date', { mode: 'timestamp_ms' }).notNull(),
+    /** scheduled | done | missed | skipped. */
+    status: text('status').$type<SessionStatus>().notNull().default('scheduled'),
+    /** Linked when done: the workout that fulfilled this session. */
+    workoutId: text('workout_id').references(() => workouts.id, {
+      onDelete: 'set null',
+    }),
+    /** When the session left 'scheduled' (done/missed/skipped). */
+    resolvedAt: integer('resolved_at', { mode: 'timestamp_ms' }),
+  },
+  (t) => [
+    index('program_session_states_enrollment_idx').on(t.enrollmentId),
+    index('program_session_states_status_idx').on(t.status),
+    index('program_session_states_scheduled_date_idx').on(t.scheduledDate),
+    index('program_session_states_deleted_at_idx').on(t.deletedAt),
+    index('program_session_states_updated_at_idx').on(t.updatedAt),
+    // One live row per enrollment × week × day — generation is idempotent
+    // and re-runs can never duplicate a session.
+    uniqueIndex('program_session_states_enrollment_week_day_unique')
+      .on(t.enrollmentId, t.week, t.day)
+      .where(sql`${t.deletedAt} is null`),
+  ],
+);
+
+export type ProgramSessionState = typeof programSessionStates.$inferSelect;
+export type NewProgramSessionState = typeof programSessionStates.$inferInsert;
