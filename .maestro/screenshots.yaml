@@ -1,0 +1,95 @@
+# LIFT release-candidate screenshots (1080x2424, Play-minimum width).
+# Run: maestro test .maestro/screenshots.yaml
+# Requires: debug APK installed, emulator booted.
+# Output: PNGs land in maestro's run output dir; copy to docs/release/screenshots/.
+# Flow logs one workout first so dashboard/history/progress show real data.
+# The "10 × 20 kg" assertion is a regression gate for the keyboard-swallows-
+# Log-tap bug (fixed via keyboardShouldPersistTaps="handled" on the workout
+# FlatList, P6 2026-10-12).
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+
+# --- Log a workout (reuse of the E2E happy path) ---
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Squat"
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+# Active workout with the exercise added — key logging screen
+- takeScreenshot: 01-workout-logging
+- tapOn:
+    id: "set-reps-1"
+- inputText: "10"
+- tapOn:
+    id: "set-weight-1"
+- inputText: "20"
+- tapOn:
+    id: "log-set-1"
+# Regression gate: the set must actually persist (keyboard must not swallow
+# the Log tap). The logged-mode row renders "10 × 20 kg".
+- assertVisible: "10 × 20 kg"
+- tapOn:
+    id: "workout-finish"
+- tapOn: "Finish"
+- assertVisible: "Goblet Squat"
+# Summary screen after finishing
+- takeScreenshot: 02-workout-summary
+- back
+
+# --- Dashboard (home) with real data ---
+- assertVisible: "Start workout"
+- takeScreenshot: 03-dashboard
+
+# Dev builds show an expo-notifications warning banner over the bottom of the
+# screen after the rest timer fires; dismiss it so lower buttons stay tappable.
+# (Production builds don't show this banner; the tap is optional.)
+- tapOn:
+    point: "1035,2265"
+    optional: true
+
+# --- History (below the fold — scroll to it) ---
+- scrollUntilVisible:
+    element:
+      text: "History"
+    direction: DOWN
+- tapOn: "History"
+- assertVisible: "History"
+- takeScreenshot: 04-history
+- back
+
+# --- Progress ---
+- scrollUntilVisible:
+    element:
+      text: "Progress"
+    direction: DOWN
+- tapOn: "Progress"
+- assertVisible: "Progress"
+- takeScreenshot: 05-progress
+- back
+
+# --- Measure ---
+- scrollUntilVisible:
+    element:
+      text: "Measure"
+    direction: DOWN
+- tapOn: "Measure"
+- assertVisible: "Measurements"
+- takeScreenshot: 06-measure
+- back
+
+# --- Calculators ---
+- scrollUntilVisible:
+    element:
+      text: "Calculators"
+    direction: DOWN
+- tapOn: "Calculators"
+- assertVisible: "Calculators"
+- takeScreenshot: 07-calculators
