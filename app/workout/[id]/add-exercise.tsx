@@ -48,6 +48,7 @@ function ExerciseRow({
       disabled={busy}
       accessibilityRole="button"
       accessibilityLabel={`Add ${exercise.name} to workout`}
+      testID={`add-exercise-row-${exercise.id}`}
       style={({ pressed }) => [
         styles.row,
         {
@@ -183,6 +184,7 @@ export default function AddExerciseScreen(): JSX.Element {
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
         <TextInput
           value={query}
+          testID="add-exercise-search"
           onChangeText={setQuery}
           placeholder="Search exercises…"
           placeholderTextColor={theme.colors.faint}

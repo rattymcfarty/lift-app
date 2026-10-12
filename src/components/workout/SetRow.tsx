@@ -136,6 +136,7 @@ export function SetRow({
         </Text>
         <NumberInput
           value={reps}
+          testID={`set-reps-${setNumber}`}
           onChangeText={setReps}
           placeholder="0"
           label="reps"
@@ -144,6 +145,7 @@ export function SetRow({
         />
         <NumberInput
           value={weightKg}
+          testID={`set-weight-${setNumber}`}
           onChangeText={setWeightKg}
           placeholder="0"
           decimal

@@ -261,6 +261,7 @@ export default function NewWorkoutScreen(): JSX.Element {
 
         <Button
           title={starting ? 'Starting…' : 'Start blank workout'}
+          testID="new-workout-start-blank"
           onPress={() => void handleStartBlank()}
           busy={starting}
         />

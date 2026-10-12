@@ -223,6 +223,7 @@ interface NumberInputProps {
   width?: number;
   editable?: boolean;
   label?: string;
+  testID?: string;
 }
 
 /**
@@ -237,6 +238,7 @@ export function NumberInput({
   width = 64,
   editable = true,
   label,
+  testID,
 }: NumberInputProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -249,6 +251,7 @@ export function NumberInput({
       ) : null}
       <TextInput
         value={value}
+        testID={testID}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={theme.colors.faint}

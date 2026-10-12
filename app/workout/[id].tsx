@@ -268,11 +268,13 @@ export default function ActiveWorkoutScreen(): JSX.Element {
             <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
               <Button
                 title="+ Add exercise"
+                testID="workout-add-exercise"
                 variant="secondary"
                 onPress={() => router.push(`/workout/${workoutId}/add-exercise`)}
               />
               <Button
                 title={finishing ? 'Finishing…' : 'Finish workout'}
+                testID="workout-finish"
                 variant="primary"
                 onPress={handleFinish}
                 busy={finishing}
