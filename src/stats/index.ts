@@ -10,3 +10,5 @@ export * from './volume';
 export * from './frequency';
 export * from './strength';
 export * from './consistency';
+export * from './balance';
+export * from './pillars';

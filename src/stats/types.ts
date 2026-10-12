@@ -13,8 +13,13 @@ export interface StatSet {
   exerciseName: string;
   /** Parsed from exercises.primary_muscles (JSON array). */
   primaryMuscles: string[];
+  /** Exercise category, mirroring EXERCISE_CATEGORIES in db/schema.ts
+   * (duplicated here so this pure module stays DB-free). */
+  exerciseCategory: 'strength' | 'cardio' | 'mobility' | 'balance' | 'other';
   reps: number | null;
   weightKg: number | null;
+  /** Cardio set duration in seconds (null when not tracked). */
+  durationSeconds: number | null;
   /** false = planned but skipped — excluded from volume/strength. */
   completed: boolean;
 }

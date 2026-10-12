@@ -68,8 +68,10 @@ export async function fetchStatWorkouts(start: Date, end: Date): Promise<StatWor
       exerciseId: exercises.id,
       exerciseName: exercises.name,
       primaryMuscles: exercises.primaryMuscles,
+      exerciseCategory: exercises.category,
       reps: sets.reps,
       weightKg: sets.weightKg,
+      durationSeconds: sets.durationSeconds,
       completed: sets.completed,
     })
     .from(sets)
@@ -90,8 +92,10 @@ export async function fetchStatWorkouts(start: Date, end: Date): Promise<StatWor
       exerciseId: r.exerciseId,
       exerciseName: r.exerciseName,
       primaryMuscles: parseMuscles(r.primaryMuscles),
+      exerciseCategory: r.exerciseCategory,
       reps: r.reps,
       weightKg: r.weightKg,
+      durationSeconds: r.durationSeconds,
       completed: r.completed,
     };
     w.sets.push(set);
