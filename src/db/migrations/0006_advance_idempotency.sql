@@ -1,0 +1,1 @@
+ALTER TABLE `program_enrollments` ADD `last_advanced_workout_id` text;

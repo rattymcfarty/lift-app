@@ -1,0 +1,1 @@
+ALTER TABLE `program_enrollments` ADD `progression_state` text DEFAULT '{}' NOT NULL;
