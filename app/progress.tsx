@@ -10,7 +10,7 @@
  * modules, no network, monochrome per the accent discipline.
  */
 
-import { useCallback, useState, type JSX } from 'react';
+import { useCallback, useRef, useState, type JSX } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -35,8 +35,14 @@ import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workou
 import {
   ProgressionLineChart,
   VolumeBarChart,
+  MuscleStackChart,
   type ProgressionDatum,
+  type MuscleStackWeek,
 } from '../src/components/history';
+import { volumeByMuscleByWeek } from '../src/stats/balance';
+import { startOfWeekMonday } from '../src/stats/volume';
+import { fetchStatWorkouts } from '../src/stats/queries';
+import { listMeasurements } from '../src/data/repositories';
 
 /** "Oct 5" — short label for chart axes. */
 function shortDay(d: Date): string {
@@ -149,6 +155,16 @@ export default function ProgressScreen(): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chart, setChart] = useState<StrengthChartData | null>(null);
   const [chartLoading, setChartLoading] = useState(false);
+  const [muscleWeeks, setMuscleWeeks] = useState<MuscleStackWeek[] | null>(null);
+  const [weightSeries, setWeightSeries] = useState<ProgressionDatum[] | null>(null);
+  const [waistSeries, setWaistSeries] = useState<ProgressionDatum[] | null>(null);
+  const [weightUnit, setWeightUnit] = useState('');
+  const [waistUnit, setWaistUnit] = useState('');
+  // loadExtra completion flag — prevents the empty state from flickering
+  // for users with only measurement data while the extra charts load.
+  const [extraLoaded, setExtraLoaded] = useState(false);
+  // Stale-response guard for loadExtra (same pattern as the dashboard).
+  const extraLoadIdRef = useRef(0);
 
   const loadOverview = useCallback(async () => {
     try {
@@ -164,22 +180,86 @@ export default function ProgressScreen(): JSX.Element {
     }
   }, []);
 
+  // Stale-response guard for the exercise chart (tapping chips quickly
+  // must not render A's series under B's name).
+  const chartLoadIdRef = useRef(0);
   const loadChart = useCallback(async (exerciseId: string) => {
+    const loadId = ++chartLoadIdRef.current;
+    const alive = () => chartLoadIdRef.current === loadId;
     setChartLoading(true);
     try {
       const points = await getExerciseProgression(exerciseId);
+      if (!alive()) return;
       setChart(toChartData(points));
     } catch {
+      if (!alive()) return;
       setChart(null);
     } finally {
-      setChartLoading(false);
+      if (alive()) setChartLoading(false);
+    }
+  }, []);
+
+  const loadExtra = useCallback(async () => {
+    const loadId = ++extraLoadIdRef.current;
+    const alive = () => extraLoadIdRef.current === loadId;
+    try {
+      // Monday-aligned 12-week window, same as the Balance screen.
+      const end = startOfWeekMonday(new Date());
+      end.setDate(end.getDate() + 7);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 12 * 7);
+      const [workouts, weight, waist] = await Promise.all([
+        fetchStatWorkouts(start, end),
+        listMeasurements('body_weight', 60),
+        listMeasurements('waist', 60),
+      ]);
+      if (!alive()) return;
+      const pts = volumeByMuscleByWeek(workouts, 12);
+      setMuscleWeeks(
+        pts.map((p) => ({
+          label: shortDay(p.weekStart),
+          segments: [...p.byGroup.entries()]
+            .map(([group, volumeKg]) => ({ group, volumeKg: Math.round(volumeKg) }))
+            .sort((a, b) => b.volumeKg - a.volumeKg),
+        })),
+      );
+      const toDatum = (m: { measuredAt: Date; value: number }): ProgressionDatum => ({
+        label: shortDay(new Date(m.measuredAt)),
+        value: m.value,
+        best: false,
+      });
+      // Measurements carry their own unit; plot only rows matching the most
+      // common unit (units are never converted — mixing kg and lb on one
+      // line would lie).
+      const commonUnit = (rows: { unit: string }[]): string => {
+        const counts = new Map<string, number>();
+        for (const r of rows) counts.set(r.unit, (counts.get(r.unit) ?? 0) + 1);
+        return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+      };
+      const weightUnit = commonUnit(weight);
+      const waistUnit = commonUnit(waist);
+      const weightRows = weight.slice().reverse().filter((m) => m.unit === weightUnit);
+      const waistRows = waist.slice().reverse().filter((m) => m.unit === waistUnit);
+      setWeightSeries(weightRows.map(toDatum));
+      setWaistSeries(waistRows.map(toDatum));
+      setWeightUnit(weightUnit);
+      setWaistUnit(waistUnit);
+    } catch (e) {
+      console.warn('[progress] extra charts failed', e);
+      if (!alive()) return;
+      setMuscleWeeks([]);
+      setWeightSeries([]);
+      setWaistSeries([]);
+    } finally {
+      if (alive()) setExtraLoaded(true);
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       void loadOverview();
-    }, [loadOverview]),
+      void loadExtra();
+    }, [loadOverview, loadExtra]),
   );
 
   useFocusEffect(
@@ -203,7 +283,7 @@ export default function ProgressScreen(): JSX.Element {
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />
         </View>
-      ) : !hasData ? (
+      ) : !hasData && extraLoaded && (weightSeries == null || weightSeries.length <= 1) && (waistSeries == null || waistSeries.length <= 1) ? (
         <EmptyState
           message="No training data yet."
           hint="Log your first workout and your volume and strength trends will appear here."
@@ -215,6 +295,8 @@ export default function ProgressScreen(): JSX.Element {
         <ScrollView
           contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xl }}
         >
+          {hasData ? (
+          <>
           <View style={{ gap: theme.spacing.sm }}>
             <View style={{ paddingHorizontal: theme.spacing.md }}>
               <SectionTitle>WEEKLY VOLUME</SectionTitle>
@@ -282,6 +364,71 @@ export default function ProgressScreen(): JSX.Element {
                 </Text>
               </View>
             )}
+          </View>
+
+          <View style={{ gap: theme.spacing.sm }}>
+            <View style={{ paddingHorizontal: theme.spacing.md }}>
+              <SectionTitle>MUSCLE VOLUME</SectionTitle>
+            </View>
+            <View style={{ paddingHorizontal: theme.spacing.md }}>
+              <Card>
+                {muscleWeeks == null ? (
+                  <View style={styles.chartLoading}>
+                    <ActivityIndicator color={theme.colors.muted} />
+                  </View>
+                ) : muscleWeeks.some((w) => w.segments.length > 0) ? (
+                  <>
+                    <MuscleStackChart weeks={muscleWeeks} />
+                    <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, marginTop: 4 }}>
+                      Volume per primary muscle group · last 12 weeks{'\n'}
+                      Each set is credited to every primary muscle it works, so stacked totals exceed the weekly volume above.
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
+                    Not enough data yet.
+                  </Text>
+                )}
+              </Card>
+            </View>
+          </View>
+          </>
+          ) : null}
+
+          <View style={{ gap: theme.spacing.sm }}>
+            <View style={{ paddingHorizontal: theme.spacing.md }}>
+              <SectionTitle>BODY MEASUREMENTS</SectionTitle>
+            </View>
+            <View style={{ paddingHorizontal: theme.spacing.md }}>
+              <Card>
+                {weightSeries == null ? (
+                  <View style={styles.chartLoading}>
+                    <ActivityIndicator color={theme.colors.muted} />
+                  </View>
+                ) : weightSeries.length > 1 ? (
+                  <>
+                    <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium, marginBottom: 4 }}>
+                      Body weight
+                    </Text>
+                    <ProgressionLineChart data={weightSeries} unit={weightUnit} />
+                  </>
+                ) : (
+                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
+                    Log body weight in Measure to see the trend.
+                  </Text>
+                )}
+              </Card>
+            </View>
+            {waistSeries != null && waistSeries.length > 1 ? (
+              <View style={{ paddingHorizontal: theme.spacing.md }}>
+                <Card>
+                  <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium, marginBottom: 4 }}>
+                    Waist
+                  </Text>
+                  <ProgressionLineChart data={waistSeries} unit={waistUnit} />
+                </Card>
+              </View>
+            ) : null}
           </View>
         </ScrollView>
       )}

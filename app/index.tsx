@@ -31,8 +31,11 @@ import {
   type WorkoutDetail,
 } from '../src/data/repositories';
 import type { Workout } from '../src/db/schema';
-import { getConsistency, getDashboardStats } from '../src/stats/queries';
+import { getConsistency, getDashboardStats, fetchStatWorkouts } from '../src/stats/queries';
 import type { Consistency, DashboardStats } from '../src/stats/queries';
+import { startOfWeekMonday } from '../src/stats/volume';
+import { cardioPillar, cardioWorkoutMinutes, strengthPillar, strengthSessions, type PillarStatus } from '../src/stats/pillars';
+import { cardioMinutesInRange } from '../src/data/cardio';
 import { getCurrentSessionTargets, type CurrentSessionTargets } from '../src/programs/engine';
 import { catchUpProgramAdvancement } from '../src/programs/sessions';
 import { listEnrollments } from '../src/programs/enrollments';
@@ -113,6 +116,7 @@ export default function Home(): JSX.Element {
   const [today, setToday] = useState<CurrentSessionTargets | null>(null);
   const [todayProgram, setTodayProgram] = useState<string | null>(null);
   const [prs, setPrs] = useState<PRWithExercise[]>([]);
+  const [pillars, setPillars] = useState<PillarStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   // Stale-response guard: every focus starts a new load; only the latest
   // may write state.
@@ -177,6 +181,25 @@ export default function Home(): JSX.Element {
       settle(
         listPRsWithExercises().then((all) => all.slice(0, 3)),
         setPrs,
+      ),
+      settle(
+        (async () => {
+          // One clock read for the whole window. Cardio uses end-of-week
+          // (not "now") so near-future logs aren't excluded.
+          const now = new Date();
+          const weekStart = startOfWeekMonday(now);
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 7);
+          const [workouts, cardioMin] = await Promise.all([
+            fetchStatWorkouts(weekStart, now),
+            cardioMinutesInRange(weekStart, weekEnd),
+          ]);
+          // Same definition as the Pillars screen (see src/stats/pillars.ts).
+          const sessions = strengthSessions(workouts);
+          const totalCardio = cardioMin + cardioWorkoutMinutes(workouts);
+          return [strengthPillar(sessions), cardioPillar(totalCardio)];
+        })(),
+        setPillars,
       ),
       settle(
         (async () => {
@@ -384,6 +407,35 @@ export default function Home(): JSX.Element {
                   </Text>
                 ) : null}
               </Card>
+
+              {/* LONGEVITY PILLARS */}
+              {pillars ? (
+                <Card>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.sm }}>
+                    <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
+                      LONGEVITY PILLARS · THIS WEEK
+                    </Text>
+                  </View>
+                  {pillars.map((p) => {
+                    const color = p.state === 'met' ? theme.colors.success : p.state === 'progress' ? theme.colors.muted : theme.colors.faint;
+                    return (
+                      <View key={p.key} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: theme.spacing.xs }}>
+                        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color, marginRight: theme.spacing.sm }} />
+                        <Text style={{ color: theme.colors.text, fontSize: t.size.body, flex: 1 }}>
+                          {p.label}
+                        </Text>
+                        <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
+                          {p.summary}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </Card>
+              ) : null}
+
+              {/* MUSCLE BALANCE */}
+              <Button title="Muscle balance" variant="secondary" onPress={() => router.push('/balance')} />
+              <Button title="Longevity pillars" variant="secondary" onPress={() => router.push('/pillars')} />
 
               {/* RECENT PRs */}
               {prs.length > 0 ? (
