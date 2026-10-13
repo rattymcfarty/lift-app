@@ -252,6 +252,9 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         <FlatList
           data={detail.items}
           keyExtractor={(item) => item.workoutExercise.id}
+          // Taps on Log/Add exercise/Finish must reach the buttons while the
+          // numeric keyboard is up (first tap would otherwise only dismiss it).
+          keyboardShouldPersistTaps="handled"
           renderItem={renderExercise}
           contentContainerStyle={{
             paddingHorizontal: theme.spacing.md,

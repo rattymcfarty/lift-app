@@ -286,6 +286,9 @@ export default function NewWorkoutScreen(): JSX.Element {
           <FlatList
             data={routines}
             keyExtractor={(r) => r.id}
+            // Same as the active screen: taps must reach rows while the
+            // name-field keyboard is up (first tap would only dismiss it).
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <Pressable
                 onPress={() => void handleStartFromRoutine(item)}

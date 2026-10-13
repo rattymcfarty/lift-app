@@ -32,6 +32,10 @@ appId: app.lift.mobile
 - tapOn:
     id: "log-set-1"
 
+# Regression gate (P6): the set must persist — before the keyboard fix, the
+# first tap on Log only dismissed the keyboard and the set never saved.
+- assertVisible: "10 × 20 kg"
+
 # Finish → confirm the alert → summary screen shows the logged exercise
 - tapOn:
     id: "workout-finish"
