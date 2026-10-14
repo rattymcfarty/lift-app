@@ -47,7 +47,9 @@
     "test:stats": "node scripts/test-stats.mjs",
     "test:e2e": "maestro test .maestro/workout-flow.yaml",
     "test:p7": "node scripts/test-p7.mjs",
-    "test:kb": "node scripts/test-kb.mjs"
+    "test:kb": "node scripts/test-kb.mjs",
+    "build:android": "bash scripts/build-android-release.sh",
+    "setup:keystore": "bash scripts/setup-android-keystore.sh"
   },
   "version": "0.1.0"
 }

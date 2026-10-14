@@ -23,7 +23,8 @@
       "expo-router",
       "./plugins/withAndroidBackupRules",
       "./plugins/withIosBackupExclusion",
-      "expo-notifications"
+      "expo-notifications",
+      "./plugins/withAndroidReleaseSigning"
     ],
     "scheme": "liftapp",
     "slug": "lift-app",

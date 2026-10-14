@@ -45,8 +45,11 @@ Run all of these against the release build, in order:
 
 - [ ] Decide production build route: EAS Build (needs an Expo account —
   Matt's call) vs local release builds on ai-rig1. [H]
-- [ ] Android: release AAB signed with the upload keystore. Generate once,
-  back up securely, **never commit** (`.gitignore` already covers keystores,
+- [x] Android local release build: `npm run setup:keystore` (once), then
+  `npm run build:android` → signed AAB + APK (verified 2026-10-14, 6 min,
+  SHA-256 5F:9D:14:1B…2E:04). Keystore lives at `~/lift/secrets/` with its
+  password in `~/.gradle/gradle.properties` (chmod 600). **Back both up
+  off-rig**; generate once, **never commit** (`.gitignore` already covers keystores,
   p12/pem, mobileprovision).
 - [ ] iOS: distribution certificate + provisioning profile (needs the Apple
   Developer account — see §6).
