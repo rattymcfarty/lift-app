@@ -1,5 +1,5 @@
 /**
- * New routine: name it (plus optional pillars and estimated duration),
+ * New plan: name it (plus optional pillars and estimated duration),
  * then hand off to the builder where exercises are added.
  */
 
@@ -20,7 +20,7 @@ import { useTheme } from '../../src/theme';
 import { Button, NumberInput, ScreenHeader } from '../../src/components/workout/ui';
 import { parseUserInt } from '../../src/components/workout/format';
 
-export default function NewRoutineScreen(): JSX.Element {
+export default function NewPlanScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const [name, setName] = useState('');
@@ -43,7 +43,7 @@ export default function NewRoutineScreen(): JSX.Element {
     try {
       const trimmed = name.trim();
       if (!trimmed) {
-        setError('Give the routine a name.');
+        setError('Give the plan a name.');
         return;
       }
       const parsedMinutes = parseUserInt(minutes);
@@ -59,9 +59,9 @@ export default function NewRoutineScreen(): JSX.Element {
         longevityPillars: pillars,
       });
       // Replace: back from the builder must not return to this empty form.
-      router.replace(`/routines/${id}/edit`);
+      router.replace(`/plans/${id}/edit`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not create the routine.');
+      setError(e instanceof Error ? e.message : 'Could not create the plan.');
     } finally {
       creatingRef.current = false;
       setCreating(false);
@@ -73,7 +73,7 @@ export default function NewRoutineScreen(): JSX.Element {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={['top', 'bottom']}
     >
-      <ScreenHeader title="New routine" onBack={() => router.back()} />
+      <ScreenHeader title="New plan" onBack={() => router.back()} />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
@@ -89,7 +89,7 @@ export default function NewRoutineScreen(): JSX.Element {
               fontWeight: t.weight.medium,
             }}
           >
-            ROUTINE NAME
+            PLAN NAME
           </Text>
           <TextInput
             value={name}

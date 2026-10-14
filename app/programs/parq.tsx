@@ -99,7 +99,7 @@ export default function ParqScreen(): JSX.Element {
             <Text
               style={{
                 color: c.text,
-                fontSize: t.size.title,
+                fontSize: t.size.card,
                 fontWeight: t.weight.bold,
                 marginBottom: theme.spacing.sm,
               }}
@@ -135,7 +135,7 @@ export default function ParqScreen(): JSX.Element {
             <Text
               style={{
                 color: c.success,
-                fontSize: t.size.title,
+                fontSize: t.size.card,
                 fontWeight: t.weight.bold,
                 marginBottom: theme.spacing.sm,
               }}

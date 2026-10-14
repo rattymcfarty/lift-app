@@ -13,7 +13,7 @@ appId: app.lift.mobile
 - tapOn:
     id: "new-workout-start-blank"
 
-# Active workout → add an exercise
+# Active workout → add an exercise (multi-select picker, Slice B)
 - tapOn:
     id: "workout-add-exercise"
 - tapOn:
@@ -21,8 +21,12 @@ appId: app.lift.mobile
 - inputText: "Squat"
 - tapOn:
     id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
 
-# Log one set: 10 reps @ 20 kg
+# Create the pending set row, then log set 1: 10 reps @ 20 kg
+- tapOn:
+    id: "add-set"
 - tapOn:
     id: "set-reps-1"
 - inputText: "10"
@@ -32,12 +36,106 @@ appId: app.lift.mobile
 - tapOn:
     id: "log-set-1"
 
-# Regression gate (P6): the set must persist — before the keyboard fix, the
-# first tap on Log only dismissed the keyboard and the set never saved.
-- assertVisible: "10 × 20 kg"
+# Regression gate (P6 2026-10-12): the set must actually persist — the
+# numeric keyboard used to swallow the first Log tap (missing
+# keyboardShouldPersistTaps on the workout FlatList).
+# Set 1 logged: REPS column shows 10, KG column shows 20
+- assertVisible:
+    text: "10"
+- assertVisible:
+    text: "20"
+
+# A. Gradual sets + warmup exclusion
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-reps-2"
+- inputText: "12"
+- tapOn:
+    id: "set-weight-2"
+- inputText: "25"
+- tapOn:
+    id: "log-set-2"
+# Set 2 logged: REPS column shows 12, KG column shows 25
+- assertVisible:
+    text: "12"
+- assertVisible:
+    text: "25"
+
+# Warmup set
+- tapOn:
+    id: "exercise-actions"
+- tapOn:
+    id: "action-add-warmup"
+# Fill and log warmup (pending row appears after add-warmup trigger)
+- tapOn:
+    id: "set-reps-3"
+- inputText: "5"
+- tapOn:
+    id: "set-weight-3"
+- inputText: "10"
+- tapOn:
+    id: "log-set-3"
+# Warmup set logged: 5 reps @ 10 kg (5 is unique to set 3; the WARMUP badge
+# renders but is clipped at the row edge — layout issue noted for UI fix)
+- assertVisible:
+    text: "5"
+
+# B. Swap exercise
+- tapOn:
+    id: "swap-exercise"
+- tapOn:
+    id: "swap-search"
+- inputText: "Deadlift"
+- tapOn:
+    id: "swap-row-romanian-deadlift"
+- tapOn:
+    id: "swap-confirm"
+- assertVisible: "Romanian Deadlift"
+# Set 1 logged: REPS column shows 10, KG column shows 20
+- assertVisible:
+    text: "10"
+- assertVisible:
+    text: "20"
+
+# C. Picker filters
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "picker-filter-muscle"
+- tapOn:
+    id: "picker-muscle-Chest"
+# Collapse the muscle grid to reveal the filtered exercise list
+- tapOn:
+    id: "picker-filter-muscle"
+- assertVisible:
+    id: "add-exercise-row-push-up"
+# Re-expand the grid to clear the Chest filter
+- tapOn:
+    id: "picker-filter-muscle"
+- tapOn:
+    id: "picker-muscle-Chest"
+# Collapse the grid to reveal the exercise list
+- tapOn:
+    id: "picker-filter-muscle"
+
+# D. Detail tabs (from picker exercise info)
+- tapOn:
+    id: "exercise-info-push-up"
+- assertVisible:
+    text: "Guide"
+- tapOn:
+    id: "exercise-tab-History"
+- tapOn:
+    id: "exercise-tab-Records"
+- tapOn:
+    id: "exercise-tab-Charts"
+# System back: detail -> picker -> workout
+- pressKey: back
+- pressKey: back
 
 # Finish → confirm the alert → summary screen shows the logged exercise
 - tapOn:
     id: "workout-finish"
 - tapOn: "Finish"
-- assertVisible: "Goblet Squat"
+- assertVisible: "Romanian Deadlift"

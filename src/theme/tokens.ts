@@ -2,28 +2,39 @@
  * Design tokens for LIFT — the single source of truth for color, spacing,
  * type, radius, and breakpoints.
  *
- * Aesthetic: monochrome precision instrument. Near-black surfaces, hairline
- * borders, sharp type that stays legible mid-set with sweaty hands.
+ * Aesthetic (from Matt's chosen reference screenshots, layout/hierarchy
+ * direction only — no copied branding/artwork): near-black surfaces, dark
+ * charcoal rounded cards, large bold white titles, gold for exercise
+ * titles and the Finish action, orange for numbers, active-card borders,
+ * focused inputs, and check circles, muted gray small-caps column
+ * headers, values in darker inset pills.
  *
- * Accent discipline: there is exactly ONE accent color (green), reserved for
- * the primary action (completing a set). Semantic colors (success/danger/
- * warning) exist for confirmations and safety messaging only — never for
- * decoration. Success is a distinct teal so it can't be mistaken for the
- * accent action color. Screens must consume these tokens; never hard-code
- * colors or spacing.
+ * Color discipline: exactly TWO brand colors, each with one job.
+ * - `accent` (gold) — primary actions, exercise titles, the Finish action.
+ *   Nothing else.
+ * - `highlight` (orange) — set numbers, the active-card border, the
+ *   focused-input border, and the log/check circle. Nothing else.
+ * Semantic colors (success/danger/warning) exist for confirmations and
+ * safety messaging only — never for decoration. Success is a distinct
+ * teal so it can't be mistaken for the gold/orange action colors.
+ * Screens must consume these tokens; never hard-code colors, spacing,
+ * or font sizes.
  *
  * Contrast: text colors target WCAG AA (4.5:1) against their backgrounds —
  * this app is read mid-workout, often at arm's length.
  *
  * Modes: `lightTheme` and `darkTheme` are fully specified here. The
- * ThemeProvider resolves which one is active from the user's preference
- * ('light' | 'dark' | 'system'). No network, no analytics — pure local UI.
+ * ThemeProvider resolves which one is active from the user's persisted
+ * preference ('light' | 'dark', default 'dark'). The dark theme IS the
+ * reference look; the light theme is the same layout with light surfaces.
+ * No network, no analytics — pure local UI.
  */
 
 import type { TextStyle } from 'react-native';
 
-/** How the user wants the theme chosen. 'system' follows the OS setting. */
-export type ThemePreference = 'light' | 'dark' | 'system';
+/** How the user wants the theme chosen. In-app setting only — the app does
+ *  not follow the OS setting; the persisted preference always wins. */
+export type ThemePreference = 'light' | 'dark';
 
 /** The resolved mode after applying the preference. */
 export type ResolvedThemeMode = 'light' | 'dark';
@@ -33,7 +44,8 @@ export interface ColorTokens {
   background: string;
   /** Cards, sheets, raised surfaces. */
   surface: string;
-  /** Pressed states, disabled surfaces, subtle fills. */
+  /** Inset pills / inputs — darker than the card in dark mode, slightly
+   *  darker than the card in light mode. Values live here. */
   surfaceMuted: string;
   /** Primary text. */
   text: string;
@@ -47,15 +59,22 @@ export interface ColorTokens {
    *  add a dedicated token if a control needs a high-contrast edge. */
   border: string;
   /**
-   * THE accent color — reserved for the primary action (completing a set).
-   * Do not use it for decoration, charts, or secondary buttons.
+   * GOLD — exercise titles + the Finish action. Do not use it for
+   * decoration, charts, or secondary buttons.
    */
   accent: string;
   /** Text drawn on top of the accent color (contrast-safe). */
   accentText: string;
+  /**
+   * ORANGE — set numbers, the active-card border, the focused-input
+   * border, and the log/check circle. Do not use it for decoration.
+   */
+  highlight: string;
+  /** Glyph drawn on top of the highlight color (contrast-safe). */
+  highlightText: string;
   /** Destructive actions and errors. */
   danger: string;
-  /** Confirmations (PRs, completed syncs). Teal — distinct from accent. */
+  /** Confirmations (PRs, completed syncs). Teal — distinct from gold/orange. */
   success: string;
   /** Safety notices (RPE caps, deloads). Meets 4.5:1 for safety text. */
   warning: string;
@@ -82,15 +101,36 @@ export interface TypographyTokens {
     medium: TextStyle['fontWeight'];
     bold: TextStyle['fontWeight'];
   };
+  /**
+   * The single type scale. Every Text in the app uses one of these roles —
+   * no ad-hoc font sizes. Hierarchy comes from role + weight + color, not
+   * from inventing sizes per screen (Apple HIG: 11 styles; we ship 8 text
+   * roles + 1 glyph token + 1 brand token). Sizes are pt at the Default
+   * Dynamic Type setting; text still scales with the OS setting.
+   */
   size: {
-    /** 12 — metadata, timestamps, captions. */
-    caption: number;
-    /** 16 — primary reading text. */
-    body: number;
-    /** 22 — section titles. */
-    title: number;
-    /** 40 — hero numbers (total volume, PRs). */
+    /** 40 — hero numbers (total volume, PRs, timer readouts). */
     display: number;
+    /** 34 — top-level screen titles (ScreenHeader). */
+    screen: number;
+    /** 26 — screen-title size below 360pt logical width (Display Zoom). */
+    screenCompact: number;
+    /** 22 — section titles, stat values. */
+    section: number;
+    /** 20 — card titles (plan names, exercise names in cards). */
+    card: number;
+    /** 17, semibold at call sites — list row titles, button labels. */
+    row: number;
+    /** 17 — primary reading text. */
+    body: number;
+    /** 13 — metadata, timestamps. */
+    meta: number;
+    /** 12 — captions, column headers, small labels. */
+    caption: number;
+    /** 28 — glyph icons (back arrow). */
+    icon: number;
+    /** 28 — the LIFT wordmark (with letterSpacing). Brand only. */
+    brand: number;
   };
 }
 
@@ -133,23 +173,37 @@ const shared: {
   typography: {
     family: undefined,
     weight: { regular: '400', medium: '500', bold: '700' },
-    size: { caption: 12, body: 16, title: 22, display: 40 },
+    size: {
+      display: 40,
+      screen: 34,
+      screenCompact: 26,
+      section: 22,
+      card: 20,
+      row: 17,
+      body: 17,
+      meta: 13,
+      caption: 12,
+      icon: 28,
+      brand: 28,
+    },
   },
-  radius: { sm: 4, md: 8, lg: 16, pill: 999 },
+  radius: { sm: 4, md: 8, lg: 20, pill: 999 },
   breakpoints: { phone: 0, largePhone: 430, tablet: 600 },
 };
 
 export const lightTheme: Theme = {
   colors: {
-    background: '#fafafa',
+    background: '#f2f2f7',
     surface: '#ffffff',
-    surfaceMuted: '#f4f4f5',
-    text: '#09090b',
-    muted: '#52525b',
-    faint: '#6b6b73',
-    border: '#e4e4e7',
-    accent: '#15803d',
-    accentText: '#ffffff',
+    surfaceMuted: '#e9e9ee',
+    text: '#111111',
+    muted: '#5c5c60',
+    faint: '#67676c',
+    border: '#dddde2',
+    accent: '#b8860b',
+    accentText: '#000000',
+    highlight: '#c24e00',
+    highlightText: '#ffffff',
     danger: '#c81e1e',
     success: '#0f766e',
     warning: '#b45309',
@@ -159,18 +213,20 @@ export const lightTheme: Theme = {
 
 export const darkTheme: Theme = {
   colors: {
-    background: '#09090b',
-    surface: '#111113',
-    surfaceMuted: '#1b1b1f',
-    text: '#fafafa',
-    muted: '#a1a1a1',
-    faint: '#86868e',
-    border: '#26262b',
-    accent: '#22c55e',
-    accentText: '#052e16',
-    danger: '#f87171',
+    background: '#0a0a0a',
+    surface: '#1c1c1e',
+    surfaceMuted: '#101012',
+    text: '#ffffff',
+    muted: '#a1a1a6',
+    faint: '#7c7c82',
+    border: '#2a2a2e',
+    accent: '#ffc700',
+    accentText: '#000000',
+    highlight: '#ff6b00',
+    highlightText: '#000000',
+    danger: '#ff453a',
     success: '#2dd4bf',
-    warning: '#fbbf24',
+    warning: '#ffb340',
   },
   ...shared,
 };

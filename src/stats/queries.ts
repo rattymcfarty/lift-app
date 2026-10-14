@@ -73,6 +73,7 @@ export async function fetchStatWorkouts(start: Date, end: Date): Promise<StatWor
       weightKg: sets.weightKg,
       durationSeconds: sets.durationSeconds,
       completed: sets.completed,
+      isWarmup: sets.isWarmup,
     })
     .from(sets)
     .innerJoin(
@@ -97,6 +98,7 @@ export async function fetchStatWorkouts(start: Date, end: Date): Promise<StatWor
       weightKg: r.weightKg,
       durationSeconds: r.durationSeconds,
       completed: r.completed,
+      isWarmup: r.isWarmup,
     };
     w.sets.push(set);
   }

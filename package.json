@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@expo/metro-runtime": "~57.0.0",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "drizzle-orm": "^0.44.0",
     "expo": "~57.0.0",
     "expo-constants": "~57.0.0",
@@ -44,7 +45,9 @@
     "test:programs": "node scripts/test-programs.mjs",
     "test:progression": "node scripts/test-progression.mjs",
     "test:stats": "node scripts/test-stats.mjs",
-    "test:e2e": "maestro test .maestro/workout-flow.yaml"
+    "test:e2e": "maestro test .maestro/workout-flow.yaml",
+    "test:p7": "node scripts/test-p7.mjs",
+    "test:kb": "node scripts/test-kb.mjs"
   },
   "version": "0.1.0"
 }

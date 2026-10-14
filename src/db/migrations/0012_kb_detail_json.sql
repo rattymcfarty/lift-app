@@ -1,0 +1,1 @@
+ALTER TABLE `exercises` ADD `kb_detail_json` text;

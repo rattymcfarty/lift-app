@@ -22,6 +22,8 @@ export interface StatSet {
   durationSeconds: number | null;
   /** false = planned but skipped — excluded from volume/strength. */
   completed: boolean;
+  /** true = warmup set: excluded from working volume and PR detection. */
+  isWarmup: boolean;
 }
 
 /** One finished workout with its sets. */

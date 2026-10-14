@@ -123,6 +123,24 @@ export const workoutExercises = sqliteTable(
     notes: text('notes'),
     /** Per-exercise rest override in seconds (rest timer reads this). */
     restSeconds: integer('rest_seconds'),
+    /**
+     * Per-exercise display unit override. NULL = follow the global setting.
+     * Storage is always canonical kg; this only affects display/input.
+     */
+    unitPreference: text('unit_preference').$type<'kg' | 'lb'>(),
+    /**
+     * Superset grouping: non-null groups exercises performed as one superset
+     * within a workout. Value is a client-generated UUID shared by the grouped
+     * rows. NULL = not in a superset.
+     */
+    supersetId: text('superset_id'),
+    /**
+     * Per-exercise auto-progression override.
+     * NULL = auto from program linkage (ON when linked to active enrollment with progression state).
+     * true  = force ON for this workout exercise.
+     * false = force OFF for this workout exercise.
+     */
+    autoProgression: integer('auto_progression', { mode: 'boolean' }),
   },
   (t) => [
     index('workout_exercises_workout_id_idx').on(t.workoutId),
@@ -130,6 +148,7 @@ export const workoutExercises = sqliteTable(
     index('workout_exercises_exercise_id_idx').on(t.exerciseId),
     index('workout_exercises_updated_at_idx').on(t.updatedAt),
     index('workout_exercises_deleted_at_idx').on(t.deletedAt),
+    index('workout_exercises_superset_id_idx').on(t.supersetId),
     // Partial: live rows can't share a position; tombstones don't collide.
     uniqueIndex('workout_exercises_workout_position_unique')
       .on(t.workoutId, t.position)
@@ -169,6 +188,8 @@ export const sets = sqliteTable(
     distanceM: real('distance_m'),
     /** false = planned but skipped (kept for program adherence tracking). */
     completed: integer('completed', { mode: 'boolean' }).notNull().default(true),
+    /** true = warmup set: excluded from working volume and PR detection. */
+    isWarmup: integer('is_warmup', { mode: 'boolean' }).notNull().default(false),
     notes: text('notes'),
   },
   (t) => [
@@ -202,6 +223,8 @@ export const exercises = sqliteTable(
     secondaryMuscles: text('secondary_muscles').notNull().default('[]'),
     equipment: text('equipment').notNull().default('[]'),
     category: text('category').notNull().default('strength').$type<ExerciseCategory>(),
+    /** KB movement category (Vertical Push, Squat, Hinge, etc.). */
+    kbCategory: text('kb_category'),
     /** KB prose cache (instructions / coaching cues). */
     instructions: text('instructions'),
     /** KB longevity lens prose (why this movement matters for healthspan). */
@@ -220,6 +243,8 @@ export const exercises = sqliteTable(
     kbId: text('kb_id').unique(),
     /** KB bundle version that seeded/updated this row. */
     kbVersion: text('kb_version'),
+    /** KB extra detail JSON: cues, commonMistakes, safetyNotes, progression, difficulty. */
+    kbDetailJson: text('kb_detail_json'),
   },
   (t) => [
     index('exercises_updated_at_idx').on(t.updatedAt),

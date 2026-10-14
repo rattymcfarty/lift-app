@@ -74,7 +74,7 @@ function RecentRow({ workout }: { workout: Workout }): JSX.Element {
     >
       <View style={styles.recentText}>
         <Text
-          style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
+          style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
           numberOfLines={1}
         >
           {workout.name}
@@ -93,11 +93,11 @@ function StatCell({ label, value, hint }: { label: string; value: string; hint?:
   const { theme } = useTheme();
   const t = theme.typography;
   return (
-    <View style={[styles.statCell, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+    <View style={[styles.statCell, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.lg }]}>
       <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
         {label}
       </Text>
-      <Text style={{ color: theme.colors.text, fontSize: 22, fontWeight: t.weight.bold }}>{value}</Text>
+      <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>{value}</Text>
       {hint ? (
         <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>{hint}</Text>
       ) : null}
@@ -242,13 +242,25 @@ export default function Home(): JSX.Element {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={['top', 'bottom']}
     >
-      <View style={[styles.header, { paddingHorizontal: theme.spacing.md }]}>
-        <Text style={{ color: theme.colors.text, fontSize: 28, fontWeight: '800', letterSpacing: 4 }}>
-          LIFT
-        </Text>
-        <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
-          Longevity Intelligent Fitness Trainer
-        </Text>
+      <View style={[styles.header, { paddingHorizontal: theme.spacing.md, flexDirection: 'row', alignItems: 'center' }]}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.brand, fontWeight: t.weight.bold, letterSpacing: 4 }}>
+            LIFT
+          </Text>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            Longevity Intelligent Fitness Trainer
+          </Text>
+        </View>
+        <Pressable
+          testID="home-settings"
+          onPress={() => router.push('/settings')}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+          hitSlop={8}
+          style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text style={{ color: theme.colors.muted, fontSize: t.size.section }}>⚙</Text>
+        </Pressable>
       </View>
 
       {loading ? (
@@ -268,8 +280,8 @@ export default function Home(): JSX.Element {
                     WORKOUT IN PROGRESS
                   </Text>
                   <Text
-                    style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}
-                    numberOfLines={1}
+                    style={{ color: theme.colors.text, fontSize: t.size.card, fontWeight: t.weight.bold }}
+                    numberOfLines={2}
                   >
                     {active.workout.name}
                   </Text>
@@ -279,6 +291,8 @@ export default function Home(): JSX.Element {
                   </Text>
                   <Button
                     title="Resume workout"
+                    size="large"
+                    testID="home-resume-workout"
                     onPress={() => router.push(`/workout/${active.workout.id}`)}
                   />
                 </Card>
@@ -289,7 +303,7 @@ export default function Home(): JSX.Element {
                 <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>UP NEXT</Text>
                 {today ? (
                   <View style={{ gap: theme.spacing.xs }}>
-                    <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }} numberOfLines={1}>
+                    <Text style={{ color: theme.colors.text, fontSize: t.size.card, fontWeight: t.weight.bold }} numberOfLines={2}>
                       {today.routineName}
                     </Text>
                     <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
@@ -320,11 +334,13 @@ export default function Home(): JSX.Element {
                       <View style={{ gap: theme.spacing.sm }}>
                         <Button
                           title="Start this session"
+                          size="large"
+                          testID="home-start-session"
                           onPress={() =>
                             router.push({
                               pathname: '/workout/new',
                               params: {
-                                routineId: today.routineId,
+                                planId: today.routineId,
                                 enrollmentId: today.enrollmentId,
                                 week: String(today.week),
                                 day: String(today.day),
@@ -354,6 +370,39 @@ export default function Home(): JSX.Element {
                   </View>
                 )}
               </Card>
+
+              {/* PLANS & EXERCISES — browse plans, create a plan, explore the
+                  exercise inventory. Entry points only; the screens live
+                  at /plans, /plans/new, and /exercises. */}
+              <View style={{ gap: theme.spacing.sm }}>
+                <Text
+                  style={{
+                    color: theme.colors.muted,
+                    fontSize: t.size.caption,
+                    fontWeight: t.weight.medium,
+                  }}
+                >
+                  PLANS &amp; EXERCISES
+                </Text>
+                <Button
+                  title="Browse Plans"
+                  variant="secondary"
+                  testID="home-browse-plans"
+                  onPress={() => router.push('/plans')}
+                />
+                <Button
+                  title="Create Plan"
+                  size="large"
+                  testID="home-create-plan"
+                  onPress={() => router.push('/plans/new')}
+                />
+                <Button
+                  title="Browse Exercises"
+                  variant="secondary"
+                  testID="home-browse-exercises"
+                  onPress={() => router.push('/exercises')}
+                />
+              </View>
 
               {/* STATS GRID — 2x2 on phones, 4-across on tablet/wide (P5) */}
               <View>
@@ -470,9 +519,6 @@ export default function Home(): JSX.Element {
                 </Card>
               ) : null}
 
-              {/* MUSCLE BALANCE */}
-              <Button title="Muscle balance" variant="secondary" onPress={() => router.push('/balance')} />
-              <Button title="Longevity pillars" variant="secondary" onPress={() => router.push('/pillars')} />
 
               {/* RECENT PRs */}
               {prs.length > 0 ? (
@@ -492,7 +538,7 @@ export default function Home(): JSX.Element {
                       }}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }} numberOfLines={1}>
+                        <Text style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }} numberOfLines={1}>
                           {pr.exerciseName}
                         </Text>
                         <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
@@ -504,28 +550,30 @@ export default function Home(): JSX.Element {
                       </Text>
                     </View>
                   ))}
-                  <Button title="All records" variant="secondary" onPress={() => router.push('/prs')} />
                 </Card>
               ) : null}
 
-              {/* Workout flow entry points (P1, preserved) */}
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                <View style={{ flex: 1 }}>
-                  <Button title="History" variant="secondary" onPress={() => router.push('/history')} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Button title="Progress" variant="secondary" onPress={() => router.push('/progress')} />
-                </View>
+              {/* MORE — secondary destinations as quiet rows, not buttons,
+                  so they stop competing with the hero actions above. */}
+              <View>
+                <Text
+                  style={{
+                    color: theme.colors.muted,
+                    fontSize: t.size.caption,
+                    fontWeight: t.weight.medium,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
+                  MORE
+                </Text>
+                <MoreRow label="History" onPress={() => router.push('/history')} />
+                <MoreRow label="Progress" onPress={() => router.push('/progress')} />
+                <MoreRow label="Measure" onPress={() => router.push('/measure')} />
+                <MoreRow label="Calculators" onPress={() => router.push('/calculators')} />
+                <MoreRow label="Personal records" onPress={() => router.push('/prs')} />
+                <MoreRow label="Muscle balance" onPress={() => router.push('/balance')} />
+                <MoreRow label="Longevity pillars" onPress={() => router.push('/pillars')} last />
               </View>
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                <View style={{ flex: 1 }}>
-                  <Button title="Measure" variant="secondary" onPress={() => router.push('/measure')} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Button title="Calculators" variant="secondary" onPress={() => router.push('/calculators')} />
-                </View>
-              </View>
-              <Button title="Personal Records" variant="secondary" onPress={() => router.push('/prs')} />
               {recent.length > 0 ? (
                 <Text
                   style={{
@@ -552,6 +600,42 @@ export default function Home(): JSX.Element {
         />
       )}
     </SafeAreaView>
+  );
+}
+
+/**
+ * One quiet navigation row for the MORE section: label + chevron, no
+ * button chrome. `last` drops the bottom divider.
+ */
+function MoreRow({
+  label,
+  onPress,
+  last = false,
+}: {
+  label: string;
+  onPress: () => void;
+  last?: boolean;
+}): JSX.Element {
+  const { theme } = useTheme();
+  const t = theme.typography;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.moreRow,
+        {
+          borderBottomColor: theme.colors.border,
+          borderBottomWidth: last ? 0 : 1,
+          paddingVertical: theme.spacing.sm,
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <Text style={{ color: theme.colors.text, fontSize: t.size.body, flex: 1 }}>{label}</Text>
+      <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>›</Text>
+    </Pressable>
   );
 }
 
@@ -600,6 +684,10 @@ const styles = StyleSheet.create({
   recentText: {
     flex: 1,
     gap: 2,
+  },
+  moreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   statCell: {
     borderWidth: 1,

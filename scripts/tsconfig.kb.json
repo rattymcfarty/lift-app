@@ -13,6 +13,7 @@
     "../src/kb/validate.ts",
     "../src/kb/transform.ts",
     "../src/kb/channel.ts",
-    "../src/kb/bundle.ts"
+    "../src/kb/bundle.ts",
+    "../src/kb/taxonomy.ts"
   ]
 }

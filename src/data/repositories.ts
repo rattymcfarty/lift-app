@@ -13,6 +13,7 @@
  */
 import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 import { db, runInTransaction } from '../db/client';
+import { newId } from '../db/id';
 import {
   decodePillars,
   encodePillars,
@@ -20,6 +21,7 @@ import {
   exercises,
   measurements,
   personalRecords,
+  programEnrollments,
   programSessionStates,
   routineExercises,
   routines,
@@ -269,6 +271,7 @@ function deletedExercisePlaceholder(id: string): Exercise {
     secondaryMuscles: '[]',
     equipment: '[]',
     category: 'other',
+    kbCategory: null,
     instructions: null,
     mediaImageUrl: null,
     mediaVideoUrl: null,
@@ -277,6 +280,7 @@ function deletedExercisePlaceholder(id: string): Exercise {
     isCustom: false,
     kbId: null,
     kbVersion: null,
+    kbDetailJson: null,
   };
 }
 
@@ -543,6 +547,369 @@ export async function reorderWorkoutExercises(workoutId: string, orderedIds: str
   });
 }
 
+/**
+ * Sets the per-exercise display unit preference.
+ * @param workoutExerciseId The workout_exercises row to update.
+ * @param unit 'kg' | 'lb' | null — null clears the override (follows global setting).
+ * @throws RangeError if unit is not 'kg', 'lb', or null.
+ */
+export async function setExerciseUnitPreference(
+  workoutExerciseId: string,
+  unit: 'kg' | 'lb' | null,
+): Promise<void> {
+  if (unit !== null && unit !== 'kg' && unit !== 'lb') {
+    throw new RangeError(`invalid unit preference: ${unit}`);
+  }
+  return withWriteLock(async () => {
+    await db
+      .update(workoutExercises)
+      .set({ unitPreference: unit })
+      .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/**
+ * Sets the per-exercise rest timer override in seconds.
+ * @param workoutExerciseId The workout_exercises row to update.
+ * @param seconds Rest time in seconds, or null to inherit the global default.
+ * @throws RangeError if seconds is not a positive integer or null.
+ */
+export async function setExerciseRest(
+  workoutExerciseId: string,
+  seconds: number | null,
+): Promise<void> {
+  if (seconds !== null) {
+    assertIntNonNegative(seconds, 'restSeconds');
+  }
+  return withWriteLock(async () => {
+    await db
+      .update(workoutExercises)
+      .set({ restSeconds: seconds })
+      .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/**
+ * Updates the exercise notes for a workout exercise.
+ * @param workoutExerciseId The workout_exercises row to update.
+ * @param notes The new notes string, or null to clear.
+ */
+export async function setExerciseNotes(
+  workoutExerciseId: string,
+  notes: string | null,
+): Promise<void> {
+  return withWriteLock(async () => {
+    await db
+      .update(workoutExercises)
+      .set({ notes: notes ?? null })
+      .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/**
+ * Sets the per-exercise auto-progression override.
+ * @param workoutExerciseId The workout_exercises row to update.
+ * @param value true = force ON, false = force OFF, null = auto from program linkage.
+ */
+export async function setExerciseAutoProgression(
+  workoutExerciseId: string,
+  value: boolean | null,
+): Promise<void> {
+  return withWriteLock(async () => {
+    await db
+      .update(workoutExercises)
+      .set({ autoProgression: value })
+      .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/** Shared: does the workout + exercise have an active program progression? */
+export async function isProgressionAvailable(
+  workoutId: string,
+  exerciseId: string,
+): Promise<boolean> {
+  const [workout] = await db
+    .select({ routineId: workouts.routineId })
+    .from(workouts)
+    .where(and(eq(workouts.id, workoutId), isNull(workouts.deletedAt)))
+    .limit(1);
+  if (!workout || !workout.routineId) return false;
+  const [enrollment] = await db
+    .select()
+    .from(programEnrollments)
+    .where(
+      and(
+        eq(programEnrollments.status, 'active'),
+        isNull(programEnrollments.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!enrollment) return false;
+  const state = parseProgressionState(enrollment.progressionState);
+  const weightKg = state[exerciseId]?.weightKg;
+  if (weightKg == null) return false;
+  const [re] = await db
+    .select({ id: routineExercises.id })
+    .from(routineExercises)
+    .where(
+      and(
+        eq(routineExercises.routineId, workout.routineId),
+        eq(routineExercises.exerciseId, exerciseId),
+        isNull(routineExercises.deletedAt),
+      ),
+    )
+    .limit(1);
+  return !!re;
+}
+
+/**
+ * Pure helper to resolve the effective auto-progression state label.
+ * @param override null = Auto, true = On, false = Off
+ * @param available whether program progression is available
+ */
+export function resolveAutoProgression(
+  override: boolean | null,
+  available: boolean,
+): { label: string; effective: boolean } {
+  if (override === true) return { label: 'On', effective: true };
+  if (override === false) return { label: 'Off', effective: false };
+  if (available) return { label: 'Auto (On)', effective: true };
+  return { label: 'Auto (Off)', effective: false };
+}
+
+export async function setAutoProgressionOverride(
+  workoutExerciseId: string,
+  value: boolean | null,
+): Promise<void> {
+  return withWriteLock(async () => {
+    await db
+      .update(workoutExercises)
+      .set({ autoProgression: value })
+      .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/**
+ * Gets the progression suggestion for a workout exercise if it has an active
+ * program enrollment with progression state.
+ * Returns null when:
+ * - The workout is not linked to a routine from an active enrollment
+ * - The enrollment has no progression state for this exercise
+ * - The exercise is bodyweight (no weight progression)
+ */
+export async function getProgressionSuggestion(
+  workoutExerciseId: string,
+): Promise<{ weightKg: number; reps: number | null } | null> {
+  const [we] = await db
+    .select({
+      id: workoutExercises.id,
+      workoutId: workoutExercises.workoutId,
+      exerciseId: workoutExercises.exerciseId,
+      routineId: workouts.routineId,
+    })
+    .from(workoutExercises)
+    .innerJoin(workouts, eq(workoutExercises.workoutId, workouts.id))
+    .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)))
+    .limit(1);
+
+  if (!we || !we.routineId) return null;
+  if (!await isProgressionAvailable(we.workoutId, we.exerciseId)) return null;
+
+  // Find active enrollment for this routine
+  const [enrollment] = await db
+    .select()
+    .from(programEnrollments)
+    .where(
+      and(
+        eq(programEnrollments.status, 'active'),
+        isNull(programEnrollments.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!enrollment) return null;
+
+  const state = parseProgressionState(enrollment.progressionState);
+  const weightKg = state[we.exerciseId]?.weightKg;
+  if (weightKg == null) return null;
+
+  // Get the routine template for this exercise to find target reps
+  const [routineExercise] = await db
+    .select()
+    .from(routineExercises)
+    .where(
+      and(
+        eq(routineExercises.routineId, we.routineId),
+        eq(routineExercises.exerciseId, we.exerciseId),
+        isNull(routineExercises.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  const repRange = routineExercise ? parseRepRange(routineExercise.targetReps) : null;
+  const targetReps = repRange?.min ?? null;
+
+  return { weightKg, reps: targetReps };
+}
+
+function parseProgressionState(json: string | null | undefined): Record<string, { weightKg: number }> {
+  if (!json) return {};
+  try {
+    const v: unknown = JSON.parse(json);
+    if (typeof v !== 'object' || v === null || Array.isArray(v)) return {};
+    const out: Record<string, { weightKg: number }> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      if (
+        typeof val === 'object' &&
+        val !== null &&
+        typeof (val as { weightKg?: unknown }).weightKg === 'number' &&
+        Number.isFinite((val as { weightKg: number }).weightKg) &&
+        (val as { weightKg: number }).weightKg >= 0
+      ) {
+        out[k] = { weightKg: (val as { weightKg: number }).weightKg };
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function parseRepRange(targetReps: string | null | undefined): { min: number; max: number | null } | null {
+  if (targetReps == null) return null;
+  const t = targetReps.trim();
+  if (t.length === 0) return null;
+
+  const RANGE_RE = /^(\d+)\s*[-–—]\s*(\d+)$/;
+  const SINGLE_RE = /^(\d+)$/;
+  const OPEN_RE = /^(\d+)\s*\+$/;
+
+  let m = RANGE_RE.exec(t);
+  if (m) {
+    const min = Number(m[1]);
+    const max = Number(m[2]);
+    if (min >= 1 && max >= min && max <= 1000) return { min, max };
+    return null;
+  }
+  m = SINGLE_RE.exec(t);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 1 && n <= 1000) return { min: n, max: n };
+    return null;
+  }
+  m = OPEN_RE.exec(t);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 1 && n <= 1000) return { min: n, max: null };
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Groups or ungroups exercises into a superset.
+ * @param workoutExerciseIds Array of workout_exercises IDs to group together.
+ * @param supersetId A client-generated UUID string, or null to ungroup.
+ * All IDs must belong to the same workout and be live.
+ * @throws RangeError if IDs span multiple workouts or any row is deleted.
+ */
+export async function setSupersetGroup(
+  workoutExerciseIds: string[],
+  supersetId: string | null,
+): Promise<void> {
+  if (workoutExerciseIds.length === 0) return;
+  return withWriteLock(async () => {
+    const rows = await db
+      .select({ id: workoutExercises.id, workoutId: workoutExercises.workoutId })
+      .from(workoutExercises)
+      .where(and(inArray(workoutExercises.id, workoutExerciseIds), isNull(workoutExercises.deletedAt)));
+    if (rows.length !== workoutExerciseIds.length) {
+      throw new RangeError('one or more workout exercises not found or deleted');
+    }
+    const workoutIds = new Set(rows.map((r) => r.workoutId));
+    if (workoutIds.size > 1) {
+      throw new RangeError('all exercises must belong to the same workout');
+    }
+    await db
+      .update(workoutExercises)
+      .set({ supersetId })
+      .where(and(inArray(workoutExercises.id, workoutExerciseIds), isNull(workoutExercises.deletedAt)));
+  });
+}
+
+/**
+ * Returns superset groups for a workout, in position order.
+ * Each group contains the workout_exercises rows sharing a supersetId.
+ * Exercises without a supersetId are not included.
+ */
+export async function getSupersetGroups(workoutId: string): Promise<WorkoutExercise[][]> {
+  const rows = await db
+    .select()
+    .from(workoutExercises)
+    .where(
+      and(
+        eq(workoutExercises.workoutId, workoutId),
+        isNotNull(workoutExercises.supersetId),
+        isNull(workoutExercises.deletedAt),
+      ),
+    )
+    .orderBy(asc(workoutExercises.position));
+  const groups = new Map<string, WorkoutExercise[]>();
+  for (const row of rows) {
+    const key = row.supersetId!;
+    const arr = groups.get(key) ?? [];
+    arr.push(row);
+    groups.set(key, arr);
+  }
+  return [...groups.values()];
+}
+
+/**
+ * Adds exercises to a workout and groups them as a new superset — all-or-nothing.
+ *
+ * The new supersetId is generated client-side (newId()) and shared by every
+ * inserted workout_exercises row. If any insert or the group call fails, the
+ * partial inserts are rolled back (soft-deleted) so the caller never sees a
+ * half-added superset.
+ *
+ * @param workoutId The workout to add to.
+ * @param exerciseIds Exercise library IDs to add (order = superset order).
+ * @throws RangeError if the workout or any exercise is deleted.
+ */
+export async function addExercisesAsSuperset(
+  workoutId: string,
+  exerciseIds: string[],
+): Promise<{ supersetId: string; workoutExercises: WorkoutExercise[] }> {
+  if (exerciseIds.length === 0) {
+    throw new RangeError('cannot create a superset from zero exercises');
+  }
+  const supersetId = newId();
+  const inserted: WorkoutExercise[] = [];
+  try {
+    for (const exerciseId of exerciseIds) {
+      const weId = await addExerciseToWorkout({ workoutId, exerciseId });
+      const [row] = await db
+        .select()
+        .from(workoutExercises)
+        .where(and(eq(workoutExercises.id, weId), isNull(workoutExercises.deletedAt)))
+        .limit(1);
+      if (row) inserted.push(row);
+    }
+    await setSupersetGroup(inserted.map((r) => r.id), supersetId);
+  } catch (e) {
+    // Roll back: soft-delete any partial inserts so the caller sees nothing.
+    const now = new Date();
+    for (const row of inserted) {
+      await db
+        .update(workoutExercises)
+        .set({ deletedAt: now })
+        .where(and(eq(workoutExercises.id, row.id), isNull(workoutExercises.deletedAt)));
+    }
+    throw e;
+  }
+  return { supersetId, workoutExercises: inserted };
+}
+
 /* ------------------------------------------------------------------ */
 /* sets                                                                */
 /* ------------------------------------------------------------------ */
@@ -558,6 +925,8 @@ export async function logSet(input: {
   completed?: boolean;
   notes?: string;
   setNumber?: number;
+  /** true = warmup set: excluded from working volume and PR detection. */
+  isWarmup?: boolean;
 }): Promise<string> {
   assertRpeRir(input.rpe, input.rir);
   assertIntNonNegative(input.reps, 'reps');
@@ -616,6 +985,7 @@ export async function logSet(input: {
       durationSeconds: input.durationSeconds,
       distanceM: input.distanceM,
       completed: input.completed ?? true,
+      isWarmup: input.isWarmup ?? false,
       notes: input.notes,
     };
     const [row] = await db.insert(sets).values(values).returning({ id: sets.id });
@@ -624,7 +994,8 @@ export async function logSet(input: {
     // re-entrantly (deadlock — see its doc comment). Detection is best-effort:
     // a PR write must never break set logging (the set is primary data, the
     // PR is derived and can be recomputed).
-    if (values.completed) {
+    // Warmup sets (isWarmup = true) are excluded from PR detection.
+    if (values.completed && !values.isWarmup) {
       const weightKg = values.weightKg ?? 0;
       const reps = values.reps ?? 0;
       if (weightKg > 0) {
@@ -661,9 +1032,14 @@ export async function logSet(input: {
 export type SetPatch = Partial<
   Pick<
     LoggedSet,
-    'reps' | 'weightKg' | 'rpe' | 'rir' | 'durationSeconds' | 'distanceM' | 'completed' | 'notes' | 'setNumber'
+    'reps' | 'weightKg' | 'rpe' | 'rir' | 'durationSeconds' | 'distanceM' | 'completed' | 'notes' | 'setNumber' | 'isWarmup'
   >
 >;
+
+/** Returns true for sets that count toward working volume and PR detection. */
+export function isWorkingSet(s: { isWarmup?: boolean | null }): boolean {
+  return s.isWarmup !== true;
+}
 
 /** Returns the updated row, or null if the set doesn't exist / is deleted. */
 export async function updateSet(id: string, patch: SetPatch): Promise<LoggedSet | null> {
@@ -719,6 +1095,7 @@ const SET_PATCH_KEYS = [
   'completed',
   'notes',
   'setNumber',
+  'isWarmup',
 ] as const;
 
 /** Strips any non-whitelisted keys a JS caller might pass. */
@@ -843,6 +1220,8 @@ export async function upsertKbExercise(input: {
   mediaImageUrl?: string;
   mediaVideoUrl?: string;
   longevityPillars?: LongevityPillar[];
+  kbCategory?: string;
+  kbDetailJson?: string;
 }): Promise<string> {
   if (input.category !== undefined) assertCategory(input.category);
   assertKbMediaUrl(input.mediaImageUrl, 'mediaImageUrl');
@@ -857,11 +1236,13 @@ export async function upsertKbExercise(input: {
       secondaryMuscles: JSON.stringify(input.secondaryMuscles ?? []),
       equipment: JSON.stringify(input.equipment ?? []),
       category: input.category ?? 'strength',
+      kbCategory: input.kbCategory ?? null,
       instructions: input.instructions ?? null,
       mediaImageUrl: input.mediaImageUrl ?? null,
       mediaVideoUrl: input.mediaVideoUrl ?? null,
       longevityPillars: encodePillars(input.longevityPillars ?? []),
       kbVersion: input.kbVersion,
+      kbDetailJson: input.kbDetailJson ?? null,
       isCustom: false,
     };
     if (existing) {
@@ -1142,9 +1523,110 @@ export async function startWorkoutFromRoutine(routineId: string, name?: string):
   });
 }
 
+/**
+ * Swap the exercise for a workout exercise: creates a new row with the new
+ * exercise at the same position, re-parents all live sets, copies settings,
+ * and soft-deletes the old row. All inside a transaction.
+ */
+export async function swapWorkoutExercise(
+  workoutExerciseId: string,
+  newExerciseId: string,
+): Promise<string> {
+  return withWriteLock(async () => {
+    return runInTransaction(async () => {
+      const [oldRow] = await db
+        .select({
+          id: workoutExercises.id,
+          workoutId: workoutExercises.workoutId,
+          position: workoutExercises.position,
+          notes: workoutExercises.notes,
+          restSeconds: workoutExercises.restSeconds,
+          unitPreference: workoutExercises.unitPreference,
+          supersetId: workoutExercises.supersetId,
+          autoProgression: workoutExercises.autoProgression,
+          exerciseId: workoutExercises.exerciseId,
+        })
+        .from(workoutExercises)
+        .where(and(eq(workoutExercises.id, workoutExerciseId), isNull(workoutExercises.deletedAt)))
+        .limit(1);
+      if (!oldRow) {
+        throw new RangeError('workout exercise not found');
+      }
+      if (oldRow.exerciseId === newExerciseId) {
+        throw new RangeError('cannot swap to the same exercise');
+      }
+      const [newExercise] = await db
+        .select({ id: exercises.id })
+        .from(exercises)
+        .where(and(eq(exercises.id, newExerciseId), isNull(exercises.deletedAt)))
+        .limit(1);
+      if (!newExercise) {
+        throw new RangeError('new exercise not found');
+      }
+      // Soft-delete old row first to free the position (partial unique index).
+      const now = new Date();
+      await db
+        .update(workoutExercises)
+        .set({ deletedAt: now })
+        .where(and(eq(workoutExercises.id, oldRow.id), isNull(workoutExercises.deletedAt)));
+      // Create new row at same position.
+      const [newRow] = await db
+        .insert(workoutExercises)
+        .values({
+          workoutId: oldRow.workoutId,
+          exerciseId: newExerciseId,
+          position: oldRow.position,
+          notes: oldRow.notes,
+          restSeconds: oldRow.restSeconds,
+          unitPreference: oldRow.unitPreference,
+          supersetId: oldRow.supersetId,
+          autoProgression: oldRow.autoProgression,
+        })
+        .returning({ id: workoutExercises.id });
+      const newWorkoutExerciseId = newRow.id;
+      // Re-parent all live sets from old row to new row.
+      await db
+        .update(sets)
+        .set({ workoutExerciseId: newWorkoutExerciseId })
+        .where(
+          and(
+            eq(sets.workoutExerciseId, oldRow.id),
+            isNull(sets.deletedAt),
+          ),
+        );
+      return newWorkoutExerciseId;
+    });
+  });
+}
+
+/**
+ * Pure helper: build the insert values for the new workout_exercises row
+ * during a swap. Exercised by tests without a DB.
+ */
+export function buildSwapWorkoutExerciseValues(input: {
+  workoutId: string;
+  exerciseId: string;
+  position: number;
+  notes: string | null;
+  restSeconds: number | null;
+  unitPreference: string | null;
+  supersetId: string | null;
+  autoProgression: boolean | null;
+}) {
+  return {
+    workoutId: input.workoutId,
+    exerciseId: input.exerciseId,
+    position: input.position,
+    notes: input.notes,
+    restSeconds: input.restSeconds,
+    unitPreference: input.unitPreference,
+    supersetId: input.supersetId,
+    autoProgression: input.autoProgression,
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* measurements                                                        */
-/* ------------------------------------------------------------------ */
 
 export async function logMeasurement(input: {
   type: string;

@@ -79,7 +79,7 @@ export function ProgressionLineChart({
                 stroke={c.border}
                 strokeWidth={1}
               />
-              <SvgText x={PAD_LEFT - 6} y={gy + 4} fontSize={10} fill={c.faint} textAnchor="end">
+              <SvgText x={PAD_LEFT - 6} y={gy + 4} fontSize={11} fill={c.faint} textAnchor="end">
                 {fmtTick(gv)}
               </SvgText>
             </G>
@@ -100,7 +100,7 @@ export function ProgressionLineChart({
               <SvgText
                 x={x(i)}
                 y={HEIGHT - 8}
-                fontSize={10}
+                fontSize={11}
                 fill={c.faint}
                 textAnchor="middle"
               >
@@ -109,7 +109,7 @@ export function ProgressionLineChart({
             ) : null}
           </G>
         ))}
-        <SvgText x={PAD_LEFT - 6} y={PAD_TOP - 4} fontSize={10} fill={c.faint} textAnchor="end">
+        <SvgText x={PAD_LEFT - 6} y={PAD_TOP - 4} fontSize={11} fill={c.faint} textAnchor="end">
           {unit}
         </SvgText>
       </Svg>

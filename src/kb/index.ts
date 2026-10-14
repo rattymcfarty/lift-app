@@ -6,7 +6,7 @@
  * params, no PII. Everything else the app does is on-device.
  */
 import { KbError, KbSyncResult } from './types';
-import { bundleUrlFor, DEFAULT_CHANNEL_URL, fetchChannel, isAppSupported, isUpdateAvailable, isVersionRevoked } from './channel';
+import { bundleUrlFor, compareSemver, DEFAULT_CHANNEL_URL, fetchChannel, isAppSupported, isUpdateAvailable, isVersionRevoked } from './channel';
 import { fetchAndVerifyBundle } from './bundle';
 import { getKbSyncState, importBundle, setKbSyncState } from './import';
 import { loadSnapshot } from './snapshot';
@@ -21,15 +21,36 @@ export interface KbSyncConfig {
 }
 
 /**
- * Import the in-binary snapshot. Called on first launch (no sync state yet).
- * The snapshot is pre-validated; this just writes it to the database.
+ * Import the in-binary snapshot. Called on every launch (after migrations).
+ * First launch imports it; later launches re-import when the bundled
+ * snapshot is newer than the recorded version (e.g. an app update ships a
+ * newer KB catalogue). Without the version check, a recorded version alone
+ * pinned the DB to the original stale seed forever — the old 10-exercise
+ * seed survived every update because syncKb has no caller.
+ * The snapshot is pre-validated; importBundle upserts, so re-import is safe.
  */
 export async function importSnapshotOnFirstLaunch(): Promise<KbSyncResult> {
+  const { bundle, channel } = loadSnapshot();
   const existing = await getKbSyncState();
   if (existing?.bundleVersion) {
-    return { status: 'up-to-date', bundleVersion: existing.bundleVersion };
+    let snapshotIsNewer = false;
+    try {
+      snapshotIsNewer = compareSemver(bundle.bundleVersion, existing.bundleVersion) > 0;
+    } catch (e) {
+      // loadSnapshot() already validated the bundle, so the only expected
+      // throw is a malformed semver (KbError) in either version string —
+      // e.g. a legacy recorded version. Anything else is a programming
+      // bug: surface it rather than papering it over with a re-import.
+      if (e instanceof KbError) {
+        snapshotIsNewer = true;
+      } else {
+        throw e;
+      }
+    }
+    if (!snapshotIsNewer) {
+      return { status: 'up-to-date', bundleVersion: existing.bundleVersion };
+    }
   }
-  const { bundle, channel } = loadSnapshot();
   const stats = await importBundle(bundle);
   await setKbSyncState({
     bundleVersion: bundle.bundleVersion,

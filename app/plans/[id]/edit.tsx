@@ -1,5 +1,5 @@
 /**
- * Routine builder/editor: rename, notes, duration, pillars, plus the
+ * Plan builder/editor: rename, notes, duration, pillars, plus the
  * template items — add exercises, reorder, edit per-exercise targets
  * (sets × reps × weight, RPE, rest), remove.
  *
@@ -45,7 +45,8 @@ import {
   ScreenHeader,
 } from '../../../src/components/workout/ui';
 import { parseUserInt, parseUserNumber } from '../../../src/components/workout/format';
-import { formatTargets as formatRoutineTargets } from '../../../src/components/routines/format';
+import { formatTargets as formatPlanTargets } from '../../../src/components/routines/format';
+import { displayName } from '../../../src/kb/taxonomy';
 
 interface TargetDraft {
   sets: string;
@@ -65,11 +66,11 @@ function draftFrom(item: RoutineExercise): TargetDraft {
   };
 }
 
-export default function RoutineEditScreen(): JSX.Element {
+export default function PlanEditScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string }>();
-  const routineId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const planId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [detail, setDetail] = useState<RoutineDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,12 +99,12 @@ export default function RoutineEditScreen(): JSX.Element {
   const formInitRef = useRef(false);
 
   const load = useCallback(async () => {
-    if (!routineId) {
+    if (!planId) {
       setLoading(false);
       return;
     }
     try {
-      const d = await getRoutine(routineId);
+      const d = await getRoutine(planId);
       setDetail(d);
       if (d && !formInitRef.current) {
         setName(d.routine.name);
@@ -117,7 +118,7 @@ export default function RoutineEditScreen(): JSX.Element {
     } finally {
       setLoading(false);
     }
-  }, [routineId]);
+  }, [planId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -133,12 +134,12 @@ export default function RoutineEditScreen(): JSX.Element {
   };
 
   const handleSaveDetails = async (): Promise<void> => {
-    if (!routineId || busyRef.current) return;
+    if (!planId || busyRef.current) return;
     busyRef.current = true;
     try {
       const trimmed = name.trim();
       if (!trimmed) {
-        setError('Give the routine a name.');
+        setError('Give the plan a name.');
         return;
       }
       const parsedMinutes = parseUserInt(minutes);
@@ -148,20 +149,20 @@ export default function RoutineEditScreen(): JSX.Element {
       }
       setSaving(true);
       setError(null);
-      const updated = await updateRoutine(routineId, {
+      const updated = await updateRoutine(planId, {
         name: trimmed,
         notes: notes.trim() ? notes.trim() : null,
         estimatedMinutes: parsedMinutes,
         longevityPillars: pillars,
       });
       if (!updated) {
-        setError('This routine no longer exists.');
+        setError('This plan no longer exists.');
         return;
       }
       setDetail((d) => (d ? { ...d, routine: updated } : d));
       setSavedTick(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save the routine.');
+      setError(e instanceof Error ? e.message : 'Could not save the plan.');
     } finally {
       busyRef.current = false;
       setSaving(false);
@@ -169,7 +170,7 @@ export default function RoutineEditScreen(): JSX.Element {
   };
 
   const move = async (index: number, direction: -1 | 1): Promise<void> => {
-    if (!routineId || !detail || busyRef.current) return;
+    if (!planId || !detail || busyRef.current) return;
     const target = index + direction;
     if (target < 0 || target >= detail.items.length) return;
     busyRef.current = true;
@@ -179,7 +180,7 @@ export default function RoutineEditScreen(): JSX.Element {
       setError(null);
       const ids = detail.items.map((i) => i.routineExercise.id);
       [ids[index], ids[target]] = [ids[target], ids[index]];
-      await reorderRoutineExercises(routineId, ids);
+      await reorderRoutineExercises(planId, ids);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not reorder.');
@@ -191,7 +192,7 @@ export default function RoutineEditScreen(): JSX.Element {
 
   const handleRemove = (itemId: string, exerciseName: string): void => {
     if (busyRef.current) return;
-    Alert.alert('Remove exercise?', `"${exerciseName}" will be removed from this template.`, [
+    Alert.alert('Remove exercise?', `"${exerciseName}" will be removed from this plan.`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',
@@ -280,7 +281,7 @@ export default function RoutineEditScreen(): JSX.Element {
         style={[styles.container, { backgroundColor: theme.colors.background }]}
         edges={['top', 'bottom']}
       >
-        <ScreenHeader title="Edit routine" onBack={() => router.back()} />
+        <ScreenHeader title="Edit plan" onBack={() => router.back()} />
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />
         </View>
@@ -294,10 +295,10 @@ export default function RoutineEditScreen(): JSX.Element {
         style={[styles.container, { backgroundColor: theme.colors.background }]}
         edges={['top', 'bottom']}
       >
-        <ScreenHeader title="Edit routine" onBack={() => router.back()} />
+        <ScreenHeader title="Edit plan" onBack={() => router.back()} />
         <EmptyState
-          message="This routine no longer exists."
-          action={<Button title="Back to routines" onPress={() => router.back()} />}
+          message="This plan no longer exists."
+          action={<Button title="Back to plans" onPress={() => router.back()} />}
         />
       </SafeAreaView>
     );
@@ -309,13 +310,13 @@ export default function RoutineEditScreen(): JSX.Element {
       edges={['top', 'bottom']}
     >
       <ScreenHeader
-        title="Edit routine"
+        title="Edit plan"
         onBack={() => router.back()}
         right={
           <Button
             title="Done"
             variant="secondary"
-            onPress={() => router.replace(`/routines/${routineId}`)}
+            onPress={() => router.replace(`/plans/${planId}`)}
           />
         }
       />
@@ -338,7 +339,7 @@ export default function RoutineEditScreen(): JSX.Element {
                   fontWeight: t.weight.medium,
                 }}
               >
-                ROUTINE NAME
+                PLAN NAME
               </Text>
               <TextInput
                 value={name}
@@ -347,7 +348,7 @@ export default function RoutineEditScreen(): JSX.Element {
                   setError(null);
                   setSavedTick(false);
                 }}
-                placeholder="Routine name"
+                placeholder="Plan name"
                 placeholderTextColor={theme.colors.faint}
                 returnKeyType="done"
                 editable={!saving}
@@ -471,7 +472,7 @@ export default function RoutineEditScreen(): JSX.Element {
             <Button
               title="Add exercise"
               variant="secondary"
-              onPress={() => router.push(`/routines/${routineId}/add-exercise`)}
+              onPress={() => router.push(`/plans/${planId}/add-exercise`)}
             />
           </View>
         }
@@ -495,7 +496,7 @@ export default function RoutineEditScreen(): JSX.Element {
               <Pressable
                 onPress={() => openTargets(item)}
                 accessibilityRole="button"
-                accessibilityLabel={`Edit targets for ${item.exercise.name}`}
+                accessibilityLabel={`Edit targets for ${displayName(item.exercise)}`}
                 style={styles.itemRow}
               >
                 <View style={styles.itemText}>
@@ -507,10 +508,10 @@ export default function RoutineEditScreen(): JSX.Element {
                     }}
                     numberOfLines={1}
                   >
-                    {index + 1}. {item.exercise.name}
+                    {index + 1}. {displayName(item.exercise)}
                   </Text>
                   <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
-                    {formatRoutineTargets(re)}
+                    {formatPlanTargets(re)}
                   </Text>
                 </View>
                 <View style={styles.itemActions}>
@@ -518,34 +519,34 @@ export default function RoutineEditScreen(): JSX.Element {
                     onPress={() => void move(index, -1)}
                     disabled={index === 0 || acting}
                     accessibilityRole="button"
-                    accessibilityLabel={`Move ${item.exercise.name} up`}
+                    accessibilityLabel={`Move ${displayName(item.exercise)} up`}
                     hitSlop={8}
                     style={[styles.arrow, { opacity: index === 0 ? 0.25 : 1 }]}
                   >
-                    <Text style={{ color: theme.colors.muted, fontSize: t.size.title }}>↑</Text>
+                    <Text style={{ color: theme.colors.muted, fontSize: t.size.card }}>↑</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => void move(index, 1)}
                     disabled={index === detail.items.length - 1 || acting}
                     accessibilityRole="button"
-                    accessibilityLabel={`Move ${item.exercise.name} down`}
+                    accessibilityLabel={`Move ${displayName(item.exercise)} down`}
                     hitSlop={8}
                     style={[
                       styles.arrow,
                       { opacity: index === detail.items.length - 1 ? 0.25 : 1 },
                     ]}
                   >
-                    <Text style={{ color: theme.colors.muted, fontSize: t.size.title }}>↓</Text>
+                    <Text style={{ color: theme.colors.muted, fontSize: t.size.card }}>↓</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => handleRemove(re.id, item.exercise.name)}
+                    onPress={() => handleRemove(re.id, displayName(item.exercise))}
                     disabled={acting}
                     accessibilityRole="button"
-                    accessibilityLabel={`Remove ${item.exercise.name} from routine`}
+                    accessibilityLabel={`Remove ${displayName(item.exercise)} from plan`}
                     hitSlop={8}
                     style={styles.arrow}
                   >
-                    <Text style={{ color: theme.colors.danger, fontSize: t.size.title }}>×</Text>
+                    <Text style={{ color: theme.colors.danger, fontSize: t.size.card }}>×</Text>
                   </Pressable>
                 </View>
               </Pressable>
@@ -652,7 +653,7 @@ export default function RoutineEditScreen(): JSX.Element {
         }}
         ListEmptyComponent={
           <EmptyState
-            message="No exercises in this routine yet."
+            message="No exercises in this plan yet."
             hint="Add exercises, then set target sets, reps and weight for each."
           />
         }

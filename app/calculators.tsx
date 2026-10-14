@@ -75,13 +75,13 @@ function OneRepMaxSection(): JSX.Element {
             <View style={styles.resultRow}>
               <View style={styles.resultCell}>
                 <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>EPLEY</Text>
-                <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}>
+                <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>
                   {trimNumber(estimate.epley)} kg
                 </Text>
               </View>
               <View style={styles.resultCell}>
                 <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>BRZYCKI</Text>
-                <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}>
+                <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>
                   {trimNumber(estimate.brzycki)} kg
                 </Text>
               </View>

@@ -1,7 +1,12 @@
 /**
- * Routine list — workout templates. Cards show name, exercise count,
+ * Plan list — workout templates. Rows show name, exercise count,
  * estimated duration, and last-used date. Tap a card for the detail screen;
  * "New" starts the builder.
+ *
+ * Naming: user-facing term is "Plan". Internal identifiers (DB tables,
+ * repository functions, the `Routine` type) keep the historical name
+ * `routine` — renaming those would require a data migration and break
+ * backup-format compatibility. See PIPELINE.md dispatch log.
  */
 
 import { useCallback, useState, type JSX } from 'react';
@@ -20,10 +25,10 @@ import {
   type RoutineListItem,
 } from '../../src/data/routines';
 import { useTheme } from '../../src/theme';
-import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { formatWorkoutDay } from '../../src/components/workout/format';
 
-function RoutineCard({ item }: { item: RoutineListItem }): JSX.Element {
+function PlanCard({ item }: { item: RoutineListItem }): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const { routine, exerciseCount, lastUsedAt } = item;
@@ -32,27 +37,38 @@ function RoutineCard({ item }: { item: RoutineListItem }): JSX.Element {
   meta.push(lastUsedAt ? `last used ${formatWorkoutDay(lastUsedAt)}` : 'never used');
   return (
     <Pressable
-      onPress={() => router.push(`/routines/${routine.id}`)}
+      onPress={() => router.push(`/plans/${routine.id}`)}
       accessibilityRole="button"
-      accessibilityLabel={`Open routine ${routine.name}`}
-      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+      accessibilityLabel={`Open plan ${routine.name}`}
+      style={({ pressed }) => [
+        {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: theme.spacing.sm,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border,
+          paddingVertical: theme.spacing.sm,
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}
     >
-      <Card>
+      <View style={{ flex: 1, gap: 2 }}>
         <Text
-          style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}
-          numberOfLines={1}
+          style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
+          numberOfLines={2}
         >
           {routine.name}
         </Text>
-        <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+        <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>
           {meta.join(' · ')}
         </Text>
-      </Card>
+      </View>
+      <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>›</Text>
     </Pressable>
   );
 }
 
-export default function RoutineListScreen(): JSX.Element {
+export default function PlanListScreen(): JSX.Element {
   const { theme } = useTheme();
   const [items, setItems] = useState<RoutineListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,11 +96,11 @@ export default function RoutineListScreen(): JSX.Element {
       edges={['top', 'bottom']}
     >
       <ScreenHeader
-        title="Routines"
-        subtitle="Workout templates"
+        title="Plans"
+        subtitle="Workout plans"
         onBack={() => router.back()}
         right={
-          <Button title="New" variant="secondary" onPress={() => router.push('/routines/new')} />
+          <Button title="New" variant="secondary" onPress={() => router.push('/plans/new')} />
         }
       />
       {loading ? (
@@ -98,15 +114,14 @@ export default function RoutineListScreen(): JSX.Element {
           contentContainerStyle={{
             paddingHorizontal: theme.spacing.md,
             paddingBottom: theme.spacing.xl,
-            gap: theme.spacing.md,
           }}
-          renderItem={({ item }) => <RoutineCard item={item} />}
+          renderItem={({ item }) => <PlanCard item={item} />}
           ListEmptyComponent={
             <EmptyState
-              message="No routines yet."
-              hint="Build a template once, then start workouts from it in one tap."
+              message="No plans yet."
+              hint="Build a plan once, then start workouts from it in one tap."
               action={
-                <Button title="Create routine" onPress={() => router.push('/routines/new')} />
+                <Button title="Create plan" onPress={() => router.push('/plans/new')} />
               }
             />
           }

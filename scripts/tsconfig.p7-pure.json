@@ -1,0 +1,1 @@
+{"compilerOptions":{"rootDir":"..","skipLibCheck":true,"esModuleInterop":true,"module":"commonjs","target":"es2020","declaration":false,"noEmitOnError":false},"include":["test-p7-pure.ts","../src/lib/aggregateMuscles.ts","../src/lib/filterExercises.ts"]}

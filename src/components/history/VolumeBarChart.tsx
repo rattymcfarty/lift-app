@@ -67,7 +67,7 @@ export function VolumeBarChart({ data }: { data: VolumeBarDatum[] }): JSX.Elemen
               <SvgText
                 x={PAD_LEFT - 6}
                 y={gy + 4}
-                fontSize={10}
+                fontSize={11}
                 fill={c.faint}
                 textAnchor="end"
               >
@@ -94,7 +94,7 @@ export function VolumeBarChart({ data }: { data: VolumeBarDatum[] }): JSX.Elemen
                 <SvgText
                   x={bx + barW / 2}
                   y={HEIGHT - 8}
-                  fontSize={10}
+                  fontSize={11}
                   fill={c.faint}
                   textAnchor="middle"
                 >

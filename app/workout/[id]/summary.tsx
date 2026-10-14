@@ -21,6 +21,7 @@ import {
   totalVolumeKg,
   trimNumber,
 } from '../../../src/components/workout/format';
+import { displayName } from '../../../src/kb/taxonomy';
 import { Button, Card, EmptyState, ScreenHeader } from '../../../src/components/workout/ui';
 
 function Stat({ label, value }: { label: string; value: string }): JSX.Element {
@@ -113,8 +114,8 @@ export default function WorkoutSummaryScreen(): JSX.Element {
         >
           <View>
             <Text
-              style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}
-              numberOfLines={1}
+              style={{ color: theme.colors.text, fontSize: t.size.card, fontWeight: t.weight.bold }}
+              numberOfLines={2}
             >
               {detail.workout.name}
             </Text>
@@ -134,9 +135,9 @@ export default function WorkoutSummaryScreen(): JSX.Element {
           {detail.items.map((item) => (
             <View key={item.workoutExercise.id} style={{ gap: theme.spacing.xs }}>
               <Text
-                style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
+                style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
               >
-                {item.exercise.name}
+                {displayName(item.exercise)}
               </Text>
               {item.sets.map((s) => (
                 <Text

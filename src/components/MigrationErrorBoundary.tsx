@@ -168,7 +168,7 @@ function RecoveryScreen({ error, onRetry }: RecoveryScreenProps) {
           <Text
             style={{
               color: colors.text,
-              fontSize: typography.size.title,
+              fontSize: typography.size.card,
               fontWeight: typography.weight.bold,
               marginBottom: spacing.sm,
             }}
@@ -191,7 +191,7 @@ function RecoveryScreen({ error, onRetry }: RecoveryScreenProps) {
           <Text
             style={{
               color: colors.text,
-              fontSize: typography.size.title,
+              fontSize: typography.size.card,
               fontWeight: typography.weight.bold,
               marginBottom: spacing.sm,
             }}
@@ -208,7 +208,7 @@ function RecoveryScreen({ error, onRetry }: RecoveryScreenProps) {
             }}
           >
             {phase === 'confirmErase'
-              ? 'This permanently deletes every workout, routine, and measurement stored on this device. There is no backup and this cannot be undone.'
+              ? 'This permanently deletes every workout, plan, and measurement stored on this device. There is no backup and this cannot be undone.'
               : 'The local database failed to migrate. Your data is still on the device — nothing has been deleted.'}
           </Text>
           {phase === 'error' || phase === 'eraseFailed' ? (
@@ -318,7 +318,7 @@ export class MigrationErrorBoundary extends Component<
             padding: 24,
           }}
         >
-          <Text style={{ color: '#ffffff', fontSize: 18, textAlign: 'center' }}>
+          <Text style={{ color: '#ffffff', fontSize: 20, textAlign: 'center' }}>
             LIFT couldn't start. Try reopening the app; if it persists,
             reinstalling clears local data.
           </Text>

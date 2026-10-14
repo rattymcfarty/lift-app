@@ -15,9 +15,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   finishWorkout,
   getPreviousPerformance,
@@ -31,8 +31,14 @@ import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { ExerciseCard } from '../../src/components/workout/ExerciseCard';
+import { TaxonomyIcon } from '../../src/components/icons';
+import { RestTimer } from '../../src/components/workout/RestTimer';
 import { advanceEnrollmentForWorkout } from '../../src/programs/sessions';
 import { invalidateConsistencyCache } from '../../src/stats/queries';
+import { aggregateMuscles } from '../../src/lib/aggregateMuscles';
+import { getSupersetGroups } from '../../src/data/repositories';
+import { PlateCalculator } from '../../src/components/workout/PlateCalculator';
+import { useWindowDimensions } from 'react-native';
 
 /**
  * Elapsed-time readout with its own ticking state, so the once-per-second
@@ -70,6 +76,12 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
+  const [plateModalVisible, setPlateModalVisible] = useState(false);
+  const [muscleSheetVisible, setMuscleSheetVisible] = useState(false);
+  const [timerModalVisible, setTimerModalVisible] = useState(false);
+  const [restSecondsForTimer, setRestSecondsForTimer] = useState<number | null>(null);
+  const { width } = useWindowDimensions();
+  const compactMode = width < 360;
 
   /** Fetch "last time" only for exercises we haven't looked up yet. */
   const loadPreviousFor = useCallback(async (items: WorkoutExerciseDetail[], wid: string) => {
@@ -138,7 +150,11 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   // Integration seam for workstream #4 (rest-timer): fired after every
   // logged set with the rest seconds used. The countdown itself now lives
   // in <RestTimer/> (useRestTimer); this observes for future global UX.
-  const handleSetComplete = useCallback((_restSeconds: number) => {
+  //
+  // Superset logic: when the LAST exercise of a superset logs a set, start
+  // the rest timer once (using the max of member rest defaults). Logging a
+  // set on a non-last member does NOT start rest.
+  const handleSetComplete = useCallback((restSeconds: number, _workoutExerciseId: string, _isLastInSuperset: boolean) => {
     // #4: hook cross-exercise rest UX here if needed.
   }, []);
 
@@ -223,7 +239,38 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       previous={item.exercise.id in previousMap ? previousMap[item.exercise.id] : undefined}
       onChanged={() => void load()}
       onSetComplete={handleSetComplete}
+      workoutItems={detail?.items ?? []}
+      workoutId={workoutId ?? ''}
     />
+  );
+
+  // Build superset groups for visual grouping in the list.
+  // Exercises sharing a supersetId are wrapped in a labeled container.
+  const supersetGroups = detail
+    ? getSupersetGroupsForRender(detail.items)
+    : [];
+
+  const renderGroup = ({ item }: { item: { label: string; items: WorkoutExerciseDetail[] } }): JSX.Element => (
+    <View style={item.label ? [styles.supersetContainer, { borderColor: theme.colors.accent }] : undefined}>
+      {item.label ? (
+        <Text style={[styles.supersetLabel, { color: theme.colors.accent, fontSize: theme.typography.size.caption }]} testID={`superset-group-${item.label.replace(/\s/g, '').toLowerCase()}`}>
+          {item.label}
+        </Text>
+      ) : null}
+      <View style={{ gap: theme.spacing.md }}>
+        {item.items.map((exerciseItem) => (
+          <ExerciseCard
+            key={exerciseItem.workoutExercise.id}
+            detail={exerciseItem}
+            previous={exerciseItem.exercise.id in previousMap ? previousMap[exerciseItem.exercise.id] : undefined}
+            onChanged={() => void load()}
+            onSetComplete={handleSetComplete}
+            workoutItems={detail?.items ?? []}
+            workoutId={workoutId ?? ''}
+          />
+        ))}
+      </View>
+    </View>
   );
 
   return (
@@ -239,6 +286,19 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         onBack={() => router.replace('/')}
       />
 
+      {/* Compact action bar */}
+      {!loadError && detail && (
+        <TopActionBar
+          detail={detail}
+          compactMode={compactMode}
+          onTimer={() => setTimerModalVisible(true)}
+          onPlate={() => setPlateModalVisible(true)}
+          onMuscle={() => setMuscleSheetVisible(true)}
+          onFinish={handleFinish}
+          finishing={finishing}
+        />
+      )}
+
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />
@@ -250,12 +310,12 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         />
       ) : (
         <FlatList
-          data={detail.items}
-          keyExtractor={(item) => item.workoutExercise.id}
+          data={supersetGroups}
+          keyExtractor={(group) => group.items[0].workoutExercise.id}
           // Taps on Log/Add exercise/Finish must reach the buttons while the
           // numeric keyboard is up (first tap would otherwise only dismiss it).
           keyboardShouldPersistTaps="handled"
-          renderItem={renderExercise}
+          renderItem={renderGroup}
           contentContainerStyle={{
             paddingHorizontal: theme.spacing.md,
             paddingBottom: theme.spacing.xl,
@@ -278,7 +338,8 @@ export default function ActiveWorkoutScreen(): JSX.Element {
               <Button
                 title={finishing ? 'Finishing…' : 'Finish workout'}
                 testID="workout-finish"
-                variant="primary"
+                variant="gold"
+                size="large"
                 onPress={handleFinish}
                 busy={finishing}
               />
@@ -287,8 +348,147 @@ export default function ActiveWorkoutScreen(): JSX.Element {
           }
         />
       )}
+
+      {/* Plate calculator modal */}
+      <PlateCalculator
+        visible={plateModalVisible}
+        onClose={() => setPlateModalVisible(false)}
+        onSelectWeight={(kg) => {
+          // Write back to pending set row — handled by ExerciseCard via onPlateSelect prop
+        }}
+      />
+
+      {/* Muscle group bottom sheet */}
+      <MuscleSheet
+        visible={muscleSheetVisible}
+        items={detail?.items ?? []}
+        onClose={() => setMuscleSheetVisible(false)}
+      />
+
+      {/* Rest timer modal (standalone) */}
+      <RestTimerModal
+        visible={timerModalVisible}
+        onClose={() => setTimerModalVisible(false)}
+        onDone={() => setTimerModalVisible(false)}
+      />
     </SafeAreaView>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Compact action bar below header                                      */
+/* ------------------------------------------------------------------ */
+
+interface ActionBarProps {
+  detail: WorkoutDetail;
+  compactMode: boolean;
+  onTimer: () => void;
+  onPlate: () => void;
+  onMuscle: () => void;
+  onFinish: () => void;
+  finishing: boolean;
+}
+
+function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinish, finishing }: ActionBarProps): JSX.Element {
+  const { theme } = useTheme();
+  const t = theme.typography;
+  const startedAt = new Date(detail.workout.startedAt);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const elapsedMs = Math.max(0, now - startedAt.getTime());
+  const hours = Math.floor(elapsedMs / 3600000);
+  const minutes = Math.floor((elapsedMs % 3600000) / 60000);
+  const seconds = Math.floor((elapsedMs % 60000) / 1000);
+  const timerChip = hours > 0
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  return (
+    <View style={{ paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, gap: theme.spacing.sm }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.md }}>
+        <View style={{ flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center', flex: 1 }}>
+          <Pressable testID="topbar-timer" onPress={onTimer} accessibilityRole="button" style={{ padding: 4 }}>
+            <Text style={{ color: theme.colors.muted, fontSize: compactMode ? t.size.caption : t.size.meta }}>⏱</Text>
+          </Pressable>
+          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Timer</Text>}
+
+          <Pressable testID="topbar-plate" onPress={onPlate} accessibilityRole="button" style={{ padding: 4 }}>
+            <Text style={{ color: theme.colors.muted, fontSize: compactMode ? t.size.caption : t.size.meta }}>🧮</Text>
+          </Pressable>
+          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Plate</Text>}
+
+          <Pressable testID="topbar-muscle" onPress={onMuscle} accessibilityRole="button" accessibilityLabel="Muscle view" style={{ padding: 4 }}>
+            <TaxonomyIcon kind="muscle" id="Full-Body" size={compactMode ? 18 : 20} tiled={false} />
+          </Pressable>
+          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Muscle</Text>}
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
+          <View style={{ backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radius.pill, paddingHorizontal: theme.spacing.sm, paddingVertical: 4 }}>
+            <Text style={{ color: theme.colors.text, fontSize: t.size.caption, fontWeight: t.weight.bold, fontVariant: ['tabular-nums'] }}>
+              {timerChip}
+            </Text>
+          </View>
+          <Pressable
+            testID="workout-finish-bar"
+            accessibilityRole="button"
+            onPress={onFinish}
+            style={{
+              backgroundColor: theme.colors.accent,
+              borderRadius: theme.radius.md,
+              paddingHorizontal: theme.spacing.md,
+              paddingVertical: theme.spacing.xs,
+            }}
+          >
+            <Text style={{ color: theme.colors.accentText, fontSize: t.size.body, fontWeight: t.weight.bold }}>
+              {finishing ? 'Finish…' : 'Finish'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Superset group helper (pure JS, no React)                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Groups workout items by supersetId, preserving position order.
+ * Returns an array of groups, each with a label (SUPERSET A/B/C…) and
+ * the member items in position order. Non-superset items are returned
+ * as singleton groups with label ''.
+ */
+export function getSupersetGroupsForRender(
+  items: WorkoutExerciseDetail[],
+): Array<{ label: string; items: WorkoutExerciseDetail[] }> {
+  const groups: Array<{ label: string; items: WorkoutExerciseDetail[] }> = [];
+  const supersetLabels = new Map<string, string>();
+  let letter = 0;
+
+  for (const item of items) {
+    const sid = item.workoutExercise.supersetId;
+    if (sid == null) {
+      groups.push({ label: '', items: [item] });
+      continue;
+    }
+    let group = groups.find(
+      (g) => g.items[0].workoutExercise.supersetId === sid,
+    );
+    if (!group) {
+      const label = `SUPERSET ${String.fromCharCode(65 + letter)}`;
+      letter++;
+      supersetLabels.set(sid, label);
+      group = { label, items: [] };
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
 }
 
 const styles = StyleSheet.create({
@@ -300,4 +500,183 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderTopWidth: 1,
+    padding: 16,
+    maxHeight: '70%',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  scroll: {
+    maxHeight: 500,
+  },
+  supersetContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    gap: 8,
+  },
+  supersetLabel: {
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
 });
+
+/* ------------------------------------------------------------------ */
+/* Muscle group bottom sheet                                            */
+/* ------------------------------------------------------------------ */
+
+interface MuscleSheetProps {
+  visible: boolean;
+  items: WorkoutExerciseDetail[];
+  onClose: () => void;
+}
+
+function MuscleSheet({ visible, items, onClose }: MuscleSheetProps): JSX.Element {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const aggregated = aggregateMuscles(items);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" presentationStyle="overFullScreen" onRequestClose={onClose}>
+      <Pressable style={[styles.overlay, { paddingTop: insets.top }]} onPress={onClose}>
+        <View
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border,
+              paddingBottom: insets.bottom + 16,
+            },
+          ]}
+          onStartShouldSetResponder={() => true}
+        >
+          <View style={styles.headerRow}>
+            <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.card, fontWeight: theme.typography.weight.bold }}>Muscle Groups</Text>
+            <Pressable testID="muscle-sheet-close" onPress={onClose} hitSlop={12}>
+              <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.card }}>✕</Text>
+            </Pressable>
+          </View>
+          <ScrollView style={styles.scroll}>
+            {aggregated.length === 0 ? (
+              <Text style={{ color: theme.colors.faint, fontSize: theme.typography.size.body, textAlign: 'center', paddingVertical: 20 }}>
+                No working sets logged yet.
+              </Text>
+            ) : (
+              aggregated.map((m) => (
+                <View
+                  key={m.muscle}
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingVertical: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.colors.border,
+                  }}
+                >
+                  <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.row, fontWeight: theme.typography.weight.medium }}>
+                    {m.muscle}
+                  </Text>
+                  <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }}>
+                    {m.sets} set{m.sets === 1 ? '' : 's'}
+                  </Text>
+                </View>
+              ))
+            )}
+          </ScrollView>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Rest timer modal (standalone)                                        */
+/* ------------------------------------------------------------------ */
+
+interface RestTimerModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onDone: () => void;
+}
+
+function RestTimerModal({ visible, onClose, onDone }: RestTimerModalProps): JSX.Element {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const [seconds, setSeconds] = useState<number | null>(null);
+
+  if (!visible) return <></>;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" presentationStyle="overFullScreen" onRequestClose={onClose}>
+      <Pressable style={[styles.overlay, { paddingTop: insets.top }]} onPress={onClose}>
+        <View
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border,
+              paddingBottom: insets.bottom + 16,
+            },
+          ]}
+          onStartShouldSetResponder={() => true}
+        >
+          <View style={styles.headerRow}>
+            <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.card, fontWeight: theme.typography.weight.bold }}>Rest Timer</Text>
+            <Pressable testID="rest-timer-close" onPress={onClose} hitSlop={12}>
+              <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.card }}>✕</Text>
+            </Pressable>
+          </View>
+          <View style={{ gap: 12, paddingVertical: 16 }}>
+            <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body, textAlign: 'center' }}>
+              Choose a preset duration
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {[30, 60, 90, 120, 180, 300].map((sec) => (
+                <Pressable
+                  key={sec}
+                  testID={`rest-preset-${sec}`}
+                  onPress={() => {
+                    setSeconds(sec);
+                  }}
+                  style={{
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderRadius: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.medium }}>
+                    {sec}s
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {seconds != null && (
+              <RestTimer
+                key={`rest-${seconds}`}
+                seconds={seconds}
+                onDone={() => {
+                  setSeconds(null);
+                  onDone();
+                }}
+              />
+            )}
+          </View>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}

@@ -192,6 +192,8 @@ export interface ExerciseHistoryOption {
   exercise: Exercise;
   /** Most recent finished workout this exercise appeared in. */
   lastUsed: Date;
+  /** Finished workouts containing this exercise with at least one completed set. */
+  workoutCount: number;
 }
 
 /** Exercises with logged history, most recently used first (for the picker). */
@@ -200,6 +202,7 @@ export async function listExercisesWithHistory(limit = 50): Promise<ExerciseHist
     .select({
       exercise: exercises,
       lastUsed: sql<Date>`max(${workouts.startedAt})`.as('last_used'),
+      workoutCount: sql<number>`count(distinct ${workouts.id})`.as('workout_count'),
     })
     .from(exercises)
     .innerJoin(workoutExercises, eq(workoutExercises.exerciseId, exercises.id))
@@ -229,6 +232,7 @@ export async function listExercisesWithHistory(limit = 50): Promise<ExerciseHist
     // max(started_at) comes back as raw integer ms (timestamp_ms mode only
     // applies to mapped columns) — Number() guards against string coercion.
     lastUsed: new Date(Number(r.lastUsed)),
+    workoutCount: Number(r.workoutCount),
   }));
 }
 

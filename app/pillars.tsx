@@ -177,7 +177,7 @@ export default function PillarsScreen(): JSX.Element {
     return (
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.card, fontWeight: t.weight.bold }}>
             {p.label}
           </Text>
           <Text style={{ color, fontSize: t.size.body, fontWeight: t.weight.bold }}>

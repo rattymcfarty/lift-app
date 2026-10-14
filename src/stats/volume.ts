@@ -13,9 +13,10 @@
  */
 import type { StatSet, StatWorkout, WeekBucket } from './types';
 
-/** Volume of a single set in kg. 0 for incomplete/unmeasurable sets. */
+/** Volume of a single set in kg. 0 for incomplete/unmeasurable/warmup sets. */
 export function setVolume(set: StatSet): number {
   if (!set.completed) return 0;
+  if (set.isWarmup) return 0;
   if (set.reps == null || set.weightKg == null) return 0;
   if (set.reps <= 0 || set.weightKg < 0) return 0;
   return set.reps * set.weightKg;

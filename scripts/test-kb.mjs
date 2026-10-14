@@ -23,7 +23,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const kbRoot = join(root, '..', 'p2-kb-content');
+const kbRoot = join(root, '..', 'lift-kb');
 
 let passed = 0;
 function check(name, cond) {
@@ -70,7 +70,7 @@ const built = JSON.parse(readFileSync(bundlePath, 'utf8'));
 const channelJson = JSON.parse(readFileSync(join(kbRoot, 'channel.json'), 'utf8'));
 
 /* ---- 1. schema validation with the app's own validator ---- */
-check('bundle has 10 exercises', built.exercises.length === 10);
+check('bundle has 627 exercises', built.exercises.length === 627);
 check('bundle has 1 program', built.programs.length === 1);
 let allValid = true;
 for (const ex of built.exercises) {
@@ -80,7 +80,7 @@ for (const ex of built.exercises) {
     allValid = false;
   }
 }
-check('all 10 exercises pass the app validator', allValid);
+check('all 627 exercises pass the app validator', allValid);
 for (const p of built.programs) {
   const r = validate.validateSchema(programSchema, p);
   check(`program ${p.id} passes the app validator`, r.valid);
@@ -104,7 +104,7 @@ check(
 
 /* ---- 3. transforms ---- */
 const exInputs = built.exercises.map((e) => transform.kbExerciseToUpsertInput(e, kbVersion));
-check('10 exercise upsert inputs produced', exInputs.length === 10);
+check('627 exercise upsert inputs produced', exInputs.length === 627);
 check('kbId preserved as permanent id', exInputs.every((i, n) => i.kbId === built.exercises[n].id));
 check('kbVersion stamped', exInputs.every((i) => i.kbVersion === kbVersion));
 check(

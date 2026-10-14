@@ -40,6 +40,9 @@ export interface KbExerciseJson {
   updatedAt?: string;
   deprecated?: boolean;
   replacedBy?: string | null;
+  category: string;
+  image?: string;
+  overview?: string;
 }
 
 /** One programmed block inside a KB program session. */

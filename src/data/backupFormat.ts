@@ -181,7 +181,7 @@ export const TABLE_FIELDS: Record<BackupTableName, readonly string[]> = {
   workouts: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'startedAt', 'endedAt', 'notes', 'longevityPillars', 'routineId'],
   workout_exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'workoutId', 'exerciseId', 'position', 'notes', 'restSeconds'],
   sets: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'workoutExerciseId', 'setNumber', 'reps', 'weightKg', 'rpe', 'rir', 'durationSeconds', 'distanceM', 'completed', 'notes'],
-  exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'primaryMuscles', 'secondaryMuscles', 'equipment', 'category', 'instructions', 'mediaImageUrl', 'mediaVideoUrl', 'longevityNotes', 'longevityPillars', 'isCustom', 'kbId', 'kbVersion'],
+  exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'primaryMuscles', 'secondaryMuscles', 'equipment', 'category', 'instructions', 'mediaImageUrl', 'mediaVideoUrl', 'longevityNotes', 'longevityPillars', 'isCustom', 'kbId', 'kbVersion', 'kbDetailJson'],
   routines: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'name', 'notes', 'estimatedMinutes', 'longevityPillars', 'kbId', 'kbVersion'],
   routine_exercises: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'routineId', 'exerciseId', 'position', 'targetSets', 'targetReps', 'targetWeightKg', 'targetRpe', 'targetRestSeconds', 'notes'],
   measurements: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'type', 'value', 'unit', 'measuredAt', 'notes'],

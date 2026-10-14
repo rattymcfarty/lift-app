@@ -7,6 +7,19 @@
  */
 import type { ExerciseCategory, LongevityPillar } from '../db/schema';
 import type { KbExerciseJson, KbProgramBlock, KbProgramJson } from './types';
+import { isKnownMuscle, isKnownEquipment, isKnownCategory } from './taxonomy';
+
+const VALID_MOVEMENT_PATTERNS = [
+  'squat',
+  'hinge',
+  'push',
+  'pull',
+  'carry',
+  'lunge',
+  'core',
+  'cardio',
+  'mobility',
+] as const;
 
 /** KB movementPattern → app exercise category. */
 export function categoryForPattern(
@@ -36,6 +49,33 @@ export function pillarsForPattern(
       return ['strength', 'balance']; // single-leg / loaded-carry balance demand
     default:
       return ['strength'];
+  }
+}
+
+/**
+ * Validate muscles/equipment against the canonical taxonomy.
+ * Unknown values are warned but never crash the import.
+ */
+function validateTaxonomy(
+  primary: string[],
+  secondary: string[] | undefined,
+  equipment: string[],
+  exerciseId: string,
+): void {
+  for (const m of primary) {
+    if (!isKnownMuscle(m)) {
+      console.warn(`[KB import] exercise "${exerciseId}": unknown primary muscle "${m}"`);
+    }
+  }
+  for (const m of secondary ?? []) {
+    if (!isKnownMuscle(m)) {
+      console.warn(`[KB import] exercise "${exerciseId}": unknown secondary muscle "${m}"`);
+    }
+  }
+  for (const e of equipment) {
+    if (!isKnownEquipment(e)) {
+      console.warn(`[KB import] exercise "${exerciseId}": unknown equipment "${e}"`);
+    }
   }
 }
 
@@ -74,6 +114,8 @@ export interface KbExerciseUpsertInput {
   mediaImageUrl?: string;
   mediaVideoUrl?: string;
   longevityPillars: LongevityPillar[];
+  kbCategory: string;
+  kbDetailJson?: string;
 }
 
 /** Map a KB exercise to its repository upsert input. */
@@ -81,6 +123,15 @@ export function kbExerciseToUpsertInput(
   ex: KbExerciseJson,
   bundleVersion: string,
 ): KbExerciseUpsertInput {
+  // Validate against taxonomy (warn only, never throw)
+  validateTaxonomy(ex.muscles.primary, ex.muscles.secondary, ex.equipment, ex.id);
+
+  // Validate category
+  const kbCategory = ex.category;
+  if (!isKnownCategory(kbCategory)) {
+    console.warn(`[KB import] exercise "${ex.id}": unknown category "${kbCategory}"`);
+  }
+
   return {
     kbId: ex.id,
     kbVersion: bundleVersion,
@@ -94,10 +145,16 @@ export function kbExerciseToUpsertInput(
     mediaImageUrl: ex.demoMedia?.images?.[0],
     mediaVideoUrl: ex.demoMedia?.video ?? undefined,
     longevityPillars: pillarsForPattern(ex.movementPattern),
+    kbCategory,
+    kbDetailJson: JSON.stringify({
+      difficulty: ex.difficulty,
+      cues: ex.cues ?? [],
+      commonMistakes: ex.commonMistakes ?? [],
+      safetyNotes: ex.safetyNotes ?? null,
+      progression: ex.progression ?? null,
+    }),
   };
 }
-
-/** One routine to create/update from a KB program session. */
 export interface KbRoutineUpsertInput {
   /** Deterministic: "<program-id>--session-<day>". */
   kbId: string;

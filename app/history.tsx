@@ -52,7 +52,7 @@ function HistoryRow({ row }: { row: WorkoutHistoryRow }): JSX.Element {
     >
       <View style={styles.rowText}>
         <Text
-          style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
+          style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
           numberOfLines={1}
         >
           {workout.name}

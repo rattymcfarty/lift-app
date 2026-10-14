@@ -106,7 +106,7 @@ export function MuscleStackChart({ weeks }: { weeks: MuscleStackWeek[] }): JSX.E
                       <SvgText
                         x={x + barW / 2}
                         y={HEIGHT - 8}
-                        fontSize={10}
+                        fontSize={11}
                         fill={c.faint}
                         textAnchor="middle"
                       >

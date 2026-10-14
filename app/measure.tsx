@@ -404,7 +404,7 @@ export default function MeasureScreen(): JSX.Element {
                 <View style={styles.statsRow}>
                   <View style={styles.statCell}>
                     <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>LATEST</Text>
-                    <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold }}>
+                    <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>
                       {trimNumber(latest.value)} {latest.unit}
                     </Text>
                     <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
@@ -414,7 +414,7 @@ export default function MeasureScreen(): JSX.Element {
                   {delta !== undefined && previous ? (
                     <View style={styles.statCell}>
                       <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>CHANGE</Text>
-                      <Text style={{ color: theme.colors.muted, fontSize: t.size.title, fontWeight: t.weight.bold }}>
+                      <Text style={{ color: theme.colors.muted, fontSize: t.size.section, fontWeight: t.weight.bold }}>
                         {delta > 0 ? '▲' : delta < 0 ? '▼' : '—'}
                         {delta !== 0 ? ` ${trimNumber(Math.abs(delta))}` : ''}
                       </Text>

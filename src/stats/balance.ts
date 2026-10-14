@@ -190,12 +190,13 @@ export function volumeByGroup(workouts: StatWorkout[]): Map<MuscleGroup | 'other
  * Completed sets (reps > 0) per canonical muscle group. Bodyweight work
  * (no logged weight → zero kg volume) still counts here — a pull-up is
  * pulling even when setVolume is 0. Strength category only.
+ * Warmup sets are excluded.
  */
 export function countSetsByGroup(workouts: StatWorkout[]): Map<MuscleGroup | 'other', number> {
   const out = new Map<MuscleGroup | 'other', number>();
   for (const w of workouts) {
     for (const s of w.sets) {
-      if (!s.completed || s.reps == null || s.reps <= 0) continue;
+      if (!s.completed || s.isWarmup || s.reps == null || s.reps <= 0) continue;
       if (s.exerciseCategory !== 'strength') continue;
       const muscles = s.primaryMuscles.length > 0 ? s.primaryMuscles : ['other'];
       for (const m of muscles) {
@@ -294,7 +295,7 @@ export function analyzeBalance(workouts: StatWorkout[]): BalanceReport {
   // add no muscle-balance signal.
   const trainingWorkouts = workouts.filter((w) =>
     w.sets.some(
-      (s) => s.completed && s.exerciseCategory === 'strength' && s.reps != null && s.reps > 0,
+      (s) => s.completed && !s.isWarmup && s.exerciseCategory === 'strength' && s.reps != null && s.reps > 0,
     ),
   );
   const flagsEvaluated = trainingWorkouts.length >= 4;

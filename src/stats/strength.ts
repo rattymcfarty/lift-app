@@ -26,7 +26,7 @@ export interface BestSet {
 export function bestSetBy1RM(sets: StatSet[]): BestSet | null {
   let best: BestSet | null = null;
   for (const s of sets) {
-    if (!s.completed) continue;
+    if (!s.completed || s.isWarmup) continue;
     const oneRM = epley1RM(s.weightKg, s.reps);
     if (oneRM == null) continue;
     if (best == null || oneRM > best.oneRM) {

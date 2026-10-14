@@ -1,9 +1,9 @@
 /**
- * Start a workout: name it, then either start blank or from a routine
- * template. "Manage routines" opens the P1b routine builder.
+ * Start a workout: name it, then either start blank or from a plan
+ * template. "Manage plans" opens the plan builder.
  *
- * P4a: accepts an optional `routineId` nav param (from the dashboard's
- * "Start this session" card) to auto-start from that routine.
+ * P4a: accepts an optional `planId` nav param (from the dashboard's
+ * "Start this session" card) to auto-start from that plan.
  */
 
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
@@ -76,33 +76,33 @@ export default function NewWorkoutScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{
-    routineId?: string;
+    planId?: string;
     enrollmentId?: string;
     week?: string;
     day?: string;
   }>();
   const [name, setName] = useState(defaultWorkoutName());
-  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [plans, setPlans] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // P4a: distinguishes "routine list failed to load" from "routine not
+  // P4a: distinguishes "plan list failed to load" from "plan not
   // found" for the auto-start error message.
-  const [routinesFailed, setRoutinesFailed] = useState(false);
+  const [plansFailed, setPlansFailed] = useState(false);
   // Re-entrancy guard: the disabled button state updates async, so two
-  // rapid taps could otherwise create two workouts (the routine path has a
+  // rapid taps could otherwise create two workouts (the plan path has a
   // DB-level 60s guard; the blank path needs this).
   const startingRef = useRef(false);
-  // P4a: auto-start from the routineId param exactly once per mount.
+  // P4a: auto-start from the planId param exactly once per mount.
   const autoStartedRef = useRef(false);
 
   const load = useCallback(async () => {
     try {
-      setRoutines(await listRoutines());
-      setRoutinesFailed(false);
+      setPlans(await listRoutines());
+      setPlansFailed(false);
     } catch {
-      setRoutines([]);
-      setRoutinesFailed(true);
+      setPlans([]);
+      setPlansFailed(true);
     } finally {
       setLoading(false);
     }
@@ -141,22 +141,22 @@ export default function NewWorkoutScreen(): JSX.Element {
     }
   };
 
-  const handleStartFromRoutine = async (routine: Routine, opts?: { useRoutineName?: boolean }): Promise<void> => {
+  const handleStartFromPlan = async (plan: Routine, opts?: { usePlanName?: boolean }): Promise<void> => {
     if (startingRef.current) return;
     startingRef.current = true;
     try {
-      // P4a: program auto-start uses the routine's name so the history
+      // P4a: program auto-start uses the plan's name so the history
       // entry keeps the session's identity instead of "Workout · <date>".
-      const trimmed = opts?.useRoutineName ? '' : name.trim();
+      const trimmed = opts?.usePlanName ? '' : name.trim();
       if ((await resolveActiveConflict()) === 'cancelled') return;
       setStarting(true);
       setError(null);
       const workoutId = await startWorkoutFromRoutine(
-        routine.id,
+        plan.id,
         trimmed ? trimmed : undefined,
       );
       if (!workoutId) {
-        setError('That routine has no exercises to start from.');
+        setError('That plan has no exercises to start from.');
         return;
       }
       goToWorkout(workoutId);
@@ -168,22 +168,22 @@ export default function NewWorkoutScreen(): JSX.Element {
     }
   };
 
-  // P4a: when opened with ?routineId= (dashboard "Start this session"),
-  // auto-start from that routine once routines have loaded. When session
+  // P4a: when opened with ?planId= (dashboard "Start this session"),
+  // auto-start from that plan once plans have loaded. When session
   // params are present, link the created workout to the program session so
   // finishing it advances the enrollment.
   useEffect(() => {
     if (loading || autoStartedRef.current) return;
-    const rid = params.routineId;
+    const rid = params.planId;
     if (!rid) return;
     autoStartedRef.current = true;
-    if (routinesFailed) {
-      setError('Could not load routines. Please try again.');
+    if (plansFailed) {
+      setError('Could not load plans. Please try again.');
       return;
     }
-    const routine = routines.find((r) => r.id === rid);
-    if (!routine) {
-      setError('The program session\u2019s routine was not found.');
+    const plan = plans.find((r) => r.id === rid);
+    if (!plan) {
+      setError('The program session\u2019s plan was not found.');
       return;
     }
     void (async () => {
@@ -191,10 +191,10 @@ export default function NewWorkoutScreen(): JSX.Element {
       const day = params.day != null ? parseInt(params.day, 10) : NaN;
       const hasSession =
         params.enrollmentId != null && Number.isFinite(week) && Number.isFinite(day);
-      // handleStartFromRoutine navigates away on success; for session
+      // handleStartFromPlan navigates away on success; for session
       // linking we need the workout id, so create directly here.
       if (!hasSession) {
-        await handleStartFromRoutine(routine, { useRoutineName: true });
+        await handleStartFromPlan(plan, { usePlanName: true });
         return;
       }
       if (startingRef.current) return;
@@ -206,9 +206,9 @@ export default function NewWorkoutScreen(): JSX.Element {
         // Verify the session can be linked BEFORE creating the workout —
         // otherwise a link failure orphans an active workout (P4a).
         await assertSessionLinkable(params.enrollmentId as string, week, day);
-        const workoutId = await startWorkoutFromRoutine(routine.id, undefined);
+        const workoutId = await startWorkoutFromRoutine(plan.id, undefined);
         if (!workoutId) {
-          setError('That routine has no exercises to start from.');
+          setError('That plan has no exercises to start from.');
           return;
         }
         await linkWorkoutToSession(params.enrollmentId as string, week, day, workoutId);
@@ -220,10 +220,10 @@ export default function NewWorkoutScreen(): JSX.Element {
         setStarting(false);
       }
     })();
-    // All route params in deps; handleStartFromRoutine is intentionally
+    // All route params in deps; handleStartFromPlan is intentionally
     // omitted (plain function, would re-trigger). autoStartedRef guards
     // against repeat runs.
-  }, [loading, routines, routinesFailed, params.routineId, params.enrollmentId, params.week, params.day]);
+  }, [loading, plans, plansFailed, params.planId, params.enrollmentId, params.week, params.day]);
 
   return (
     <SafeAreaView
@@ -277,26 +277,26 @@ export default function NewWorkoutScreen(): JSX.Element {
             marginTop: theme.spacing.sm,
           }}
         >
-          OR START FROM A ROUTINE
+          OR START FROM A PLAN
         </Text>
 
         {loading ? (
           <ActivityIndicator color={theme.colors.muted} />
         ) : (
           <FlatList
-            data={routines}
+            data={plans}
             keyExtractor={(r) => r.id}
             // Same as the active screen: taps must reach rows while the
             // name-field keyboard is up (first tap would only dismiss it).
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <Pressable
-                onPress={() => void handleStartFromRoutine(item)}
+                onPress={() => void handleStartFromPlan(item)}
                 disabled={starting}
                 accessibilityRole="button"
                 accessibilityLabel={`Start workout from ${item.name}`}
                 style={({ pressed }) => [
-                  styles.routineRow,
+                  styles.planRow,
                   {
                     borderBottomColor: theme.colors.border,
                     paddingVertical: theme.spacing.sm,
@@ -304,7 +304,7 @@ export default function NewWorkoutScreen(): JSX.Element {
                   },
                 ]}
               >
-                <View style={styles.routineText}>
+                <View style={styles.planText}>
                   <Text
                     style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
                     numberOfLines={1}
@@ -322,16 +322,16 @@ export default function NewWorkoutScreen(): JSX.Element {
             )}
             ListEmptyComponent={
               <EmptyState
-                message="No routines yet."
+                message="No plans yet."
                 hint="Build a template once, then start workouts from it in one tap."
               />
             }
           />
         )}
         <Button
-          title="Manage routines"
+          title="Manage plans"
           variant="secondary"
-          onPress={() => router.push('/routines')}
+          onPress={() => router.push('/plans')}
         />
       </View>
     </SafeAreaView>
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  routineRow: {
+  planRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
   },
-  routineText: {
+  planText: {
     flex: 1,
     gap: 2,
   },

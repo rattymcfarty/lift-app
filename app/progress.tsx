@@ -31,6 +31,7 @@ import {
 } from '../src/data/history';
 import { useTheme } from '../src/theme';
 import { trimNumber } from '../src/components/workout/format';
+import { displayName } from '../src/kb/taxonomy';
 import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
 import {
   ProgressionLineChart,
@@ -120,7 +121,7 @@ function ExerciseChips({
             onPress={() => onSelect(o.exercise.id)}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            accessibilityLabel={`Show progression for ${o.exercise.name}`}
+            accessibilityLabel={`Show progression for ${displayName(o.exercise)}`}
             style={{
               backgroundColor: selected ? theme.colors.text : theme.colors.surfaceMuted,
               borderRadius: theme.radius.pill,
@@ -137,7 +138,7 @@ function ExerciseChips({
                 fontWeight: t.weight.medium,
               }}
             >
-              {o.exercise.name}
+              {displayName(o.exercise)}
             </Text>
           </Pressable>
         );
@@ -271,7 +272,8 @@ export default function ProgressScreen(): JSX.Element {
   const loading = weekly == null || exerciseOptions == null;
   // Weeks are always seeded (12 entries), so emptiness = no workouts at all.
   const hasData = weekly?.some((w) => w.workoutCount > 0) ?? false;
-  const selectedName = exerciseOptions?.find((o) => o.exercise.id === selectedId)?.exercise.name;
+  const selectedExercise = exerciseOptions?.find((o) => o.exercise.id === selectedId)?.exercise;
+  const selectedName = selectedExercise ? displayName(selectedExercise) : undefined;
 
   return (
     <SafeAreaView

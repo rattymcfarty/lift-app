@@ -161,7 +161,7 @@ export default function BalanceScreen(): JSX.Element {
             <View style={{ flex: 1 }}>
               <Card>
                 <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>PUSH / PULL</Text>
-                <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold, marginTop: 4 }}>
+                <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold, marginTop: 4 }}>
                   {ratioLabel(report.pushPull, 'Push', 'Pull')}
                 </Text>
                 <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, marginTop: 4 }}>
@@ -172,7 +172,7 @@ export default function BalanceScreen(): JSX.Element {
             <View style={{ flex: 1 }}>
               <Card>
                 <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>UPPER / LOWER</Text>
-                <Text style={{ color: theme.colors.text, fontSize: t.size.title, fontWeight: t.weight.bold, marginTop: 4 }}>
+                <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold, marginTop: 4 }}>
                   {ratioLabel(report.upperLower, 'Upper', 'Lower')}
                 </Text>
                 <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, marginTop: 4 }}>
