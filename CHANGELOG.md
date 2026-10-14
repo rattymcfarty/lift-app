@@ -15,8 +15,10 @@
 - Placeholder app icon and adaptive icon
 
 ### Changed
-- Navigation redesigned around a bottom tab bar: Home, Plans, Exercises,
-  History, Progress (Settings via the Home gear; detail screens push above).
+- Navigation redesigned around a bottom tab bar: Programs (Explore | Library,
+  start/leave KB programs), Train (Train | History, quick actions),
+  Analytics (lifetime / this-week stats, latest PRs, insights, trends) and
+  Exercises. Settings via the Train gear; detail screens push above.
 - Typography audit: all sizes/weights come from theme tokens (new
   `FONT_WEIGHT`, `semibold`), enforced by `npm run test:ui`; stat values and
   tab labels shrink-to-fit for Dynamic Type 1.3x / 320pt zoomed displays.

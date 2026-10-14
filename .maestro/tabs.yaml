@@ -1,5 +1,5 @@
-# Bottom-tab navigation smoke test: every tab renders its screen and the
-# tab bar stays visible. Run: maestro test .maestro/tabs.yaml
+# Bottom-tab navigation smoke test: every tab renders its screen.
+# Run: maestro test .maestro/tabs.yaml
 appId: app.lift.mobile
 ---
 - launchApp:
@@ -7,18 +7,23 @@ appId: app.lift.mobile
 - assertVisible:
     id: "home-start-workout"
 - tapOn:
-    id: "tab-plans"
-- assertVisible: "Plans"
+    id: "tab-programs"
+- assertVisible: "Explore"
+- tapOn:
+    id: "programs-segment-explore"
+- assertVisible: "Start program"
+- tapOn:
+    id: "tab-analytics"
+- assertVisible: "Lifetime"
 - tapOn:
     id: "tab-exercises"
 - assertVisible: "Browse Exercises"
 - tapOn:
-    id: "tab-history"
-- assertVisible: "History"
+    id: "tab-train"
 - tapOn:
-    id: "tab-progress"
-- assertVisible: "Progress"
+    id: "train-segment-history"
+- assertVisible: "No workouts yet."
 - tapOn:
-    id: "tab-home"
+    id: "train-segment-train"
 - assertVisible:
     id: "home-start-workout"

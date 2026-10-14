@@ -5,9 +5,9 @@
  * the theme in both modes.
  */
 import type { JSX } from 'react';
-import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Line, Path, Rect } from 'react-native-svg';
 
-export type TabIconName = 'home' | 'plans' | 'exercises' | 'history' | 'progress';
+export type TabIconName = 'programs' | 'train' | 'analytics' | 'exercises';
 
 interface TabIconProps {
   name: TabIconName;
@@ -22,25 +22,17 @@ export function TabIcon({ name, color, size, focused = false }: TabIconProps): J
   const common = { stroke: color, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
   let art: JSX.Element;
   switch (name) {
-    case 'home':
+    case 'programs':
+      // Three tall cards side by side.
       art = (
         <>
-          <Path d="M3.5 11 L12 3.8 L20.5 11" {...common} />
-          <Path d="M5.8 9.6 V19.6 H10 V14.4 H14 V19.6 H18.2 V9.6" {...common} />
+          <Rect x={2.8} y={5.4} width={5.2} height={13.2} rx={1.8} {...common} />
+          <Rect x={9.4} y={5.4} width={5.2} height={13.2} rx={1.8} {...common} />
+          <Rect x={16} y={5.4} width={5.2} height={13.2} rx={1.8} {...common} />
         </>
       );
       break;
-    case 'plans':
-      art = (
-        <>
-          <Rect x={5} y={4.2} width={14} height={16.6} rx={2.4} {...common} />
-          <Line x1={8.6} y1={9.2} x2={15.4} y2={9.2} {...common} />
-          <Line x1={8.6} y1={13} x2={15.4} y2={13} {...common} />
-          <Line x1={8.6} y1={16.6} x2={12.6} y2={16.6} {...common} />
-        </>
-      );
-      break;
-    case 'exercises':
+    case 'train':
       art = (
         <>
           <Line x1={7.4} y1={12} x2={16.6} y2={12} {...common} />
@@ -51,20 +43,20 @@ export function TabIcon({ name, color, size, focused = false }: TabIconProps): J
         </>
       );
       break;
-    case 'history':
+    case 'analytics':
       art = (
         <>
-          <Circle cx={12} cy={12} r={8.4} {...common} />
-          <Path d="M12 7.2 V12 L15.2 14" {...common} />
+          <Rect x={3.4} y={4} width={17.2} height={16} rx={2.6} {...common} />
+          <Path d="M6.4 15.6 L10.2 11.6 L13 13.8 L17.6 8.4" {...common} />
         </>
       );
       break;
-    case 'progress':
+    case 'exercises':
+      // Open book / library list.
       art = (
         <>
-          <Path d="M3.8 19.6 H20.4" {...common} />
-          <Path d="M5.4 15.4 L10 10.6 L13.2 13.4 L19 6.6" {...common} />
-          <Path d="M15 6.6 H19 V10.6" {...common} />
+          <Path d="M4.6 5.6 H10 Q12 5.6 12 7.6 V19 Q12 17.4 10 17.4 H4.6 Z" {...common} />
+          <Path d="M19.4 5.6 H14 Q12 5.6 12 7.6 V19 Q12 17.4 14 17.4 H19.4 Z" {...common} />
         </>
       );
       break;

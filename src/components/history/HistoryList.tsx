@@ -1,10 +1,6 @@
 /**
- * Workout history — finished workouts, newest first.
- *
- * Each row shows date, duration, total volume and exercise count; tapping
- * opens the shared summary view (app/workout/[id]/summary.tsx). Reuses the
- * same repository/UI conventions as Home's recent list, but paginated and
- * complete — Home stays a teaser, this is the archive.
+ * Workout history list — finished workouts, newest first. Each row opens the
+ * shared summary view (app/workout/[id]/summary.tsx).
  */
 
 import { useCallback, useState, type JSX } from 'react';
@@ -17,18 +13,17 @@ import {
   View,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   listFinishedWorkouts,
   type WorkoutHistoryRow,
-} from '../../src/data/history';
-import { useTheme } from '../../src/theme';
+} from '../../data/history';
+import { useTheme } from '../../theme';
 import {
   formatDuration,
   formatWorkoutDay,
   trimNumber,
-} from '../../src/components/workout/format';
-import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+} from '../workout/format';
+import { Button, EmptyState } from '../workout/ui';
 
 const PAGE_SIZE = 20;
 
@@ -72,7 +67,8 @@ function HistoryRow({ row }: { row: WorkoutHistoryRow }): JSX.Element {
   );
 }
 
-export default function HistoryScreen(): JSX.Element {
+/** Finished-workout archive list (no header/safe-area) — used by the Train tab's History segment and the standalone /history route. */
+export function HistoryList(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const [rows, setRows] = useState<WorkoutHistoryRow[]>([]);
@@ -113,11 +109,7 @@ export default function HistoryScreen(): JSX.Element {
   );
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
-      <ScreenHeader title="History" />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />
@@ -163,7 +155,7 @@ export default function HistoryScreen(): JSX.Element {
           {rows.length} workout{rows.length === 1 ? '' : 's'}
         </Text>
       ) : null}
-    </SafeAreaView>
+    </View>
   );
 }
 

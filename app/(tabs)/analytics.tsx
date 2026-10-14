@@ -33,6 +33,7 @@ import { useTheme } from '../../src/theme';
 import { trimNumber } from '../../src/components/workout/format';
 import { displayName } from '../../src/kb/taxonomy';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { AnalyticsOverview } from '../../src/components/analytics/Overview';
 import {
   ProgressionLineChart,
   VolumeBarChart,
@@ -280,23 +281,27 @@ export default function ProgressScreen(): JSX.Element {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={['top']}
     >
-      <ScreenHeader title="Progress" />
+      <ScreenHeader title="Analytics" />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />
         </View>
       ) : !hasData && extraLoaded && (weightSeries == null || weightSeries.length <= 1) && (waistSeries == null || waistSeries.length <= 1) ? (
-        <EmptyState
-          message="No training data yet."
-          hint="Log your first workout and your volume and strength trends will appear here."
-          action={
-            <Button title="Start workout" onPress={() => router.push('/workout/new')} />
-          }
-        />
+        <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xl }}>
+          <AnalyticsOverview />
+          <EmptyState
+            message="No training data yet."
+            hint="Log your first workout and your volume and strength trends will appear here."
+            action={
+              <Button title="Start workout" onPress={() => router.push('/workout/new')} />
+            }
+          />
+        </ScrollView>
       ) : (
         <ScrollView
           contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xl }}
         >
+          <AnalyticsOverview />
           {hasData ? (
           <>
           <View style={{ gap: theme.spacing.sm }}>

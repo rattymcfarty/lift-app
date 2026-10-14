@@ -1,6 +1,6 @@
 /**
- * Bottom tab bar — the app's primary navigation. Five top-level sections
- * (Home, Plans, Exercises, History, Progress); everything else (workout
+ * Bottom tab bar — the app's primary navigation. Four top-level sections
+ * (Programs, Train, Analytics, Exercises); everything else (workout
  * logging, detail screens, settings, calculators…) pushes on the root
  * Stack above the tabs.
  *
@@ -17,12 +17,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme';
 import { TabIcon, type TabIconName } from '../../src/components/nav/TabIcons';
 
-const TABS: ReadonlyArray<{ name: string; title: string; icon: TabIconName }> = [
-  { name: 'index', title: 'Home', icon: 'home' },
-  { name: 'plans', title: 'Plans', icon: 'plans' },
-  { name: 'exercises', title: 'Exercises', icon: 'exercises' },
-  { name: 'history', title: 'History', icon: 'history' },
-  { name: 'progress', title: 'Progress', icon: 'progress' },
+const TABS: ReadonlyArray<{ name: string; title: string; icon: TabIconName; testID: string }> = [
+  { name: 'programs', title: 'Programs', icon: 'programs', testID: 'tab-programs' },
+  { name: 'index', title: 'Train', icon: 'train', testID: 'tab-train' },
+  { name: 'analytics', title: 'Analytics', icon: 'analytics', testID: 'tab-analytics' },
+  { name: 'exercises', title: 'Exercises', icon: 'exercises', testID: 'tab-exercises' },
 ];
 
 export default function TabsLayout(): JSX.Element {
@@ -36,10 +35,11 @@ export default function TabsLayout(): JSX.Element {
 
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: c.background },
-        tabBarActiveTintColor: c.highlight,
+        tabBarActiveTintColor: c.accent,
         tabBarInactiveTintColor: c.muted,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
@@ -60,10 +60,10 @@ export default function TabsLayout(): JSX.Element {
           name={tab.name}
           options={{
             title: tab.title,
-            tabBarButtonTestID: `tab-${tab.name === 'index' ? 'home' : tab.name}`,
+            tabBarButtonTestID: tab.testID,
             tabBarAccessibilityLabel: tab.title,
             tabBarIcon: ({ focused }) => (
-              <TabIcon name={tab.icon} color={focused ? c.highlight : c.muted} size={iconSize} focused={focused} />
+              <TabIcon name={tab.icon} color={focused ? c.accent : c.muted} size={iconSize} focused={focused} />
             ),
             tabBarLabel: ({ focused }) => (
               <Text
@@ -72,7 +72,7 @@ export default function TabsLayout(): JSX.Element {
                 minimumFontScale={0.8}
                 maxFontSizeMultiplier={1.1}
                 style={{
-                  color: focused ? c.highlight : c.muted,
+                  color: focused ? c.accent : c.muted,
                   fontSize: labelSize,
                   fontWeight: focused ? t.weight.bold : t.weight.medium,
                   maxWidth: '100%',
