@@ -51,7 +51,8 @@ Run all of these against the release build, in order:
 - [ ] iOS: distribution certificate + provisioning profile (needs the Apple
   Developer account — see §6).
 - [ ] Verify `app.json`: version, package/bundle ID (after §1 decision),
-  add `icon` + `adaptiveIcon` (currently **missing** — no icon configured),
+  `icon` + `adaptiveIcon` now point at a **PLACEHOLDER** barbell in
+  `assets/brand/` (generated; replace with Matt's final artwork, H8),
   confirm plugins (`withAndroidBackupRules`, `withIosBackupExclusion`,
   `expo-notifications`).
 
