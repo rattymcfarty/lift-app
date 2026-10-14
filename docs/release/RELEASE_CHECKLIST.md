@@ -112,6 +112,8 @@ Run all of these against the release build, in order:
 
 ## 8. Human gates — summary (nothing proceeds without Matt)
 
+Drafted proposed answers for every gate: `docs/release/DECISIONS.md`.
+
 | # | Gate | Why it blocks |
 |---|---|---|
 | H1 | android.package `app.lift.mobile` — Matt's call | Permanent after first Play upload |
