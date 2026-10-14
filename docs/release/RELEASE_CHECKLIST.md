@@ -72,11 +72,12 @@ Run all of these against the release build, in order:
 - [ ] Content rating questionnaire (IARC) — fitness app, no objectionable
   content; complete truthfully at submission time.
 - [ ] Target audience / "Designed for Families": not a children's app.
-- [ ] Store listing: short + full description (privacy-forward positioning),
+- [ ] Store listing: short + full description drafted in
+  `docs/release/STORE_LISTING.md` (Matt reviews); still needed:
   screenshots (see §5), feature graphic 1024×500, app icon 512×512. [H]
 - [ ] Closed test: 12 testers, 14-day minimum before production. Tester list
   is Matt's call. [H]
-- [ ] Release notes for the test track.
+- [x] Release notes for the test track — draft in `docs/release/STORE_LISTING.md`.
 
 ## 5. Screenshots and store media
 
@@ -103,8 +104,8 @@ Run all of these against the release build, in order:
 
 ## 7. Pre-push / pre-tag hygiene
 
-- [ ] `git status` clean on the release tree; CHANGELOG or release-notes
-  entry for the version.
+- [ ] `git status` clean on the release tree; `CHANGELOG.md` entry exists
+  (0.1.0, unreleased) — finalise date at tag time.
 - [ ] Tag the release commit (`v1.0.0` or chosen version) after Matt's
   approval of the final push batch. [H]
 

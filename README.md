@@ -10,9 +10,11 @@ Built from scratch with Expo (SDK 57) + TypeScript + Drizzle ORM + expo-sqlite
 
 ## Status
 
-**Phase 0 scaffold.** Runs in Expo Go (SDK 57) and rig-built Android dev builds.
-Feature screens land in Phase 1. Full plan: `IMPLEMENTATION_PLAN_v0.4.md`
-(internal).
+**Pre-release (0.1.0, closed-test candidate).** Workout logging, routines,
+history/PRs/charts, muscle balance, measurements, calculators, 433-exercise
+offline catalogue, and export/import are built. Runs in Expo Go (SDK 57);
+Android release builds are produced locally (`npm run build:android`).
+See `CHANGELOG.md` and `docs/release/RELEASE_CHECKLIST.md`.
 
 ## Quickstart
 
@@ -28,6 +30,13 @@ Android dev build (full native, primary test platform):
 
 ```sh
 npx expo run:android
+```
+
+Signed Android release build (AAB + APK; one-time keystore setup first):
+
+```sh
+npm run setup:keystore
+npm run build:android
 ```
 
 ## Project structure
