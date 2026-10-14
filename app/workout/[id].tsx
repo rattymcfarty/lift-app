@@ -39,6 +39,7 @@ import { aggregateMuscles } from '../../src/lib/aggregateMuscles';
 import { getSupersetGroups } from '../../src/data/repositories';
 import { PlateCalculator } from '../../src/components/workout/PlateCalculator';
 import { useWindowDimensions } from 'react-native';
+import { FONT_WEIGHT } from '../../src/theme/tokens';
 
 /**
  * Elapsed-time readout with its own ticking state, so the once-per-second
@@ -528,7 +529,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   supersetLabel: {
-    fontWeight: '700',
+    fontWeight: FONT_WEIGHT.bold,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

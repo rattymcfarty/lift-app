@@ -95,7 +95,7 @@ function OneRepMaxSection(): JSX.Element {
             <View style={{ gap: 4 }}>
               {PERCENTAGES.map((pct) => (
                 <View key={pct} style={styles.pctRow}>
-                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, width: 44 }}>
+                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, minWidth: 44 }}>
                     {pct}%
                   </Text>
                   <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>

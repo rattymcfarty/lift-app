@@ -91,7 +91,7 @@ appId: app.lift.mobile
     id: "swap-row-romanian-deadlift(-[0-9]+)?"
 - tapOn:
     id: "swap-confirm"
-- assertVisible: "Romanian Deadlift"
+- assertVisible: "Romanian Deadlift.*"
 # Set 1 logged: REPS column shows 10, KG column shows 20
 - assertVisible:
     text: "10"
@@ -132,4 +132,4 @@ appId: app.lift.mobile
 - tapOn:
     id: "workout-finish"
 - tapOn: "Finish"
-- assertVisible: "Romanian Deadlift"
+- assertVisible: "Romanian Deadlift.*"

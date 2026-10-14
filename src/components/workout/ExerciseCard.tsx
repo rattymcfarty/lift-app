@@ -42,6 +42,7 @@ import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
 import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
+import { FONT_WEIGHT } from '../../theme/tokens';
 
 interface PendingSetState {
   /**
@@ -516,7 +517,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   columnHeader: {
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHT.semibold,
     textTransform: 'uppercase',
     flex: 1,
     textAlign: 'center',

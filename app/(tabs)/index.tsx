@@ -29,22 +29,22 @@ import {
   listRecentWorkouts,
   type PRWithExercise,
   type WorkoutDetail,
-} from '../src/data/repositories';
-import type { Workout } from '../src/db/schema';
-import { getConsistency, getDashboardStats, fetchStatWorkouts } from '../src/stats/queries';
-import type { Consistency, DashboardStats } from '../src/stats/queries';
-import { startOfWeekMonday } from '../src/stats/volume';
-import { cardioPillar, cardioWorkoutMinutes, strengthPillar, strengthSessions, type PillarStatus } from '../src/stats/pillars';
-import { cardioMinutesInRange } from '../src/data/cardio';
-import { getCurrentSessionTargets, type CurrentSessionTargets } from '../src/programs/engine';
-import { catchUpProgramAdvancement } from '../src/programs/sessions';
-import { listEnrollments } from '../src/programs/enrollments';
-import { useTheme } from '../src/theme';
-import { useBreakpoint } from '../src/theme/breakpoints';
-import { formatDuration, formatWorkoutDay } from '../src/components/workout/format';
-import { Button, Card, EmptyState } from '../src/components/workout/ui';
-import { Sparkline } from '../src/components/dashboard/Sparkline';
-import { prKindLabel } from '../src/components/dashboard/prLabels';
+} from '../../src/data/repositories';
+import type { Workout } from '../../src/db/schema';
+import { getConsistency, getDashboardStats, fetchStatWorkouts } from '../../src/stats/queries';
+import type { Consistency, DashboardStats } from '../../src/stats/queries';
+import { startOfWeekMonday } from '../../src/stats/volume';
+import { cardioPillar, cardioWorkoutMinutes, strengthPillar, strengthSessions, type PillarStatus } from '../../src/stats/pillars';
+import { cardioMinutesInRange } from '../../src/data/cardio';
+import { getCurrentSessionTargets, type CurrentSessionTargets } from '../../src/programs/engine';
+import { catchUpProgramAdvancement } from '../../src/programs/sessions';
+import { listEnrollments } from '../../src/programs/enrollments';
+import { useTheme } from '../../src/theme';
+import { useBreakpoint } from '../../src/theme/breakpoints';
+import { formatDuration, formatWorkoutDay } from '../../src/components/workout/format';
+import { Button, Card, EmptyState } from '../../src/components/workout/ui';
+import { Sparkline } from '../../src/components/dashboard/Sparkline';
+import { prKindLabel } from '../../src/components/dashboard/prLabels';
 
 function formatKg(kg: number): string {
   if (kg >= 999.5) return `${(kg / 1000).toFixed(1)}t`;
@@ -97,7 +97,14 @@ function StatCell({ label, value, hint }: { label: string; value: string; hint?:
       <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
         {label}
       </Text>
-      <Text style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>{value}</Text>
+      <Text
+        style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {value}
+      </Text>
       {hint ? (
         <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>{hint}</Text>
       ) : null}
@@ -240,7 +247,7 @@ export default function Home(): JSX.Element {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
       <View style={[styles.header, { paddingHorizontal: theme.spacing.md, flexDirection: 'row', alignItems: 'center' }]}>
         <View style={{ flex: 1 }}>
@@ -370,39 +377,6 @@ export default function Home(): JSX.Element {
                   </View>
                 )}
               </Card>
-
-              {/* PLANS & EXERCISES — browse plans, create a plan, explore the
-                  exercise inventory. Entry points only; the screens live
-                  at /plans, /plans/new, and /exercises. */}
-              <View style={{ gap: theme.spacing.sm }}>
-                <Text
-                  style={{
-                    color: theme.colors.muted,
-                    fontSize: t.size.caption,
-                    fontWeight: t.weight.medium,
-                  }}
-                >
-                  PLANS &amp; EXERCISES
-                </Text>
-                <Button
-                  title="Browse Plans"
-                  variant="secondary"
-                  testID="home-browse-plans"
-                  onPress={() => router.push('/plans')}
-                />
-                <Button
-                  title="Create Plan"
-                  size="large"
-                  testID="home-create-plan"
-                  onPress={() => router.push('/plans/new')}
-                />
-                <Button
-                  title="Browse Exercises"
-                  variant="secondary"
-                  testID="home-browse-exercises"
-                  onPress={() => router.push('/exercises')}
-                />
-              </View>
 
               {/* STATS GRID — 2x2 on phones, 4-across on tablet/wide (P5) */}
               <View>
@@ -566,8 +540,6 @@ export default function Home(): JSX.Element {
                 >
                   MORE
                 </Text>
-                <MoreRow label="History" onPress={() => router.push('/history')} />
-                <MoreRow label="Progress" onPress={() => router.push('/progress')} />
                 <MoreRow label="Measure" onPress={() => router.push('/measure')} />
                 <MoreRow label="Calculators" onPress={() => router.push('/calculators')} />
                 <MoreRow label="Personal records" onPress={() => router.push('/prs')} />

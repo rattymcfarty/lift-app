@@ -33,6 +33,7 @@ import { useTheme } from '../../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { trimNumber } from '../../src/components/workout/format';
 import { displayName } from '../../src/kb/taxonomy';
+import { FONT_WEIGHT } from '../../src/theme/tokens';
 
 /** Extra target detail shown under the name (weight / RPE / rest). */
 function targetDetail(item: RoutineDetail['items'][number]): string {
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   tableHeaderText: {
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHT.semibold,
     textTransform: 'uppercase',
   },
 });

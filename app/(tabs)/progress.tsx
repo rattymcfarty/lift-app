@@ -28,22 +28,22 @@ import {
   type ExerciseHistoryOption,
   type ProgressionPoint,
   type WeeklyVolumePoint,
-} from '../src/data/history';
-import { useTheme } from '../src/theme';
-import { trimNumber } from '../src/components/workout/format';
-import { displayName } from '../src/kb/taxonomy';
-import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
+} from '../../src/data/history';
+import { useTheme } from '../../src/theme';
+import { trimNumber } from '../../src/components/workout/format';
+import { displayName } from '../../src/kb/taxonomy';
+import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import {
   ProgressionLineChart,
   VolumeBarChart,
   MuscleStackChart,
   type ProgressionDatum,
   type MuscleStackWeek,
-} from '../src/components/history';
-import { volumeByMuscleByWeek } from '../src/stats/balance';
-import { startOfWeekMonday } from '../src/stats/volume';
-import { fetchStatWorkouts } from '../src/stats/queries';
-import { listMeasurements } from '../src/data/repositories';
+} from '../../src/components/history';
+import { volumeByMuscleByWeek } from '../../src/stats/balance';
+import { startOfWeekMonday } from '../../src/stats/volume';
+import { fetchStatWorkouts } from '../../src/stats/queries';
+import { listMeasurements } from '../../src/data/repositories';
 
 /** "Oct 5" — short label for chart axes. */
 function shortDay(d: Date): string {
@@ -278,9 +278,9 @@ export default function ProgressScreen(): JSX.Element {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
-      <ScreenHeader title="Progress" onBack={() => router.back()} />
+      <ScreenHeader title="Progress" />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />

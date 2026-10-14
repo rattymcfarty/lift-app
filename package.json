@@ -49,7 +49,9 @@
     "test:p7": "node scripts/test-p7.mjs",
     "test:kb": "node scripts/test-kb.mjs",
     "build:android": "bash scripts/build-android-release.sh",
-    "setup:keystore": "bash scripts/setup-android-keystore.sh"
+    "setup:keystore": "bash scripts/setup-android-keystore.sh",
+    "test:ui": "node scripts/check-typography.mjs",
+    "test:e2e:tabs": "maestro test .maestro/tabs.yaml"
   },
   "version": "0.1.0"
 }

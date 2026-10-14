@@ -99,6 +99,8 @@ export interface TypographyTokens {
   weight: {
     regular: TextStyle['fontWeight'];
     medium: TextStyle['fontWeight'];
+    /** 600 — list row titles, button labels where bold is too heavy. */
+    semibold: TextStyle['fontWeight'];
     bold: TextStyle['fontWeight'];
   };
   /**
@@ -162,6 +164,17 @@ export interface Theme {
   breakpoints: BreakpointTokens;
 }
 
+/**
+ * Font weights as static constants — usable in StyleSheet.create() where the
+ * theme hook isn't available. The ONLY place raw weight values may appear.
+ */
+export const FONT_WEIGHT = {
+  regular: '400',
+  medium: '500',
+  semibold: '600',
+  bold: '700',
+} as const;
+
 /** Mode-independent tokens, defined once so the two themes can't drift. */
 const shared: {
   spacing: SpacingTokens;
@@ -172,7 +185,7 @@ const shared: {
   spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 },
   typography: {
     family: undefined,
-    weight: { regular: '400', medium: '500', bold: '700' },
+    weight: FONT_WEIGHT,
     size: {
       display: 40,
       screen: 34,

@@ -20,6 +20,7 @@ import {
   DEFAULT_REST_MS,
   useRestTimer,
 } from '../hooks/useRestTimer';
+import { FONT_WEIGHT } from '../theme/tokens';
 
 /** Quick-pick rest durations. */
 const PRESETS_MS = [30_000, 60_000, 90_000, 120_000, 180_000, 300_000];
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   },
   status: {
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHT.semibold,
   },
   time: {
     textAlign: 'center',

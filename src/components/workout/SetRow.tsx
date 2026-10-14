@@ -35,6 +35,7 @@ import { useTheme } from '../../theme';
 import { formatWeight, parseWeightInput } from '../../lib/units';
 import { parseUserInt, parseUserNumber } from './format';
 import { Button, NumberInput } from './ui';
+import { FONT_WEIGHT } from '../../theme/tokens';
 
 export interface SetInputValues {
   reps?: number;
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     flexBasis: 24,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: FONT_WEIGHT.bold,
   },
   setNumberCompact: {
     flexBasis: 20,
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkGlyph: {
-    fontWeight: 'bold',
+    fontWeight: FONT_WEIGHT.bold,
     lineHeight: 20,
   },
   summaryCell: {
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   warmupBadgeText: {
-    fontWeight: 'bold',
+    fontWeight: FONT_WEIGHT.bold,
   },
   logCircle: {
     width: 36,

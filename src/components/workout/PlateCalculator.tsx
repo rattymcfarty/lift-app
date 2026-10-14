@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { calcPlates, parseWeightInput, formatWeight } from '../../lib/units';
 import { getSettings, setBarWeightKg } from '../../data/settings';
+import { FONT_WEIGHT } from '../../theme/tokens';
 
 interface PlateCalculatorProps {
   visible: boolean;
@@ -139,7 +140,7 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
 
           {result && (
             <View style={{ gap: 8, marginTop: 12 }}>
-              <Text style={{ color: theme.colors.text, fontWeight: 'bold', fontSize: theme.typography.size.body }} testID="plate-per-side">
+              <Text style={{ color: theme.colors.text, fontWeight: FONT_WEIGHT.bold, fontSize: theme.typography.size.body }} testID="plate-per-side">
                 Per side: {result.perSide.map((p) => `${p}`).join(' + ') || 'none'}
               </Text>
               <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }} testID="plate-total">
@@ -168,7 +169,7 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
                 },
               ]}
             >
-              <Text style={{ color: theme.colors.accentText, fontWeight: 'bold', fontSize: theme.typography.size.body }}>
+              <Text style={{ color: theme.colors.accentText, fontWeight: FONT_WEIGHT.bold, fontSize: theme.typography.size.body }}>
                 Use this weight
               </Text>
             </Pressable>

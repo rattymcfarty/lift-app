@@ -21,14 +21,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   listFinishedWorkouts,
   type WorkoutHistoryRow,
-} from '../src/data/history';
-import { useTheme } from '../src/theme';
+} from '../../src/data/history';
+import { useTheme } from '../../src/theme';
 import {
   formatDuration,
   formatWorkoutDay,
   trimNumber,
-} from '../src/components/workout/format';
-import { Button, EmptyState, ScreenHeader } from '../src/components/workout/ui';
+} from '../../src/components/workout/format';
+import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 
 const PAGE_SIZE = 20;
 
@@ -115,9 +115,9 @@ export default function HistoryScreen(): JSX.Element {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
-      <ScreenHeader title="History" onBack={() => router.back()} />
+      <ScreenHeader title="History" />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />

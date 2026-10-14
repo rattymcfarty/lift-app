@@ -31,6 +31,9 @@ function Stat({ label, value }: { label: string; value: string }): JSX.Element {
     <View style={styles.stat}>
       <Text
         style={{ color: theme.colors.text, fontSize: t.size.display, fontWeight: t.weight.bold }}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
       >
         {value}
       </Text>

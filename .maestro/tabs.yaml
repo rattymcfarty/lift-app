@@ -1,0 +1,24 @@
+# Bottom-tab navigation smoke test: every tab renders its screen and the
+# tab bar stays visible. Run: maestro test .maestro/tabs.yaml
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "home-start-workout"
+- tapOn:
+    id: "tab-plans"
+- assertVisible: "Plans"
+- tapOn:
+    id: "tab-exercises"
+- assertVisible: "Browse Exercises"
+- tapOn:
+    id: "tab-history"
+- assertVisible: "History"
+- tapOn:
+    id: "tab-progress"
+- assertVisible: "Progress"
+- tapOn:
+    id: "tab-home"
+- assertVisible:
+    id: "home-start-workout"

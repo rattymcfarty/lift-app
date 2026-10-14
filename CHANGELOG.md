@@ -14,6 +14,15 @@
 - Local signed Android release builds (`npm run build:android`)
 - Placeholder app icon and adaptive icon
 
+### Changed
+- Navigation redesigned around a bottom tab bar: Home, Plans, Exercises,
+  History, Progress (Settings via the Home gear; detail screens push above).
+- Typography audit: all sizes/weights come from theme tokens (new
+  `FONT_WEIGHT`, `semibold`), enforced by `npm run test:ui`; stat values and
+  tab labels shrink-to-fit for Dynamic Type 1.3x / 320pt zoomed displays.
+- Muscle-group and equipment icons redrawn.
+- Catalogue deduped: 577 live exercises (bundle 0.5.0).
+
 ### Notes
 - Media is parked: all exercises use the standard placeholder image.
 - Icon is a placeholder; final artwork pending.

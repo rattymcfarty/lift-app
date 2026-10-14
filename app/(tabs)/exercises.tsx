@@ -211,12 +211,11 @@ export default function BrowseExercisesScreen(): JSX.Element {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
       <ScreenHeader
         title="Browse Exercises"
         subtitle={total > 0 ? `${total} exercises in the library` : undefined}
-        onBack={() => router.back()}
       />
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
         <FlatList

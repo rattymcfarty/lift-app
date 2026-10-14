@@ -93,12 +93,11 @@ export default function PlanListScreen(): JSX.Element {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
+      edges={['top']}
     >
       <ScreenHeader
         title="Plans"
         subtitle="Workout plans"
-        onBack={() => router.back()}
         right={
           <Button title="New" variant="secondary" onPress={() => router.push('/plans/new')} />
         }
