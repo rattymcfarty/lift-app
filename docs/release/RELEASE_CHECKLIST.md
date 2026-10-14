@@ -1,7 +1,7 @@
 # LIFT Release Checklist — QA / production validation
 
 **Scope:** everything needed to take LIFT from the current dev state
-(P5-complete, `main` @ e99619d) to a submittable release candidate, without
+(P8-complete, `main` @ 847948e) to a submittable release candidate, without
 spending Matt's money or authority.
 **Status legend:** [x] done · [ ] open · [H] human gate (Matt decides)
 
@@ -21,12 +21,15 @@ spending Matt's money or authority.
 Run all of these against the release build, in order:
 
 - [x] `npm run typecheck` — must be clean (re-run on the release tree).
-- [ ] All unit test scripts green: `test:backup`, `test:backup:roundtrip`,
-  `test:calculators`, `test:programs`, `test:progression`, `test:stats`.
-- [ ] Maestro E2E `npm run test:e2e` — 15/15 green on emulator, fresh app
-  state (last green: P5, 2026-10-12; re-run for the release build).
-- [ ] Fresh install: migration chain m0000–m0008 applies on real SQLite, zero
-  FK violations, 12 tables.
+- [x] All unit test scripts green (re-run 2026-10-14 on `847948e`):
+  `test:backup` 91, `test:backup:roundtrip` 23, `test:calculators` 23,
+  `test:programs` 48, `test:progression` 45, `test:stats` 71 (+ `test:kb` 29,
+  `test:p7` 96).
+- [ ] Maestro E2E `npm run test:e2e` — flow was extended in P6/P7 (set
+  persistence gate, gradual sets, warmup, swap); needs an emulator run on the
+  release build (not run on ai-rig1 this session).
+- [ ] Fresh install: migration chain m0000–m0012 applies on real SQLite, zero
+  FK violations, 13 tables (P7 added m0009–m0012; P5-era count was 12).
 - [ ] First-launch KB snapshot seeding (P5 fix) — fresh install shows the
   built-in exercises with no network.
 - [ ] Offline launch — KB channel unreachable: app works, no user-facing

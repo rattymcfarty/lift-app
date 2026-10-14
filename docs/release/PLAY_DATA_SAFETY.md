@@ -3,7 +3,7 @@
 > **DRAFT — NOT SUBMITTED. Pending Matt's review.**
 > This file is a working draft of the answers for the Play Console
 > "Data safety" form and the Health apps declaration. It declares only what
-> the app actually does today (v0.1.0, P5-complete). Re-verify against the
+> the app actually does today (v0.1.0, P8-complete; network surface re-audited 2026-10-14: only `src/kb/channel.ts` and `src/kb/bundle.ts` call `fetch`, both anonymous GETs of public KB JSON). Re-verify against the
 > shipped build before submitting; if anything below has changed, update this
 > file first.
 
