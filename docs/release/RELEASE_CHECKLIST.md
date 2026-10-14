@@ -25,9 +25,10 @@ Run all of these against the release build, in order:
   `test:backup` 91, `test:backup:roundtrip` 23, `test:calculators` 23,
   `test:programs` 48, `test:progression` 45, `test:stats` 71 (+ `test:kb` 29,
   `test:p7` 96).
-- [ ] Maestro E2E `npm run test:e2e` — flow was extended in P6/P7 (set
-  persistence gate, gradual sets, warmup, swap); needs an emulator run on the
-  release build (not run on ai-rig1 this session).
+- [x] Maestro E2E `npm run test:e2e` — GREEN on the signed release APK
+  (emulator `lift-test`, host GPU, 2026-10-14). Flow updated for the P8
+  catalogue: duplicate-name variants (`romanian-deadlift-2…5`) and a 53-row
+  Chest list now need regex ids / `scrollUntilVisible`.
 - [ ] Fresh install: migration chain m0000–m0012 applies on real SQLite, zero
   FK violations, 13 tables (P7 added m0009–m0012; P5-era count was 12).
 - [ ] First-launch KB snapshot seeding (P5 fix) — fresh install shows the

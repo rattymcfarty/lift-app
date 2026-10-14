@@ -18,7 +18,7 @@ appId: app.lift.mobile
     id: "workout-add-exercise"
 - tapOn:
     id: "add-exercise-search"
-- inputText: "Squat"
+- inputText: "Goblet Squat"
 - tapOn:
     id: "add-exercise-row-goblet-squat"
 - tapOn:
@@ -86,9 +86,9 @@ appId: app.lift.mobile
     id: "swap-exercise"
 - tapOn:
     id: "swap-search"
-- inputText: "Deadlift"
+- inputText: "Romanian Deadlift"
 - tapOn:
-    id: "swap-row-romanian-deadlift"
+    id: "swap-row-romanian-deadlift(-[0-9]+)?"
 - tapOn:
     id: "swap-confirm"
 - assertVisible: "Romanian Deadlift"
@@ -108,17 +108,11 @@ appId: app.lift.mobile
 # Collapse the muscle grid to reveal the filtered exercise list
 - tapOn:
     id: "picker-filter-muscle"
-- assertVisible:
-    id: "add-exercise-row-push-up"
-# Re-expand the grid to clear the Chest filter
-- tapOn:
-    id: "picker-filter-muscle"
-- tapOn:
-    id: "picker-muscle-Chest"
-# Collapse the grid to reveal the exercise list
-- tapOn:
-    id: "picker-filter-muscle"
-
+# Chest has 50+ entries, alphabetical: scroll until Push-Up renders.
+- scrollUntilVisible:
+    element:
+      id: "add-exercise-row-push-up"
+    timeout: 30000
 # D. Detail tabs (from picker exercise info)
 - tapOn:
     id: "exercise-info-push-up"
