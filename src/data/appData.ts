@@ -14,6 +14,7 @@ export const APP_DATA_KEYS = [
   'lift:profile',
   'lift:reminders',
   'lift:theme-preference',
+  'lift:user-programs',
 ] as const;
 
 export async function collectAppData(): Promise<Record<string, string>> {
@@ -42,7 +43,22 @@ export async function restoreAppData(data: unknown): Promise<number> {
       if (key !== 'lift:theme-preference') continue;
     }
     try {
-      await AsyncStorage.setItem(key, v);
+      let toWrite = v;
+      if (key === 'lift:user-programs') {
+        // Merge by id (newest wins) so importing never wipes programs that
+        // already exist on this device.
+        const existingRaw = await AsyncStorage.getItem(key);
+        const existing: Array<{ id?: string; updatedAt?: number }> = existingRaw ? JSON.parse(existingRaw) : [];
+        const incoming: Array<{ id?: string; updatedAt?: number }> = JSON.parse(v);
+        const byId = new Map<string, { id?: string; updatedAt?: number }>();
+        for (const p of [...existing, ...incoming]) {
+          if (!p || typeof p.id !== 'string') continue;
+          const prev = byId.get(p.id);
+          if (!prev || (p.updatedAt ?? 0) >= (prev.updatedAt ?? 0)) byId.set(p.id, p);
+        }
+        toWrite = JSON.stringify([...byId.values()]);
+      }
+      await AsyncStorage.setItem(key, toWrite);
       applied++;
     } catch {
       // ignore — best effort

@@ -40,6 +40,7 @@ import {
   type OpenWorkoutStatus,
 } from '../../src/workouts/lifecycle';
 import { softDeleteWorkout } from '../../src/data/repositories';
+import { createUserProgram } from '../../src/programs/userPrograms';
 
 type Segment = 'train' | 'history';
 
@@ -433,7 +434,14 @@ export default function TrainScreen(): JSX.Element {
             />
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
               <ActionTile label="Your library" glyph="▤" onPress={() => router.push('/programs')} />
-              <ActionTile label="Create program" glyph="✎" onPress={() => router.push('/plans/new')} />
+              <ActionTile
+                label="Create program"
+                glyph="✎"
+                testID="home-create-program"
+                onPress={() => {
+                  void createUserProgram().then((p) => router.push(`/programs/${p.id}` as never));
+                }}
+              />
             </View>
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
               <ActionTile label="Bodyweight" glyph="⚖" testID="home-bodyweight" onPress={() => router.push('/measure')}>

@@ -10,7 +10,7 @@ appId: app.lift.mobile
 - tapOn:
     id: "tab-programs"
 - tapOn:
-    id: "programs-create"
+    id: "programs-new-plan"
 - tapOn:
     id: "plan-new-name"
 - inputText: "Filter test plan"

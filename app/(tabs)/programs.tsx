@@ -35,6 +35,14 @@ import { loadSnapshot } from '../../src/kb/snapshot';
 import { compileKbProgram, ProgramError } from '../../src/programs/compile';
 import { enrollProgram, listEnrollments, unenrollProgram, type EnrolledProgram } from '../../src/programs/enrollments';
 import { getParqGateStatus } from '../../src/programs/safety';
+import {
+  createUserProgram,
+  deleteUserProgram,
+  listUserPrograms,
+  startUserProgram,
+} from '../../src/programs/userPrograms';
+import { daysPerWeekOf, isUserProgramRoutine, totalDays, type UserProgram } from '../../src/programs/userProgramDef';
+import type { Href } from 'expo-router';
 
 type Segment = 'explore' | 'library';
 
@@ -96,6 +104,7 @@ export default function ProgramsScreen(): JSX.Element {
   const [segment, setSegment] = useState<Segment>('library');
   const [plans, setPlans] = useState<RoutineListItem[]>([]);
   const [enrolled, setEnrolled] = useState<EnrolledProgram[]>([]);
+  const [mine, setMine] = useState<UserProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -110,9 +119,11 @@ export default function ProgramsScreen(): JSX.Element {
 
   const load = useCallback(async () => {
     try {
-      const [p, e] = await Promise.all([listRoutinesWithStats(), listEnrollments('active')]);
-      setPlans(p);
+      const [p, e, u] = await Promise.all([listRoutinesWithStats(), listEnrollments('active'), listUserPrograms()]);
+      // Days of your own programs live inside the program, not in the flat list.
+      setPlans(p.filter((x) => !isUserProgramRoutine(x.routine.kbId)));
       setEnrolled(e);
+      setMine(u);
     } catch {
       setPlans([]);
       setEnrolled([]);
@@ -228,8 +239,81 @@ export default function ProgramsScreen(): JSX.Element {
                 title="Create Program"
                 variant="secondary"
                 testID="programs-create"
-                onPress={() => router.push('/plans/new')}
+                onPress={() => {
+                  void createUserProgram()
+                    .then((p) => router.push(`/programs/${p.id}` as Href))
+                    .catch(() => Alert.alert('Could not create the program', 'Try again.'));
+                }}
               />
+              {mine.length > 0 ? (
+                <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+                  MY PROGRAMS · {mine.length}
+                </Text>
+              ) : null}
+              {mine.map((p) => {
+                const active = enrolled.some((e) => e.program.id === p.id);
+                return (
+                  <SwipeableRow
+                    key={p.id}
+                    backgroundColor={c.background}
+                    borderRadius={theme.radius.lg}
+                    confirm={{ title: 'Delete program?', message: `"${p.name}" and its days will be removed. Logged workouts are kept.` }}
+                    onDelete={async () => {
+                      try {
+                        await deleteUserProgram(p.id);
+                        await load();
+                      } catch (e) {
+                        Alert.alert('Could not delete', e instanceof Error ? e.message : 'Try again.');
+                      }
+                    }}
+                  >
+                    <Card>
+                      <Pressable
+                        testID={`my-program-${p.id}`}
+                        onPress={() => router.push(`/programs/${p.id}` as Href)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Edit ${p.name}`}
+                        style={{ gap: 2 }}
+                      >
+                        <Text style={{ color: c.text, fontSize: t.size.card, fontWeight: t.weight.bold }} numberOfLines={2}>
+                          {p.name}
+                        </Text>
+                        <Text style={{ color: c.faint, fontSize: t.size.meta }}>
+                          {p.weeks} week{p.weeks === 1 ? '' : 's'} · {daysPerWeekOf(p)} day{daysPerWeekOf(p) === 1 ? '' : 's'} a week ·{' '}
+                          {totalDays(p)} sessions{active ? ' · active' : ''}
+                        </Text>
+                      </Pressable>
+                      <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                        <View style={{ flex: 1 }}>
+                          <Button title="Edit" variant="secondary" onPress={() => router.push(`/programs/${p.id}` as Href)} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Button
+                            title={active ? 'Following' : 'Start'}
+                            disabled={active}
+                            onPress={() => {
+                              void (async () => {
+                                try {
+                                  const gate = await getParqGateStatus();
+                                  if (!gate.open) {
+                                    router.push('/programs/parq');
+                                    return;
+                                  }
+                                  await startUserProgram(p);
+                                  await load();
+                                  Alert.alert('Program started', 'Your next session is waiting on the Train tab.');
+                                } catch (e) {
+                                  Alert.alert('Could not start program', e instanceof Error ? e.message : 'Try again.');
+                                }
+                              })();
+                            }}
+                          />
+                        </View>
+                      </View>
+                    </Card>
+                  </SwipeableRow>
+                );
+              })}
               {enrolled.map((e) => (
                 <Card key={e.enrollment.id}>
                   <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>ACTIVE PROGRAM</Text>
@@ -240,9 +324,14 @@ export default function ProgramsScreen(): JSX.Element {
                   <Button title="Leave program" variant="secondary" onPress={() => stopProgram(e.enrollment.id, e.program.name)} />
                 </Card>
               ))}
-              <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
-                MY PLANS · {plans.length}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ flex: 1, color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+                  MY PLANS · {plans.length}
+                </Text>
+                <Pressable testID="programs-new-plan" onPress={() => router.push('/plans/new')} accessibilityRole="button" hitSlop={8}>
+                  <Text style={{ color: c.accent, fontSize: t.size.meta + 1, fontWeight: t.weight.semibold }}>+ New plan</Text>
+                </Pressable>
+              </View>
             </View>
           }
           renderItem={({ item }) => (

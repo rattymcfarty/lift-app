@@ -130,6 +130,13 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 6. Session log (newest first)
 
+- **2026-10-15 (builder)** — User program builder (`app/programs/[id].tsx`,
+  `src/programs/{userProgramDef,userPrograms}.ts`): record in AsyncStorage
+  `lift:user-programs` (in backups, union-merged), each day a routine with kbId
+  `uprog:<id>:w<week>:d<day>`, compiled to the DSL (`source: local`). Known gaps:
+  no deload UI (model supports `deloadWeek`), no per-week copy shortcut, day
+  weekday mapping is fixed (`SESSION_DAYS`).
+
 - **2026-10-15 (later)** — Workout lifecycle (see §0); proportional set table; Tailscale
   dev-server addressing (`REACT_NATIVE_PACKAGER_HOSTNAME=<tailscale-ip>`, URL
   `exp://<tailscale-ip>:8081`); `scripts/e2e.sh` one-command device loop; RESUME_PROMPT.

@@ -66,7 +66,8 @@ src/
   data/              repositories.ts (writes), routines.ts, history.ts, settings.ts,
                      profile.ts, customExercises.ts, generatedPlan.ts, export/import/backup*
   kb/                knowledge-base import, snapshot, taxonomy
-  programs/          program DSL, engine, enrollment, PAR-Q+ safety
+  workouts/          idle/lifecycle policy + reconciler (auto-finish, prompts, nudges)
+  programs/          program DSL, engine, enrollment, PAR-Q+ safety, user program builder
   stats/             volume, balance, pillars, queries (pure + DB)
   lib/               planGenerator.ts (pure), calculators, units, filters
   notifications/     rest alerts + weekly workout reminders (local only)

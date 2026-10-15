@@ -1,0 +1,61 @@
+# Build a program: name, duration, schedule mode, days, exercises, sets.
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-create"
+- assertVisible:
+    id: "program-title"
+# rename the program
+- tapOn:
+    id: "program-rename"
+- inputText: "My Test Program"
+- tapOn:
+    id: "program-name-input-save"
+- assertVisible: "My Test Program"
+# duration + schedule
+- tapOn:
+    id: "program-weeks"
+- tapOn:
+    id: "weeks-sheet-12"
+- assertVisible: "12 Weeks"
+- tapOn:
+    id: "program-schedule"
+- tapOn:
+    id: "schedule-sheet-custom"
+- assertVisible:
+    id: "program-week-1"
+- assertVisible: "Different Weeks"
+# days
+- assertVisible: "Day 3 .*"
+- tapOn:
+    id: "program-add-day"
+- assertVisible: "Day 4 .*"
+# add an exercise to day 1 and set the sets target
+- tapOn:
+    id: "day-add-exercise-1"
+- tapOn:
+    id: "plan-picker-search"
+- inputText: "Goblet Squat"
+- hideKeyboard
+- tapOn:
+    id: "plan-add-exercise-row-goblet-squat"
+- assertVisible: "Goblet Squat.*"
+- tapOn:
+    id: "day-1-sets-1"
+- inputText: "5"
+- hideKeyboard
+- assertVisible:
+    id: "day-1-sets-1"
+    text: "5"
+# back to the library: the program is listed
+- tapOn:
+    id: "program-finish"
+- assertVisible: "MY PROGRAMS.*"
+- assertVisible: "My Test Program"

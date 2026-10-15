@@ -226,6 +226,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
         >
           <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>⌕</Text>
           <TextInput
+            testID="plan-picker-search"
             value={query}
             onChangeText={setQuery}
             placeholder="Search exercises…"

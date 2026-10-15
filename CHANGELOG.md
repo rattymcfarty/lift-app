@@ -25,6 +25,14 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Added (program builder, 2026-10-15)
+- Build your own multi-week programs: name, duration (1–52 weeks), "Repeating
+  weeks" or "Different weeks" (plan every week), up to 7 days per week, each day
+  a full plan with sets/reps targets. Day actions: rename, duplicate, move,
+  delete. Start it like any program (PAR-Q+ gate, scheduling and progression
+  reuse the program engine). Programs are included in backups.
+- Library: "My programs" (Start / Edit, swipe to delete) separate from "My plans".
+
 ### Fixed
 - Plan builder's Add exercise picker now has the same Muscles / Equipment
   filters (with clear buttons and a filtered empty state) as the workout picker;
