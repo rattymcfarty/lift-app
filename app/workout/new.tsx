@@ -331,7 +331,7 @@ export default function NewWorkoutScreen(): JSX.Element {
         <Button
           title="Manage plans"
           variant="secondary"
-          onPress={() => router.push('/plans')}
+          onPress={() => router.push('/programs')}
         />
       </View>
     </SafeAreaView>

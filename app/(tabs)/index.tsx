@@ -11,7 +11,7 @@
 
 import { useCallback, useRef, useState, type JSX } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getActiveWorkout, listMeasurements, type WorkoutDetail } from '../../src/data/repositories';
 import { getCurrentSessionTargets, type CurrentSessionTargets } from '../../src/programs/engine';
@@ -259,7 +259,7 @@ export default function TrainScreen(): JSX.Element {
                 <Text style={{ color: c.faint, fontSize: t.size.caption }}>
                   Start a program for guided progression, or train freely — every set is stored on this device only.
                 </Text>
-                <Button title="Explore programs" variant="secondary" onPress={() => router.push('/programs' as Href)} />
+                <Button title="Explore programs" variant="secondary" onPress={() => router.push('/programs')} />
               </View>
             )}
           </Card>
@@ -276,7 +276,7 @@ export default function TrainScreen(): JSX.Element {
               onPress={() => router.push('/workout/new')}
             />
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <ActionTile label="Your library" glyph="▤" onPress={() => router.push('/programs' as Href)} />
+              <ActionTile label="Your library" glyph="▤" onPress={() => router.push('/programs')} />
               <ActionTile label="Create program" glyph="✎" onPress={() => router.push('/plans/new')} />
             </View>
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
