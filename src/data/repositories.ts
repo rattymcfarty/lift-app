@@ -305,6 +305,24 @@ export async function getActiveWorkout(): Promise<WorkoutDetail | null> {
   return active ? getWorkoutDetail(active.id) : null;
 }
 
+/**
+ * Every open (started, not ended, not deleted) workout, newest first. Normally
+ * zero or one; more than one means an earlier one was abandoned.
+ */
+export async function listOpenWorkouts(): Promise<WorkoutDetail[]> {
+  const rows = await db
+    .select({ id: workouts.id })
+    .from(workouts)
+    .where(and(isNull(workouts.endedAt), isNull(workouts.deletedAt)))
+    .orderBy(desc(workouts.startedAt));
+  const out: WorkoutDetail[] = [];
+  for (const r of rows) {
+    const d = await getWorkoutDetail(r.id);
+    if (d) out.push(d);
+  }
+  return out;
+}
+
 /** Returns the updated row, or null if the workout doesn't exist / is deleted. */
 export async function finishWorkout(id: string, endedAt: Date = new Date()): Promise<Workout | null> {
   assertValidDate(endedAt, 'endedAt');

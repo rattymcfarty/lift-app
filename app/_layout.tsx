@@ -12,6 +12,7 @@ import { useDrizzleMigrations } from '../src/db/useMigrations';
 import { importSnapshotOnFirstLaunch } from '../src/kb';
 import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary';
 import { ThemeProvider, useTheme } from '../src/theme';
+import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
 
 /**
  * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
@@ -93,6 +94,7 @@ function AppShell() {
           contentStyle: { backgroundColor: theme.colors.background },
         }}
       />
+      <WorkoutLifecycleWatcher />
       {statusBar}
     </>
   );

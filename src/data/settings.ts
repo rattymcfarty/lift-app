@@ -15,6 +15,10 @@ export interface LiftSettings {
   weightUnit: WeightUnit;
   defaultRestSeconds: number;
   barWeightKg: number;
+  /** Minutes without activity before LIFT asks "still training?". */
+  idlePromptMinutes: number;
+  /** Minutes without activity before LIFT finishes the workout itself (0 = never). */
+  autoFinishMinutes: number;
 }
 
 const SETTINGS_KEY = 'lift:settings';
@@ -24,6 +28,8 @@ const DEFAULTS: LiftSettings = {
   weightUnit: 'kg',
   defaultRestSeconds: 90,
   barWeightKg: 20,
+  idlePromptMinutes: 45,
+  autoFinishMinutes: 180,
 };
 
 /**
@@ -40,6 +46,8 @@ export async function getSettings(): Promise<LiftSettings> {
       weightUnit: parsed.weightUnit ?? DEFAULTS.weightUnit,
       defaultRestSeconds: parsed.defaultRestSeconds ?? DEFAULTS.defaultRestSeconds,
       barWeightKg: parsed.barWeightKg ?? DEFAULTS.barWeightKg,
+      idlePromptMinutes: parsed.idlePromptMinutes ?? DEFAULTS.idlePromptMinutes,
+      autoFinishMinutes: parsed.autoFinishMinutes ?? DEFAULTS.autoFinishMinutes,
     };
   } catch {
     return DEFAULTS;
@@ -85,4 +93,20 @@ export async function setBarWeightKg(kg: number): Promise<void> {
   }
   const current = await getSettings();
   await writeSettings({ ...current, barWeightKg: kg });
+}
+
+/**
+ * Sets the workout check-in thresholds (minutes of inactivity).
+ * @throws RangeError if the prompt is outside [10, 240] or auto-finish is
+ *   neither 0 (off) nor at least prompt + 15 and at most 720.
+ */
+export async function setIdleThresholds(promptMin: number, autoFinishMin: number): Promise<void> {
+  if (!Number.isInteger(promptMin) || promptMin < 10 || promptMin > 240) {
+    throw new RangeError(`idlePromptMinutes must be an integer in [10, 240]: ${promptMin}`);
+  }
+  if (!Number.isInteger(autoFinishMin) || (autoFinishMin !== 0 && (autoFinishMin < promptMin + 15 || autoFinishMin > 720))) {
+    throw new RangeError(`autoFinishMinutes must be 0 or in [prompt+15, 720]: ${autoFinishMin}`);
+  }
+  const current = await getSettings();
+  await writeSettings({ ...current, idlePromptMinutes: promptMin, autoFinishMinutes: autoFinishMin });
 }

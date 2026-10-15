@@ -39,7 +39,8 @@ import { invalidateConsistencyCache } from '../../src/stats/queries';
 import { aggregateMuscles } from '../../src/lib/aggregateMuscles';
 import { getSupersetGroups } from '../../src/data/repositories';
 import { PlateCalculator } from '../../src/components/workout/PlateCalculator';
-import { useWindowDimensions } from 'react-native';
+import { AppState, useWindowDimensions } from 'react-native';
+import { recordHeartbeat, reconcileWorkouts } from '../../src/workouts/lifecycle';
 import { FONT_WEIGHT } from '../../src/theme/tokens';
 
 /**
@@ -122,6 +123,10 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       setDetail(d);
       setLoadError(null);
       void loadPreviousFor(d.items, workoutId);
+      // Any change counts as activity: refresh the "still training?" nudges.
+      if (d.workout.endedAt == null) {
+        void recordHeartbeat(workoutId).then(() => reconcileWorkouts()).catch(() => undefined);
+      }
     } catch (e) {
       // Transient failure on a silent refresh: keep the stale screen
       // (timers keep running, typed input survives) instead of wiping it.
@@ -141,6 +146,22 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       void load();
     }, [load]),
   );
+
+  // Heartbeat: while this screen is open and the app is foregrounded the
+  // workout counts as active, so resting between sets never triggers a
+  // "still training?" check-in.
+  useEffect(() => {
+    if (!workoutId) return undefined;
+    const beat = (): void => {
+      if (AppState.currentState === 'active') void recordHeartbeat(workoutId);
+    };
+    beat();
+    const timer = setInterval(beat, 60_000);
+    return () => {
+      clearInterval(timer);
+      void recordHeartbeat(workoutId);
+    };
+  }, [workoutId]);
 
   // A finished workout doesn't belong here — hand off to the summary.
   useEffect(() => {

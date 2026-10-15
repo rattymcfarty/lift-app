@@ -1,0 +1,10 @@
+# Run AFTER _zoom-fixture and a +60min clock shift: the open workout is idle,
+# so launching must ask "Still working out?"; "Not now" leaves it open.
+appId: app.lift.mobile
+---
+- launchApp
+- assertVisible: "Still working out?"
+- tapOn: "Not now"
+- assertVisible:
+    id: "home-resume-workout"
+- assertVisible: "WORKOUT PAUSED.*"

@@ -31,6 +31,15 @@ import { getProfile, type Profile } from '../../src/data/profile';
 import { listRoutinesWithStats, type RoutineListItem } from '../../src/data/routines';
 import { fetchWorkoutStarts } from '../../src/stats/queries';
 import { GENERATED_PREFIX } from '../../src/data/generatedPlan';
+import {
+  dismissNotice,
+  finishAtLastActivity,
+  getNotices,
+  reconcileWorkouts,
+  type AutoClosedNotice,
+  type OpenWorkoutStatus,
+} from '../../src/workouts/lifecycle';
+import { softDeleteWorkout } from '../../src/data/repositories';
 
 type Segment = 'train' | 'history';
 
@@ -117,6 +126,8 @@ export default function TrainScreen(): JSX.Element {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [trained, setTrained] = useState<boolean[]>([false, false, false, false, false, false, false]);
   const [suggested, setSuggested] = useState<RoutineListItem | null>(null);
+  const [status, setStatus] = useState<OpenWorkoutStatus | null>(null);
+  const [notices, setNotices] = useState<AutoClosedNotice[]>([]);
   const [loading, setLoading] = useState(true);
   // Stale-response guard: every focus starts a new load; only the latest may write state.
   const loadIdRef = useRef(0);
@@ -124,6 +135,16 @@ export default function TrainScreen(): JSX.Element {
   const load = useCallback(async () => {
     const loadId = ++loadIdRef.current;
     const alive = () => loadIdRef.current === loadId;
+    // Close anything abandoned BEFORE reading the active workout, so a
+    // forgotten session never shows up as "Resume workout".
+    try {
+      const r = await reconcileWorkouts();
+      if (alive()) setStatus(r.current);
+      const n = await getNotices();
+      if (alive()) setNotices(n);
+    } catch (e) {
+      console.warn('[train] reconcile failed', e);
+    }
     try {
       const a = await getActiveWorkout();
       if (alive()) setActive(a);
@@ -247,15 +268,46 @@ export default function TrainScreen(): JSX.Element {
             />
           </Card>
           {active ? null : <ReadinessCard />}
+          {notices.map((n) => (
+            <Card key={n.workoutId}>
+              <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>FINISHED AUTOMATICALLY</Text>
+              <Text style={{ color: c.text, fontSize: t.size.row, fontWeight: t.weight.bold }} numberOfLines={2}>
+                {n.name}
+              </Text>
+              <Text style={{ color: c.faint, fontSize: t.size.caption }}>
+                It went quiet, so LIFT closed it at your last activity
+                ({new Date(n.endedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}) with {n.setCount} set
+                {n.setCount === 1 ? '' : 's'}. Nothing was lost.
+              </Text>
+              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                <View style={{ flex: 1 }}>
+                  <Button title="View summary" variant="secondary" onPress={() => router.push(`/workout/${n.workoutId}/summary`)} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    title="Dismiss"
+                    variant="secondary"
+                    testID={`notice-dismiss-${n.workoutId}`}
+                    onPress={() => {
+                      void dismissNotice(n.workoutId).then(() => setNotices((prev) => prev.filter((x) => x.workoutId !== n.workoutId)));
+                    }}
+                  />
+                </View>
+              </View>
+            </Card>
+          ))}
           {active ? (
-            <Card>
-              <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>WORKOUT IN PROGRESS</Text>
+            <Card style={status?.state === 'idle' ? { borderColor: c.warning, borderWidth: 2 } : undefined}>
+              <Text style={{ color: status?.state === 'idle' ? c.warning : c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+                {status?.state === 'idle' ? 'WORKOUT PAUSED — STILL TRAINING?' : 'WORKOUT IN PROGRESS'}
+              </Text>
               <Text style={{ color: c.text, fontSize: t.size.card, fontWeight: t.weight.bold }} numberOfLines={2}>
                 {active.workout.name}
               </Text>
               <Text style={{ color: c.faint, fontSize: t.size.caption }}>
                 {active.items.length} exercise{active.items.length === 1 ? '' : 's'} ·{' '}
                 {active.items.reduce((n, i) => n + i.sets.length, 0)} sets logged
+                {status ? ` · last activity ${status.idleMs < 60_000 ? 'just now' : `${status.idleText} ago`}` : ''}
               </Text>
               <Button
                 title="Resume workout"
@@ -263,6 +315,33 @@ export default function TrainScreen(): JSX.Element {
                 testID="home-resume-workout"
                 onPress={() => router.push(`/workout/${active.workout.id}`)}
               />
+              {status?.state === 'idle' ? (
+                <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                  <View style={{ flex: 1 }}>
+                    <Button
+                      title="Finish now"
+                      variant="secondary"
+                      testID="home-finish-idle"
+                      onPress={() => {
+                        void finishAtLastActivity(status)
+                          .then(() => router.push(`/workout/${status.id}/summary`))
+                          .catch(() => undefined);
+                      }}
+                    />
+                  </View>
+                  {status.setCount === 0 ? (
+                    <View style={{ flex: 1 }}>
+                      <Button
+                        title="Discard"
+                        variant="danger"
+                        onPress={() => {
+                          void softDeleteWorkout(status.id).then(() => load());
+                        }}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
             </Card>
           ) : null}
 

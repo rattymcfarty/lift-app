@@ -7,6 +7,9 @@
 #                                   run every flow
 #   scripts/e2e.sh --build          build the release APK first (~5 min)
 #   scripts/e2e.sh onboarding tabs  run only the named flows
+#   scripts/e2e.sh _zoom-fixture +60min _idle-prompt +4h _idle-autoclose
+#       tokens like +60min / +4h move the emulator clock FORWARD (cumulative)
+#       before the next flow — used to test idle detection and auto-finish.
 #
 # Output: one PASS/FAIL line per flow + the log directory. Needs the rig from
 # docs/ops/ENVIRONMENT.md. Emulator is booted inside this script because
@@ -41,8 +44,23 @@ sleep 8
 ok=0; for _ in 1 2 3; do adb install -r "$APK" 2>&1 | tail -1 | grep -q Success && { ok=1; break; }; sleep 10; done
 [ "$ok" = 1 ] || { echo "install failed (see $LOG)"; exit 1; }
 
+shift_total=0
+shift_clock() { # seconds
+  shift_total=$((shift_total + $1))
+  adb root >/dev/null 2>&1; sleep 2
+  adb shell settings put global auto_time 0 >/dev/null 2>&1
+  adb shell settings put global auto_time_zone 0 >/dev/null 2>&1
+  local t; t="$(date -u -d "@$(( $(date +%s) + shift_total ))" +%m%d%H%M%Y.%S)"
+  adb shell "date -u $t" >/dev/null 2>&1
+  echo "clock shifted +$((shift_total / 60)) min (device now: $(adb shell date | tr -d '\r'))"
+}
+
 fail=0
 for f in "${FLOWS[@]}"; do
+  if [[ "$f" =~ ^\+([0-9]+)(min|h)$ ]]; then
+    n="${BASH_REMATCH[1]}"; [ "${BASH_REMATCH[2]}" = h ] && n=$((n * 60))
+    shift_clock $((n * 60)); continue
+  fi
   # The emulator occasionally drops between flows; re-check and retry once.
   adb get-state >/dev/null 2>&1 || { echo "emulator lost before '$f' — rerun"; fail=1; break; }
   if timeout 600 maestro test ".maestro/$f.yaml" > "$LOG/$f.log" 2>&1; then

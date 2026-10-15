@@ -1,0 +1,10 @@
+# Run AFTER a +4h clock shift: the open workout is stale, so LIFT finishes it
+# at its last activity and says so; Train shows the notice, not "Resume".
+appId: app.lift.mobile
+---
+- launchApp
+- assertVisible: "Workout finished automatically"
+- tapOn: "OK"
+- assertVisible: "FINISHED AUTOMATICALLY"
+- assertNotVisible:
+    id: "home-resume-workout"

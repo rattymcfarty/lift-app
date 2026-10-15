@@ -12,7 +12,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, Vi
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, type ThemePreference } from '../src/theme';
-import { getSettings, setWeightUnit, type WeightUnit } from '../src/data/settings';
+import { getSettings, setIdleThresholds, setWeightUnit, type WeightUnit } from '../src/data/settings';
 import { Button, Card, ScreenHeader } from '../src/components/workout/ui';
 import { deleteBackupFile, exportBackup, shareBackup } from '../src/data/export';
 import { applyReminders, getReminders, type ReminderSettings } from '../src/notifications/workoutReminders';
@@ -79,6 +79,7 @@ export default function SettingsScreen(): JSX.Element {
   const { theme, preference, setPreference } = useTheme();
   const t = theme.typography;
   const [weightUnit, setWeightUnitState] = useState<WeightUnit>('kg');
+  const [idleMin, setIdleMin] = useState({ prompt: 45, auto: 180 });
   const [dataBusy, setDataBusy] = useState<'export' | 'import' | null>(null);
   const [reminders, setReminders] = useState<ReminderSettings | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -86,7 +87,10 @@ export default function SettingsScreen(): JSX.Element {
   useEffect(() => {
     let cancelled = false;
     void getSettings().then((s) => {
-      if (!cancelled) setWeightUnitState(s.weightUnit);
+      if (!cancelled) {
+        setWeightUnitState(s.weightUnit);
+        setIdleMin({ prompt: s.idlePromptMinutes, auto: s.autoFinishMinutes });
+      }
     });
     return () => {
       cancelled = true;
@@ -227,6 +231,80 @@ export default function SettingsScreen(): JSX.Element {
             variant="secondary"
             onPress={() => router.push('/onboarding?edit=1')}
           />
+        </Card>
+
+        <Card>
+          <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+            WORKOUT CHECK-INS
+          </Text>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
+            If a workout goes quiet, LIFT asks &quot;still training?&quot; — and finishes it for you at your last set if
+            you don&apos;t answer.
+          </Text>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>ASK AFTER</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {[30, 45, 60, 90].map((m) => {
+              const on = idleMin.prompt === m;
+              return (
+                <Pressable
+                  key={m}
+                  testID={`settings-idle-prompt-${m}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  onPress={() => {
+                    const auto = idleMin.auto === 0 ? 0 : Math.max(idleMin.auto, m + 15);
+                    setIdleMin({ prompt: m, auto });
+                    void setIdleThresholds(m, auto).catch(() => undefined);
+                  }}
+                  style={{
+                    paddingVertical: theme.spacing.xs + 2,
+                    paddingHorizontal: theme.spacing.md,
+                    borderRadius: theme.radius.pill,
+                    borderWidth: 1,
+                    borderColor: on ? theme.colors.accent : theme.colors.border,
+                    backgroundColor: on ? theme.colors.surfaceMuted : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: on ? theme.colors.text : theme.colors.muted, fontSize: t.size.meta + 1 }}>{m} min</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>FINISH AUTOMATICALLY AFTER</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {[[120, '2 h'], [180, '3 h'], [240, '4 h'], [0, 'Never']].map(([m, label]) => {
+              const on = idleMin.auto === m;
+              const disabled = m !== 0 && (m as number) < idleMin.prompt + 15;
+              return (
+                <Pressable
+                  key={String(label)}
+                  testID={`settings-idle-auto-${m}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on, disabled }}
+                  disabled={disabled}
+                  onPress={() => {
+                    setIdleMin({ prompt: idleMin.prompt, auto: m as number });
+                    void setIdleThresholds(idleMin.prompt, m as number).catch(() => undefined);
+                  }}
+                  style={{
+                    paddingVertical: theme.spacing.xs + 2,
+                    paddingHorizontal: theme.spacing.md,
+                    borderRadius: theme.radius.pill,
+                    borderWidth: 1,
+                    borderColor: on ? theme.colors.accent : theme.colors.border,
+                    backgroundColor: on ? theme.colors.surfaceMuted : 'transparent',
+                    opacity: disabled ? 0.4 : 1,
+                  }}
+                >
+                  <Text style={{ color: on ? theme.colors.text : theme.colors.muted, fontSize: t.size.meta + 1 }}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            Closing happens when you next open LIFT, recorded at your last real activity — never at the moment you came
+            back. Empty workouts are simply discarded.
+          </Text>
         </Card>
 
         <Card>
