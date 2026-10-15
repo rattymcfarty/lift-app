@@ -58,7 +58,9 @@
     "backup": "bash scripts/backup-local.sh",
     "prepare": "bash scripts/install-hooks.sh || true",
     "secrets:scan": "bash scripts/secrets-scan.sh --tree",
-    "secrets:history": "bash scripts/secrets-scan.sh --history"
+    "secrets:history": "bash scripts/secrets-scan.sh --history",
+    "test:lifecycle": "node scripts/test-lifecycle.mjs",
+    "e2e": "bash scripts/e2e.sh"
   },
   "version": "0.1.0"
 }

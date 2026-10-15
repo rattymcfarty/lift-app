@@ -5,6 +5,29 @@
 > Last updated: 2026-10-14, after the P9 personalisation pass and the
 > disaster-recovery hardening. Repo HEAD at the time: see `git log -1`.
 
+## 0. In-flight work (update before every commit)
+
+**Workout lifecycle / idle handling — IN PROGRESS (started 2026-10-15).**
+Goal: LIFT detects ongoing/idle/stale workouts, prompts the user, sends local
+notifications, and auto-closes idle ones at the last real activity.
+
+- [x] Pure policy + unit tests: `src/workouts/policy.ts`, `scripts/test-lifecycle.mjs`
+      (`npm run test:lifecycle`)
+- [ ] Settings: `idlePromptMinutes` (default 45) / `autoFinishMinutes` (default 180, 0 = off)
+      in `src/data/settings.ts` + Settings UI card "Workout check-ins"
+- [ ] Repo: `listOpenWorkouts()`; `src/workouts/lifecycle.ts` (reconcile: finish/discard,
+      notices in AsyncStorage `lift:workout-notices`, heartbeat `lift:workout-heartbeat`,
+      alert scheduling)
+- [ ] Wiring: `app/_layout.tsx` (foreground + launch reconcile → prompt), Train resume card
+      (last activity, Finish/Discard), notice card for auto-closed workouts, workout screen
+      heartbeat
+- [ ] E2E + docs (CHANGELOG, this file), push
+
+Design rules: last activity = max(startedAt, set/exercise timestamps, screen heartbeat);
+auto-finish ends the workout **at last activity** (not "now"); empty stale workouts are
+discarded; extra open workouts are closed as duplicates; closing happens lazily on
+foreground (iOS cannot run code in the background) with notifications as the nudge.
+
 ## 1. State of the product
 
 **Version:** 0.1.0 (closed-test candidate, never published to any store).

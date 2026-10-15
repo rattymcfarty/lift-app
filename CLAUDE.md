@@ -155,6 +155,14 @@ scripts/verify-recovery.sh  # fresh clone → install → full test suite
 - The KB has a few same-name exercises that are *different* (equipment variants).
   Names dedupe on live entries only; do not delete deprecated ones (IDs are permanent).
 
+## 7b. Staying light (context hygiene)
+
+Use `scripts/e2e.sh` for device flows (prints PASS/FAIL only), `npm run verify`
+for unit tests, targeted `grep`/`sed -n` instead of whole-file reads, and one
+screenshot per question. Checkpoint into `docs/ops/HANDOFF.md` §0 after every
+verified step so a session can be cut over at any time —
+`docs/ops/RESUME_PROMPT.md` has the copy-paste prompt.
+
 ## 8. Keeping the handoff alive
 
 At the end of **every** session: update `docs/ops/HANDOFF.md` (state, last
