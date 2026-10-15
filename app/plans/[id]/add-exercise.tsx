@@ -31,6 +31,9 @@ import { EmptyState, ScreenHeader, Button } from '../../../src/components/workou
 import { ComposerTaxonomyPicker } from '../../../src/components/workout/ComposerTaxonomyPicker';
 import { displayName } from '../../../src/kb/taxonomy';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
+import { FilterChip } from '../../../src/components/workout/FilterChip';
+import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
+import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Picker search cap: covers the whole library (433 exercises); FlatList virtualizes. */
@@ -63,6 +66,14 @@ export default function AddPlanExerciseScreen(): JSX.Element {
   const planId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [query, setQuery] = useState('');
+  // Muscle / equipment filters — same multi-select grids as the workout picker.
+  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [muscleExpanded, setMuscleExpanded] = useState(false);
+  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+  const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
+  const toggleIn = (list: string[], id: string): string[] =>
+    list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
   const [results, setResults] = useState<Exercise[]>([]);
   const [searching, setSearching] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -110,7 +121,11 @@ export default function AddPlanExerciseScreen(): JSX.Element {
           const rows = q
             ? await searchExercises(q, SEARCH_LIMIT)
             : await listExercises();
-          if (!cancelled) setResults(rows);
+          if (!cancelled) {
+            setResults(
+              rows.filter((e) => exerciseMatchesFilters(e, selectedMuscles, selectedEquipment, q)),
+            );
+          }
         } catch (e) {
           if (!cancelled) {
             setError(e instanceof Error ? e.message : 'Search failed.');
@@ -125,7 +140,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, selectedMuscles, selectedEquipment]);
 
   const handleAdd = useCallback(
     async (exerciseId: string) => {
@@ -242,7 +257,43 @@ export default function AddPlanExerciseScreen(): JSX.Element {
             />
           )}
           ListHeaderComponent={
-            searching ? <ActivityIndicator color={theme.colors.muted} /> : null
+            <View style={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
+              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                <FilterChip
+                  label="Muscles"
+                  count={selectedMuscles.length}
+                  expanded={muscleExpanded}
+                  onToggle={() => setMuscleExpanded((p) => !p)}
+                  onClear={() => setSelectedMuscles([])}
+                  testID="plan-picker-filter-muscle"
+                />
+                <FilterChip
+                  label="Equipment"
+                  count={selectedEquipment.length}
+                  expanded={equipmentExpanded}
+                  onToggle={() => setEquipmentExpanded((p) => !p)}
+                  onClear={() => setSelectedEquipment([])}
+                  testID="plan-picker-filter-equipment"
+                />
+              </View>
+              {muscleExpanded ? (
+                <TaxonomyFilterGrid
+                  mode="muscle"
+                  selected={selectedMuscles}
+                  onToggle={(id) => setSelectedMuscles((prev) => toggleIn(prev, id))}
+                  testIDPrefix="plan-picker"
+                />
+              ) : null}
+              {equipmentExpanded ? (
+                <TaxonomyFilterGrid
+                  mode="equipment"
+                  selected={selectedEquipment}
+                  onToggle={(id) => setSelectedEquipment((prev) => toggleIn(prev, id))}
+                  testIDPrefix="plan-picker"
+                />
+              ) : null}
+              {searching ? <ActivityIndicator color={theme.colors.muted} /> : null}
+            </View>
           }
           ListEmptyComponent={
             searching ? null : (
@@ -250,9 +301,15 @@ export default function AddPlanExerciseScreen(): JSX.Element {
                 message={
                   query.trim()
                     ? `No exercises match "${query.trim()}".`
-                    : 'No exercises in the library yet.'
+                    : filtersActive
+                      ? 'No exercises match these filters.'
+                      : 'No exercises in the library yet.'
                 }
-                hint="Create a custom exercise below."
+                hint={
+                  filtersActive
+                    ? 'Try clearing the muscle or equipment filters.'
+                    : 'Create a custom exercise below.'
+                }
               />
             )
           }

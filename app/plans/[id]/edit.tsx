@@ -473,6 +473,7 @@ export default function PlanEditScreen(): JSX.Element {
             <Button
               title="Add exercise"
               variant="secondary"
+              testID="plan-edit-add-exercise"
               onPress={() => router.push(`/plans/${planId}/add-exercise`)}
             />
           </View>

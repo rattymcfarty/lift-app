@@ -1,0 +1,37 @@
+# Building a plan: the Add-exercise picker must offer muscle + equipment
+# filters, and applying one must narrow the list.
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-create"
+- tapOn:
+    id: "plan-new-name"
+- inputText: "Filter test plan"
+- hideKeyboard
+- tapOn:
+    id: "plan-new-create"
+- tapOn:
+    id: "plan-edit-add-exercise"
+# The filter chips are present…
+- assertVisible:
+    id: "plan-picker-filter-muscle"
+- assertVisible:
+    id: "plan-picker-filter-equipment"
+# …and a filter narrows the list (Ab Wheel is Abs-only; Chest hides it).
+- assertVisible: "Ab Wheel.*"
+- tapOn:
+    id: "plan-picker-filter-muscle"
+- tapOn:
+    id: "plan-picker-muscle-Chest"
+- assertNotVisible: "Ab Wheel.*"
+- assertVisible:
+    id: "plan-picker-filter-muscle-clear"
+- tapOn:
+    id: "plan-picker-filter-muscle-clear"

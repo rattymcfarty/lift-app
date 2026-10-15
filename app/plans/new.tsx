@@ -92,6 +92,7 @@ export default function NewPlanScreen(): JSX.Element {
             PLAN NAME
           </Text>
           <TextInput
+            testID="plan-new-name"
             value={name}
             onChangeText={(text) => {
               setName(text);
@@ -187,6 +188,7 @@ export default function NewPlanScreen(): JSX.Element {
 
         <Button
           title="Create and add exercises"
+          testID="plan-new-create"
           onPress={() => void handleCreate()}
           busy={creating}
         />

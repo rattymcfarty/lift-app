@@ -25,6 +25,11 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Fixed
+- Plan builder's Add exercise picker now has the same Muscles / Equipment
+  filters (with clear buttons and a filtered empty state) as the workout picker;
+  the filter chip is a shared component.
+
 ### Added (workout lifecycle, 2026-10-15)
 - LIFT now tracks workout activity. A workout that goes quiet triggers a
   "Still working out?" prompt (Resume / Finish / Discard-if-empty), local
