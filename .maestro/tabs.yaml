@@ -4,6 +4,7 @@ appId: app.lift.mobile
 ---
 - launchApp:
     clearState: true
+- runFlow: _skip-onboarding.yaml
 - assertVisible:
     id: "home-start-workout"
 - tapOn:

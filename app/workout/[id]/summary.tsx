@@ -23,6 +23,9 @@ import {
 } from '../../../src/components/workout/format';
 import { displayName } from '../../../src/kb/taxonomy';
 import { Button, Card, EmptyState, ScreenHeader } from '../../../src/components/workout/ui';
+import { Celebration, type CelebrationRecord } from '../../../src/components/workout/Celebration';
+import { listPRsWithExercises } from '../../../src/data/repositories';
+import { prKindLabel } from '../../../src/components/dashboard/prLabels';
 
 function Stat({ label, value }: { label: string; value: string }): JSX.Element {
   const { theme } = useTheme();
@@ -51,6 +54,7 @@ export default function WorkoutSummaryScreen(): JSX.Element {
   const [detail, setDetail] = useState<WorkoutDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [records, setRecords] = useState<CelebrationRecord[]>([]);
 
   const load = useCallback(async () => {
     if (!workoutId) {
@@ -68,6 +72,21 @@ export default function WorkoutSummaryScreen(): JSX.Element {
         return;
       } else {
         setDetail(d);
+        try {
+          const prs = await listPRsWithExercises();
+          setRecords(
+            prs
+              .filter((p) => p.workoutId === workoutId)
+              .map((p) => ({
+                id: p.id,
+                exerciseName: p.exerciseName,
+                label: prKindLabel(p.kind),
+                value: trimNumber(Math.round(p.value * 10) / 10),
+              })),
+          );
+        } catch {
+          setRecords([]);
+        }
       }
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'Could not load the workout.');
@@ -126,6 +145,8 @@ export default function WorkoutSummaryScreen(): JSX.Element {
               {formatWorkoutDay(new Date(detail.workout.startedAt))} · {duration}
             </Text>
           </View>
+
+          <Celebration records={records} setCount={allSets.length} />
 
           <Card>
             <View style={styles.statRow}>

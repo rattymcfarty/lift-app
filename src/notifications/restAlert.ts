@@ -129,3 +129,16 @@ export async function cancelRestAlert(id: string | null): Promise<void> {
     // Already fired or already cancelled — nothing to do.
   }
 }
+
+/**
+ * Shared readiness gate for other local notifications (workout reminders):
+ * installs the foreground handler, ensures the Android channel exists and
+ * asks for permission when it can. Returns the channel id when alerts may
+ * be scheduled, or null when they may not.
+ */
+export async function prepareLocalAlerts(): Promise<{ channelId: string | undefined } | null> {
+  ensureHandler();
+  await ensureAndroidChannel();
+  if (!(await canAlert())) return null;
+  return { channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined };
+}

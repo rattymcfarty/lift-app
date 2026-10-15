@@ -1,0 +1,10 @@
+# Shared sub-flow: dismiss the first-launch onboarding if it is showing.
+appId: app.lift.mobile
+---
+- runFlow:
+    when:
+      visible:
+        id: "onb-skip"
+    commands:
+      - tapOn:
+          id: "onb-skip"

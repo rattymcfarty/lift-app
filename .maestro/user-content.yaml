@@ -4,6 +4,7 @@ appId: app.lift.mobile
 ---
 - launchApp:
     clearState: true
+- runFlow: _skip-onboarding.yaml
 
 # --- Create a custom exercise from the Exercises tab ---
 - tapOn:

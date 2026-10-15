@@ -28,6 +28,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { db, runInTransaction } from '../db/client';
 import { withWriteLock } from './repositories';
+import { restoreAppData } from './appData';
 import {
   BACKUP_TABLE_ORDER,
   childIndexKey,
@@ -228,7 +229,7 @@ export async function dryRunImport(uri: string): Promise<DryRunResult> {
  */
 export async function importBackup(uri: string): Promise<ImportSummary> {
   const backup = await readAndValidate(uri);
-  return withWriteLock(async () =>
+  const summary = await withWriteLock(async () =>
     runInTransaction(async () => {
       const local = await buildLocalIndex();
       const actions = planImport(backup, local);
@@ -236,4 +237,7 @@ export async function importBackup(uri: string): Promise<ImportSummary> {
       return summarizePlan(actions);
     }),
   );
+  // Device configuration (profile, settings, reminders) rides along.
+  await restoreAppData(backup.appData);
+  return summary;
 }

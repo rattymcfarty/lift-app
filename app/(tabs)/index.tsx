@@ -25,6 +25,12 @@ import { Button, Card } from '../../src/components/workout/ui';
 import { Sparkline } from '../../src/components/dashboard/Sparkline';
 import { SegmentedTitle } from '../../src/components/nav/SegmentedTitle';
 import { HistoryList } from '../../src/components/history/HistoryList';
+import { WeekProgress } from '../../src/components/train/WeekProgress';
+import { ReadinessCard } from '../../src/components/train/ReadinessCard';
+import { getProfile, type Profile } from '../../src/data/profile';
+import { listRoutinesWithStats, type RoutineListItem } from '../../src/data/routines';
+import { fetchWorkoutStarts } from '../../src/stats/queries';
+import { GENERATED_PREFIX } from '../../src/data/generatedPlan';
 
 type Segment = 'train' | 'history';
 
@@ -92,6 +98,11 @@ function ActionTile({
   );
 }
 
+function greeting(): string {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+}
+
 export default function TrainScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -103,6 +114,9 @@ export default function TrainScreen(): JSX.Element {
   const [todayProgram, setTodayProgram] = useState<string | null>(null);
   const [weights, setWeights] = useState<number[]>([]);
   const [unit, setUnit] = useState<WeightUnit>('kg');
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [trained, setTrained] = useState<boolean[]>([false, false, false, false, false, false, false]);
+  const [suggested, setSuggested] = useState<RoutineListItem | null>(null);
   const [loading, setLoading] = useState(true);
   // Stale-response guard: every focus starts a new load; only the latest may write state.
   const loadIdRef = useRef(0);
@@ -137,6 +151,35 @@ export default function TrainScreen(): JSX.Element {
       }
     } catch (e) {
       console.warn('[train] enrollment load failed', e);
+    }
+
+    try {
+      const [prof, starts, plans] = await Promise.all([getProfile(), fetchWorkoutStarts(), listRoutinesWithStats()]);
+      if (!alive()) return;
+      setProfile(prof);
+      if (!prof.onboarded && starts.length === 0) {
+        // First launch: a short personal set-up before anything else.
+        router.replace('/onboarding');
+        return;
+      }
+      const now = new Date();
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+      const week = [false, false, false, false, false, false, false];
+      for (const w of starts) {
+        const d = new Date(w.startedAt);
+        const diff = Math.floor((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - monday.getTime()) / 86400000);
+        if (diff >= 0 && diff < 7) week[diff] = true;
+      }
+      setTrained(week);
+      // Rotation: the least-recently-used generated plan; else any plan.
+      const mine = plans.filter((p) => p.routine.name.startsWith(GENERATED_PREFIX));
+      const pool = mine.length > 0 ? mine : plans;
+      const ordered = [...pool].sort(
+        (a, b) => (a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0) - (b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0),
+      );
+      setSuggested(ordered[0] ?? null);
+    } catch (e) {
+      console.warn('[train] week/suggestion load failed', e);
     }
 
     try {
@@ -191,6 +234,19 @@ export default function TrainScreen(): JSX.Element {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}>
+          {profile?.name ? (
+            <Text style={{ color: c.muted, fontSize: t.size.body }}>
+              {greeting()}, {profile.name}.
+            </Text>
+          ) : null}
+          <Card>
+            <WeekProgress
+              trained={trained}
+              todayIndex={(new Date().getDay() + 6) % 7}
+              goal={profile?.daysPerWeek ?? 3}
+            />
+          </Card>
+          {active ? null : <ReadinessCard />}
           {active ? (
             <Card>
               <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>WORKOUT IN PROGRESS</Text>
@@ -254,13 +310,34 @@ export default function TrainScreen(): JSX.Element {
                 )}
               </View>
             ) : (
-              <View style={{ gap: theme.spacing.xs }}>
-                <Text style={{ color: c.text, fontSize: t.size.body }}>No program session scheduled.</Text>
-                <Text style={{ color: c.faint, fontSize: t.size.caption }}>
-                  Start a program for guided progression, or train freely — every set is stored on this device only.
-                </Text>
-                <Button title="Explore programs" variant="secondary" onPress={() => router.push('/programs')} />
-              </View>
+              suggested ? (
+                <View style={{ gap: theme.spacing.xs }}>
+                  <Text style={{ color: c.text, fontSize: t.size.card, fontWeight: t.weight.bold }} numberOfLines={2}>
+                    {suggested.routine.name.replace(GENERATED_PREFIX, '')}
+                  </Text>
+                  <Text style={{ color: c.faint, fontSize: t.size.caption }}>
+                    {suggested.exerciseCount} exercises
+                    {suggested.routine.estimatedMinutes ? ` · ~${suggested.routine.estimatedMinutes} min` : ''}
+                    {suggested.lastUsedAt ? '' : ' · not done yet'}
+                  </Text>
+                  {active ? null : (
+                    <Button
+                      title="Start this workout"
+                      size="large"
+                      testID="home-start-suggested"
+                      onPress={() => router.push({ pathname: '/workout/new', params: { planId: suggested.routine.id } })}
+                    />
+                  )}
+                </View>
+              ) : (
+                <View style={{ gap: theme.spacing.xs }}>
+                  <Text style={{ color: c.text, fontSize: t.size.body }}>No workout planned yet.</Text>
+                  <Text style={{ color: c.faint, fontSize: t.size.caption }}>
+                    Let LIFT build a plan for you, or train freely — every set stays on this device.
+                  </Text>
+                  <Button title="Build my plan" variant="secondary" testID="home-build-plan" onPress={() => router.push('/onboarding?edit=1')} />
+                </View>
+              )
             )}
           </Card>
 

@@ -14,6 +14,7 @@
 import Constants from 'expo-constants';
 import { File, Paths } from 'expo-file-system';
 import { isAvailableAsync as isSharingAvailableAsync, shareAsync } from 'expo-sharing';
+import { collectAppData } from './appData';
 import { db, runInTransaction } from '../db/client';
 import {
   BACKUP_FORMAT,
@@ -56,6 +57,7 @@ export async function buildBackupDocument(): Promise<ValidatedBackup> {
       appVersion: appVersion(),
       exportedAt: new Date().toISOString(),
       tables,
+      appData: await collectAppData(),
     };
   });
 }

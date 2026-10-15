@@ -6,6 +6,7 @@ appId: app.lift.mobile
 ---
 - launchApp:
     clearState: true
+- runFlow: _skip-onboarding.yaml
 
 # Home → start a blank workout
 - tapOn:

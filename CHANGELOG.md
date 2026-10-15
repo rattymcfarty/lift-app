@@ -25,6 +25,18 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Added (P9 — personalisation & feel)
+- First-launch onboarding: profile (name, weight, height, birth year,
+  experience, goal, days, session length, equipment, limitations) and a
+  rule-based plan generator that builds editable "My Plan · Day N" workouts
+  with conservative, body-sized starting loads. Edit anytime in Settings.
+- Train: week strip + weekly goal bar, one-tap readiness check-in with effort
+  advice, suggested next workout (rotation), greeting.
+- Motion & feedback: haptics on logging, logged sets ease in, animated
+  progress bar, workout celebration with the records you set.
+- Workout reminders (local notifications, per weekday and time).
+- Backup now also carries profile, settings, reminders and theme.
+
 ### Added (refinement pass)
 - Set logging table rebuilt on a shared column grid (labels always align, one
   line per set at any text size); new sets inherit the previous set's

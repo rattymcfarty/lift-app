@@ -51,7 +51,8 @@
     "build:android": "bash scripts/build-android-release.sh",
     "setup:keystore": "bash scripts/setup-android-keystore.sh",
     "test:ui": "node scripts/check-typography.mjs",
-    "test:e2e:tabs": "maestro test .maestro/tabs.yaml"
+    "test:e2e:tabs": "maestro test .maestro/tabs.yaml",
+    "test:plan": "node scripts/test-plan-generator.mjs"
   },
   "version": "0.1.0"
 }

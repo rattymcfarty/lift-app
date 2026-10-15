@@ -1,0 +1,53 @@
+# First-launch personalisation: profile -> generated plan -> usable library.
+# Run: maestro test .maestro/onboarding.yaml
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Train for the long run."
+- tapOn:
+    id: "onb-next"
+# About you
+- tapOn:
+    id: "onb-name"
+- inputText: "Sam"
+- tapOn:
+    id: "onb-weight"
+- inputText: "72"
+- tapOn:
+    id: "onb-height"
+- inputText: "175"
+- hideKeyboard
+- tapOn:
+    id: "onb-next"
+# Experience, goal
+- tapOn:
+    id: "onb-exp-beginner"
+- tapOn:
+    id: "onb-next"
+- tapOn:
+    id: "onb-goal-longevity"
+- tapOn:
+    id: "onb-next"
+# Schedule
+- tapOn:
+    id: "onb-days-3"
+- tapOn:
+    id: "onb-equip-full"
+- tapOn:
+    id: "onb-next"
+# Limitations -> build
+- tapOn:
+    id: "onb-limit-knees"
+- tapOn:
+    id: "onb-build"
+- assertVisible: "You're set, Sam."
+- tapOn:
+    id: "onb-review"
+- assertVisible: "Create Program"
+- scrollUntilVisible:
+    element: "My Plan · Day 3.*"
+- tapOn:
+    id: "tab-train"
+- assertVisible:
+    id: "home-start-suggested"

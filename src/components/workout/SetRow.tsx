@@ -21,9 +21,11 @@
  * NumberInput).
  */
 
-import { useState, type JSX } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
+import * as Haptics from 'expo-haptics';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
   Text,
@@ -160,8 +162,20 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
     : '';
   const repsDisplay = loggedSet.reps != null ? String(loggedSet.reps) : '';
   const rpeDisplay = loggedSet.rpe != null ? String(loggedSet.rpe) : '';
+  // A logged row eases in, so a freshly logged set visibly "lands".
+  const pop = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(pop, { toValue: 1, friction: 7, tension: 120, useNativeDriver: true }).start();
+  }, [pop]);
   return (
-    <View style={[styles.row, { gap: SET_GRID.gap, paddingVertical: theme.spacing.xs }, isWarmup && styles.warmupRow]}>
+    <Animated.View
+      style={[
+        styles.row,
+        { gap: SET_GRID.gap, paddingVertical: theme.spacing.xs },
+        isWarmup && styles.warmupRow,
+        { opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] },
+      ]}
+    >
       <Cell width={SET_GRID.set} color={isWarmup ? theme.colors.muted : theme.colors.highlight} bold>
         {String(loggedSet.setNumber)}
       </Cell>
@@ -189,7 +203,7 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
       >
         <Text style={{ color: theme.colors.faint, fontSize: t.size.body }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>×</Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -224,6 +238,7 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; hidePrev: boole
       return;
     }
     setLocalError(null);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     onLog({ reps: parsedReps, weightKg: parsedWeight, rpe: parsedRpe });
   };
 

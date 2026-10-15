@@ -15,6 +15,9 @@ import { useTheme, type ThemePreference } from '../src/theme';
 import { getSettings, setWeightUnit, type WeightUnit } from '../src/data/settings';
 import { Button, Card, ScreenHeader } from '../src/components/workout/ui';
 import { deleteBackupFile, exportBackup, shareBackup } from '../src/data/export';
+import { applyReminders, getReminders, type ReminderSettings } from '../src/notifications/workoutReminders';
+import { getProfile, type Profile } from '../src/data/profile';
+import { GOAL_LABEL } from '../src/data/generatedPlan';
 import { dryRunImport, importBackup, pickBackupFile } from '../src/data/import';
 
 function SegmentedOption<T extends string>({
@@ -77,6 +80,8 @@ export default function SettingsScreen(): JSX.Element {
   const t = theme.typography;
   const [weightUnit, setWeightUnitState] = useState<WeightUnit>('kg');
   const [dataBusy, setDataBusy] = useState<'export' | 'import' | null>(null);
+  const [reminders, setReminders] = useState<ReminderSettings | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +92,35 @@ export default function SettingsScreen(): JSX.Element {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([getReminders(), getProfile()]).then(([r, p]) => {
+      if (!cancelled) {
+        setReminders(r);
+        setProfile(p);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const changeReminders = (patch: Partial<ReminderSettings>): void => {
+    if (!reminders) return;
+    const next = { ...reminders, ...patch };
+    setReminders(next);
+    void applyReminders(next).then((ok) => {
+      if (!ok) {
+        Alert.alert(
+          'Notifications are off',
+          'Allow notifications for LIFT in your phone settings to get workout reminders.',
+        );
+        setReminders({ ...next, enabled: false });
+        void applyReminders({ ...next, enabled: false });
+      }
+    });
+  };
 
   const handleAppearance = (next: ThemePreference): void => {
     setPreference(next);
@@ -139,7 +173,14 @@ export default function SettingsScreen(): JSX.Element {
             text: 'Import',
             onPress: () => {
               void importBackup(uri)
-                .then(() => Alert.alert('Import complete', 'Your data has been restored.'))
+                .then(async () => {
+                  // Re-apply restored reminders and refresh what this screen shows.
+                  const [r, p] = await Promise.all([getReminders(), getProfile()]);
+                  setReminders(r);
+                  setProfile(p);
+                  await applyReminders(r).catch(() => false);
+                  Alert.alert('Import complete', 'Your data has been restored.');
+                })
                 .catch((e: unknown) => Alert.alert('Import failed', e instanceof Error ? e.message : 'Try again.'))
                 .finally(() => resolve());
             },
@@ -171,6 +212,107 @@ export default function SettingsScreen(): JSX.Element {
           gap: theme.spacing.md,
         }}
       >
+        <Card>
+          <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+            PROFILE &amp; PLAN
+          </Text>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
+            {profile?.onboarded
+              ? `${profile.experience[0].toUpperCase()}${profile.experience.slice(1)} · ${GOAL_LABEL[profile.goal]} · ${profile.daysPerWeek} days a week · ${profile.minutes} min`
+              : 'Tell LIFT about you and get a plan built for your body, level and week.'}
+          </Text>
+          <Button
+            title={profile?.onboarded ? 'Edit profile & rebuild plan' : 'Set up my plan'}
+            testID="settings-profile"
+            variant="secondary"
+            onPress={() => router.push('/onboarding?edit=1')}
+          />
+        </Card>
+
+        <Card>
+          <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+            WORKOUT REMINDERS
+          </Text>
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+            <SegmentedOption
+              label="Off"
+              selected={!reminders?.enabled}
+              onPress={() => changeReminders({ enabled: false })}
+              testID="settings-reminders-off"
+            />
+            <SegmentedOption
+              label="On"
+              selected={!!reminders?.enabled}
+              onPress={() => changeReminders({ enabled: true })}
+              testID="settings-reminders-on"
+            />
+          </View>
+          {reminders?.enabled ? (
+            <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => {
+                  const on = reminders.days.includes(i);
+                  return (
+                    <Pressable
+                      key={i}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      accessibilityLabel={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i]}
+                      onPress={() =>
+                        changeReminders({
+                          days: on ? reminders.days.filter((x) => x !== i) : [...reminders.days, i].sort(),
+                        })
+                      }
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 19,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: on ? theme.colors.accent : 'transparent',
+                        borderWidth: on ? 0 : 1,
+                        borderColor: theme.colors.border,
+                      }}
+                    >
+                      <Text style={{ color: on ? theme.colors.accentText : theme.colors.muted, fontSize: t.size.meta + 1, fontWeight: t.weight.semibold }}>
+                        {d}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+                {[[6, 30], [7, 0], [12, 0], [17, 30], [18, 0], [19, 30]].map(([h, m]) => {
+                  const on = reminders.hour === h && reminders.minute === m;
+                  return (
+                    <Pressable
+                      key={`${h}:${m}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      onPress={() => changeReminders({ hour: h, minute: m })}
+                      style={{
+                        paddingVertical: theme.spacing.xs + 2,
+                        paddingHorizontal: theme.spacing.md,
+                        borderRadius: theme.radius.pill,
+                        borderWidth: 1,
+                        borderColor: on ? theme.colors.accent : theme.colors.border,
+                        backgroundColor: on ? theme.colors.surfaceMuted : 'transparent',
+                      }}
+                    >
+                      <Text style={{ color: on ? theme.colors.text : theme.colors.muted, fontSize: t.size.meta + 1 }}>
+                        {`${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            Reminders are scheduled on this device only — no account, no server.
+          </Text>
+        </Card>
+
         <Card>
           <Text
             style={{

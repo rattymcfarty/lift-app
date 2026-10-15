@@ -363,6 +363,8 @@ export interface ValidatedBackup {
   appVersion: string;
   exportedAt: string;
   tables: Record<BackupTableName, Record<string, unknown>[]>;
+  /** Optional device configuration (profile, settings, reminders). */
+  appData?: Record<string, unknown>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -584,6 +586,7 @@ export function validateBackup(doc: unknown): ValidationResult {
       appVersion: typeof doc['appVersion'] === 'string' ? doc['appVersion'] : 'unknown',
       exportedAt: typeof doc['exportedAt'] === 'string' ? doc['exportedAt'] : '',
       tables: rowsByTable,
+      ...(isRecord(doc['appData']) ? { appData: doc['appData'] as Record<string, unknown> } : {}),
     },
   };
 }
