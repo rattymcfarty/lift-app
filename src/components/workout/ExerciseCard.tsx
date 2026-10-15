@@ -235,9 +235,10 @@ export function ExerciseCard({
   ): Promise<void> => {
     patchPending(key, { busy: true, error: null });
     try {
+      // No explicit number: the data layer appends after the last live set,
+      // so numbering always follows what is actually in the list.
       await logSet({
         workoutExerciseId: workoutExercise.id,
-        setNumber,
         ...values,
         completed: true,
         isWarmup,
@@ -465,14 +466,14 @@ export function ExerciseCard({
         {/* Pending input rows — multiple can coexist; each logs or
             cancels independently. Adding a row never requires filling
             another row first. */}
-        {pendings.map((p) => (
+        {pendings.map((p, idx) => (
           <SetRow
             key={`${p.key}-${p.rev ?? 0}`}
-            setNumber={p.setNumber}
+            setNumber={sets.length + 1 + idx}
             mode="pending"
             initial={p.initial}
             displayUnit={displayUnit}
-            previousText={getPreviousText(p.setNumber)}
+            previousText={getPreviousText(sets.length + 1 + idx)}
             isWarmup={p.isWarmup}
             busy={p.busy}
             error={p.error}

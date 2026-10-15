@@ -169,6 +169,7 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
   }, [pop]);
   return (
     <Animated.View
+      testID={`logged-set-${loggedSet.setNumber}`}
       style={[
         styles.row,
         { gap: SET_GRID.gap, paddingVertical: theme.spacing.xs },
@@ -195,6 +196,7 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
         )}
       </View>
       <Pressable
+        testID={`delete-set-${loggedSet.setNumber}`}
         onPress={onDelete}
         accessibilityRole="button"
         accessibilityLabel={`Delete set ${loggedSet.setNumber}`}

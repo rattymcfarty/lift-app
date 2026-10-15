@@ -45,6 +45,13 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ## 2. Next up (priority order)
 
+0. **Owner-reported, awaiting a screenshot:** on the iPhone the set-row delete (×)
+   appears to overlap the card's corner/edge ("doesn't fit nicely inside the box").
+   The grid was tightened (set 24 / kg 58 / reps 50 / RPE 42 / check 30 / × 26) as a
+   precaution, but the exact case is unconfirmed. Ask for the screenshot, reproduce at
+   that width/text size (emulator: `wm size`/`density`/`font_scale`), then fix in
+   `src/components/workout/SetRow.tsx` + `setGrid.ts`.
+
 1. **Device verification pass** (owner): run on iPhone via Expo Go and a physical
    Android; report layout, haptics, share-sheet export, notifications. Fix findings.
 2. **Polish the remaining screens** with the same treatment as the logging screen:
@@ -104,6 +111,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 6. Session log (newest first)
 
+- **2026-10-14 (late)** — Disaster-recovery hardening: `scripts/verify-recovery.sh`
+  (fresh clone → `npm ci` → all tests) found and fixed three hidden rig dependencies
+  (package.json async-storage pin, KB `dist/` needed before `test:kb`, `test:p7`
+  hard-coded bundle version). Set numbers now renumber on delete
+  (`softDeleteSet` keeps 1..n; new sets take `max+1`; pending rows display by list
+  position) — covered by `.maestro/user-content.yaml`.
 - **2026-10-14** — P9 pass: matrix, onboarding, generator (+tests), Train week/readiness,
   celebration/haptics, reminders, appData in backups; set-table grid + carry-over;
   own exercises; plan duplicate; export/import UI; exercise dedupe + curation in KB;

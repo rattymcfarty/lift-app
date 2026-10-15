@@ -56,3 +56,23 @@ appId: app.lift.mobile
 - assertVisible:
     id: "set-reps-2"
     text: "8"
+
+# --- Numbering: log two sets, delete the first -> remaining set becomes 1 ---
+- tapOn:
+    id: "log-set-1"
+- tapOn:
+    id: "log-set-2"
+- assertVisible:
+    id: "logged-set-2"
+- tapOn:
+    id: "delete-set-1"
+- assertVisible:
+    id: "logged-set-1"
+- assertNotVisible:
+    id: "logged-set-2"
+# A newly added set continues from the list (2) and inherits the numbers.
+- tapOn:
+    id: "add-set"
+- assertVisible:
+    id: "set-reps-2"
+    text: "8"

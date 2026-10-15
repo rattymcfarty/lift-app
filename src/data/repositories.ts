@@ -1109,10 +1109,31 @@ function pickSetPatch(patch: SetPatch): SetPatch {
 
 export async function softDeleteSet(id: string): Promise<void> {
   return withWriteLock(async () => {
+    const [target] = await db
+      .select({ workoutExerciseId: sets.workoutExerciseId })
+      .from(sets)
+      .where(and(eq(sets.id, id), isNull(sets.deletedAt)))
+      .limit(1);
     await db
       .update(sets)
       .set({ deletedAt: new Date() })
       .where(and(eq(sets.id, id), isNull(sets.deletedAt)));
+    // Keep set numbers contiguous (1..n) so the list always reads
+    // "Set 1, Set 2, …" after a delete. Walking in ascending order only ever
+    // moves a number DOWN into a slot that was just vacated, so the partial
+    // unique index (workout_exercise_id, set_number) is never violated.
+    if (target) {
+      const live = await db
+        .select({ id: sets.id, setNumber: sets.setNumber })
+        .from(sets)
+        .where(and(eq(sets.workoutExerciseId, target.workoutExerciseId), isNull(sets.deletedAt)))
+        .orderBy(asc(sets.setNumber));
+      for (let i = 0; i < live.length; i++) {
+        if (live[i].setNumber !== i + 1) {
+          await db.update(sets).set({ setNumber: i + 1 }).where(eq(sets.id, live[i].id));
+        }
+      }
+    }
     // PRs derived from this set die with it (e.g. a mistyped 500 kg PR).
     await db
       .update(personalRecords)
