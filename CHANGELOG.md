@@ -25,6 +25,15 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Added (workout lifecycle, 2026-10-15)
+- LIFT now tracks workout activity. A workout that goes quiet triggers a
+  "Still working out?" prompt (Resume / Finish / Discard-if-empty), local
+  notifications nudge in between, and an abandoned workout is finished
+  automatically **at your last activity** (empty ones are discarded; duplicates
+  are closed). Train shows "paused" state and a "finished automatically" notice.
+- Settings → Workout check-ins: ask after 30/45/60/90 min, finish after
+  2/3/4 h or never.
+
 ### Changed (proportional layout, 2026-10-15)
 - Set table rebuilt on proportional columns (they always total 100% of the
   row), a merged kg | reps | RPE input pill, hairline row separators and sizes

@@ -47,6 +47,9 @@ ok=0; for _ in 1 2 3; do adb install -r "$APK" 2>&1 | tail -1 | grep -q Success 
 shift_total=0
 shift_clock() { # seconds
   shift_total=$((shift_total + $1))
+  # A real idle phone is backgrounded/locked: send the app to the background
+  # first, otherwise its on-screen heartbeat would keep stamping the new time.
+  adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1; sleep 2
   adb root >/dev/null 2>&1; sleep 2
   adb shell settings put global auto_time 0 >/dev/null 2>&1
   adb shell settings put global auto_time_zone 0 >/dev/null 2>&1

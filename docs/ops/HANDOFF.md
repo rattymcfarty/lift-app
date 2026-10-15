@@ -7,26 +7,18 @@
 
 ## 0. In-flight work (update before every commit)
 
-**Workout lifecycle / idle handling — IN PROGRESS (started 2026-10-15).**
-Goal: LIFT detects ongoing/idle/stale workouts, prompts the user, sends local
-notifications, and auto-closes idle ones at the last real activity.
+_Nothing in flight._ Last completed: **workout lifecycle / idle handling** (2026-10-15):
+`src/workouts/{policy,lifecycle,WorkoutLifecycleWatcher}`, settings (check-in thresholds),
+Train resume/notice cards, workout-screen heartbeat, local nudges. Verified by
+`npm run test:lifecycle` (30 assertions) and device flows
+`scripts/e2e.sh _zoom-fixture +60min _idle-prompt +4h _idle-autoclose` (clock-shift).
 
-- [x] Pure policy + unit tests: `src/workouts/policy.ts`, `scripts/test-lifecycle.mjs`
-      (`npm run test:lifecycle`)
-- [ ] Settings: `idlePromptMinutes` (default 45) / `autoFinishMinutes` (default 180, 0 = off)
-      in `src/data/settings.ts` + Settings UI card "Workout check-ins"
-- [ ] Repo: `listOpenWorkouts()`; `src/workouts/lifecycle.ts` (reconcile: finish/discard,
-      notices in AsyncStorage `lift:workout-notices`, heartbeat `lift:workout-heartbeat`,
-      alert scheduling)
-- [ ] Wiring: `app/_layout.tsx` (foreground + launch reconcile → prompt), Train resume card
-      (last activity, Finish/Discard), notice card for auto-closed workouts, workout screen
-      heartbeat
-- [ ] E2E + docs (CHANGELOG, this file), push
-
-Design rules: last activity = max(startedAt, set/exercise timestamps, screen heartbeat);
-auto-finish ends the workout **at last activity** (not "now"); empty stale workouts are
-discarded; extra open workouts are closed as duplicates; closing happens lazily on
-foreground (iOS cannot run code in the background) with notifications as the nudge.
+Behaviour to preserve: last activity = max(start, set/exercise timestamps, screen
+heartbeat); idle ≥ 45 min → "Still working out?" prompt (re-asked at most every 20 min);
+stale ≥ 3 h → finished AT last activity (empty → discarded); extra open workouts are
+closed as duplicates; closing is lazy (on launch/foreground/Train focus) with local
+notifications at +45 min and 15 min before auto-finish. Thresholds: Settings → Workout
+check-ins (backed up with settings).
 
 ## 1. State of the product
 
@@ -137,6 +129,10 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+- **2026-10-15 (later)** — Workout lifecycle (see §0); proportional set table; Tailscale
+  dev-server addressing (`REACT_NATIVE_PACKAGER_HOSTNAME=<tailscale-ip>`, URL
+  `exp://<tailscale-ip>:8081`); `scripts/e2e.sh` one-command device loop; RESUME_PROMPT.
 
 - **2026-10-15** — Interaction polish from the owner's iPhone screenshots: swipe LEFT removes /
   swipe RIGHT adds (`src/components/ui/SwipeableRow.tsx`; sets, exercises, plans, plan

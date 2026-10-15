@@ -38,6 +38,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Previous performance visible | ✅ | "Prev" column |
 | Progressive overload suggestions | ✅ | Progression engine |
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
+| Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
 
 ## 4. After the workout
 | Need | Status | Notes |
