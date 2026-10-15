@@ -49,3 +49,12 @@ GoogleService-Info.plist
 
 expo-env.d.ts
 # @end expo-cli
+# secrets / local-only (never commit)
+secrets/
+*.enc
+lift-secrets-*
+*.p12
+*.pfx
+*.p8
+gradle.properties
+local.properties

@@ -9,8 +9,8 @@ work **with no prior memory**. Follow the reading order below, then continue.
 
 1. Read `docs/ops/HANDOFF.md` — **current state, what was done last, what is next,
    open decisions.** This is the living file; it is updated at the end of every session.
-2. Skim `docs/ops/ENVIRONMENT.md` (toolchain) and `docs/ops/RECOVERY.md`
-   (if the machine is new or broken).
+2. Skim `docs/ops/ENVIRONMENT.md` (toolchain), `docs/ops/RECOVERY.md`
+   (if the machine is new or broken) and `docs/ops/SECRETS_POLICY.md` (the repos are public).
 3. Run `git log --oneline | head -20` and `git status` to confirm the tree matches HANDOFF.
 4. Run `npm ci` (if `node_modules` is absent) then `npm run verify`.
    It must print **ALL GREEN**. If it does not, fix that before anything else.
@@ -92,6 +92,9 @@ settings, reminders, theme) lives in AsyncStorage and rides in the backup's
   columns come from `src/components/workout/setGrid.ts` — header and rows share it.
 - Colors: gold `accent` = primary actions/active tab; orange `highlight` = set
   numbers, active-card border, stats. Don't invent new brand colors.
+- **This repo is PUBLIC.** Read `docs/ops/SECRETS_POLICY.md`. A pre-commit hook scans
+  every commit and refuses non-noreply author emails; `npm run secrets:scan` /
+  `secrets:history` run the same checks on demand.
 - **Never commit secrets:** keystores, `credentials.json`, `.env*`, tokens. The
   upload keystore lives at `~/lift/secrets/` and its passwords in
   `~/.gradle/gradle.properties` (see RECOVERY). `.gitignore` already blocks them.

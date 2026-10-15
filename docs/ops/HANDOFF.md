@@ -45,6 +45,10 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ## 2. Next up (priority order)
 
+00. **Owner actions from `docs/ops/SECRETS_POLICY.md` §6** — GitHub email privacy
+    (a personal Gmail address is in 42 + 39 historical commits; decision A/B/C in §4),
+    2FA, Dependabot, and an off-rig encrypted keystore backup.
+
 0. **Owner-reported, awaiting a screenshot:** on the iPhone the set-row delete (×)
    appears to overlap the card's corner/edge ("doesn't fit nicely inside the box").
    The grid was tightened (set 24 / kg 58 / reps 50 / RPE 42 / check 30 / × 26) as a

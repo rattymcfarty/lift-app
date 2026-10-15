@@ -9,6 +9,7 @@ check() {
   echo "=== $1 ==="
   if $2; then echo "PASS: $1"; else echo "FAIL: $1"; OVERALL=1; fi
 }
+check "secrets" "npm run secrets:scan"
 check "typecheck" "npm run typecheck"
 check "test:kb" "npm run test:kb"
 check "test:p7" "npm run test:p7"

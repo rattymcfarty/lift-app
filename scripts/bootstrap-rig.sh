@@ -125,6 +125,12 @@ for r in lift-app lift-kb; do
   elif [ "$CHECK" = 1 ]; then note_missing "repo $r"
   else git clone "https://github.com/rattymcfarty/$r.git" "$HOME/lift/$r"; fi
 done
+# Versioned git hooks (secret/PII scan + noreply-email guard) for the public repos.
+if [ "$CHECK" = 0 ]; then
+  for r in lift-app lift-kb; do
+    [ -x "$HOME/lift/$r/scripts/install-hooks.sh" ] && bash "$HOME/lift/$r/scripts/install-hooks.sh" || true
+  done
+fi
 if [ "$CHECK" = 0 ] && [ -d "$HOME/lift/lift-app" ] && [ ! -d "$HOME/lift/lift-app/node_modules" ]; then
   (cd "$HOME/lift/lift-app" && npm ci)
 fi

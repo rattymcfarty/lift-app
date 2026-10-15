@@ -37,7 +37,7 @@ expo-router ~57.0.x, expo-sqlite ~57.0.x, Drizzle ORM ^0.44, drizzle-kit ^0.31.
 Expo Go on the iPhone must be the version that supports SDK 57.
 
 ## Ports and URLs
-- Metro / Expo Go: `8081` (LAN). Use the rig's LAN IP: `exp://192.168.0.150:8081`
+- Metro / Expo Go: `8081` (LAN). Use the rig's LAN IP: `exp://<lan-ip>:8081`
   (`hostname -I` to find it; set `REACT_NATIVE_PACKAGER_HOSTNAME` to pin it).
 - KB channel (runtime): `https://rattymcfarty.github.io/lift-kb/channel.json`.
 
