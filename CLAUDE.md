@@ -114,7 +114,8 @@ settings, reminders, theme) lives in AsyncStorage and rides in the backup's
 ```bash
 npm run verify              # typecheck + all unit tests (== scripts/dev-loop.sh)
 npm run typecheck
-npm run test:plan           # plan generator       npm run test:kb   # KB import
+npm run test:plan           # plan generator       npm run test:kb   # KB import (needs ../lift-kb/dist built:
+                                                        #   cd ../lift-kb && node scripts/build-bundle.mjs)
 npm run test:ui             # typography gate      npm run test:p7   # workout UX logic
 npm run test:backup && npm run test:backup:roundtrip   # export/import format
 npm run build:android       # signed AAB + APK (needs keystore; ~5 min)

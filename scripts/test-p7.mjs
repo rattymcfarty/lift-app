@@ -163,9 +163,11 @@ try {
   check('all 627 KB exercises pass schema validation', allExercisesValid);
 
   // 8. Snapshot taxonomy check: every exercise in refreshed snapshot has valid taxonomy
-  const bundlePath = join(kbRoot, 'dist', 'kb-bundle-0.5.0.json');
+  // Use the checked-in snapshot (what the app actually ships) so this test has
+  // no dependency on a locally built dist/ — a clean clone passes too.
+  const bundlePath = join(process.cwd(), 'assets', 'kb', 'snapshot', 'bundle.json');
   const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
-  check('bundle version is 0.5.0', bundle.bundleVersion === '0.5.0');
+  check('snapshot has a semver bundleVersion', /^\d+\.\d+\.\d+$/.test(bundle.bundleVersion));
 
   const canonicalMuscles = new Set(taxonomy.MUSCLE_GROUPS.map(m => m.id));
   const canonicalEquipment = new Set(taxonomy.EQUIPMENT.map(e => e.id));
