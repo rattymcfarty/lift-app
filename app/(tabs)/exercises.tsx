@@ -24,7 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { listExercises, searchExercises } from '../../src/data/repositories';
 import { decodeStringArray, type Exercise } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
-import { EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../src/components/workout/TaxonomyFilterGrid';
 import { exerciseMatchesFilters } from '../../src/lib/filterExercises';
 import { displayName, equipmentLabel, muscleLabel } from '../../src/kb/taxonomy';
@@ -216,6 +216,9 @@ export default function BrowseExercisesScreen(): JSX.Element {
       <ScreenHeader
         title="Browse Exercises"
         subtitle={total > 0 ? `${total} exercises in the library` : undefined}
+        right={
+          <Button title="New" variant="secondary" testID="exercises-new" onPress={() => router.push('/exercises/new')} />
+        }
       />
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
         <FlatList

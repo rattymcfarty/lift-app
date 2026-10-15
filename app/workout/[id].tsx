@@ -281,10 +281,8 @@ export default function ActiveWorkoutScreen(): JSX.Element {
     >
       <ScreenHeader
         title={detail?.workout.name ?? 'Workout'}
-        subtitle={
-          detail ? <ElapsedTime startedAt={new Date(detail.workout.startedAt)} /> : undefined
-        }
         onBack={() => router.replace('/')}
+        compact
       />
 
       {/* Compact action bar */}
@@ -403,36 +401,39 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
   const hours = Math.floor(elapsedMs / 3600000);
   const minutes = Math.floor((elapsedMs % 3600000) / 60000);
   const seconds = Math.floor((elapsedMs % 60000) / 1000);
+  const chipStyle = {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 6,
+    minHeight: 32,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+  const chipText = { color: theme.colors.muted, fontSize: t.size.meta, fontWeight: t.weight.medium };
   const timerChip = hours > 0
     ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
     : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   return (
     <View style={{ paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, gap: theme.spacing.sm }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.md }}>
-        <View style={{ flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center', flex: 1 }}>
-          <Pressable testID="topbar-timer" onPress={onTimer} accessibilityRole="button" style={{ padding: 4 }}>
-            <Text style={{ color: theme.colors.muted, fontSize: compactMode ? t.size.caption : t.size.meta }}>⏱</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.sm }}>
+        <View style={{ flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center', flexShrink: 1 }}>
+          <Pressable testID="topbar-timer" onPress={onTimer} accessibilityRole="button" accessibilityLabel="Rest timer" style={chipStyle}>
+            <Text style={chipText} maxFontSizeMultiplier={1.1}>Timer</Text>
           </Pressable>
-          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Timer</Text>}
-
-          <Pressable testID="topbar-plate" onPress={onPlate} accessibilityRole="button" style={{ padding: 4 }}>
-            <Text style={{ color: theme.colors.muted, fontSize: compactMode ? t.size.caption : t.size.meta }}>🧮</Text>
+          <Pressable testID="topbar-plate" onPress={onPlate} accessibilityRole="button" accessibilityLabel="Plate calculator" style={chipStyle}>
+            <Text style={chipText} maxFontSizeMultiplier={1.1}>Plates</Text>
           </Pressable>
-          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Plate</Text>}
-
-          <Pressable testID="topbar-muscle" onPress={onMuscle} accessibilityRole="button" accessibilityLabel="Muscle view" style={{ padding: 4 }}>
-            <TaxonomyIcon kind="muscle" id="Full-Body" size={compactMode ? 18 : 20} tiled={false} />
+          <Pressable testID="topbar-muscle" onPress={onMuscle} accessibilityRole="button" accessibilityLabel="Muscle view" style={[chipStyle, { paddingHorizontal: theme.spacing.xs }]}>
+            <TaxonomyIcon kind="muscle" id="Full-Body" size={20} tiled={false} />
           </Pressable>
-          {!compactMode && <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }}>Muscle</Text>}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
-          <View style={{ backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radius.pill, paddingHorizontal: theme.spacing.sm, paddingVertical: 4 }}>
-            <Text style={{ color: theme.colors.text, fontSize: t.size.caption, fontWeight: t.weight.bold, fontVariant: ['tabular-nums'] }}>
-              {timerChip}
-            </Text>
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+          <Text style={{ color: theme.colors.muted, fontSize: t.size.meta, fontWeight: t.weight.medium, fontVariant: ['tabular-nums'] }} maxFontSizeMultiplier={1.1}>
+            {timerChip}
+          </Text>
           <Pressable
             testID="workout-finish-bar"
             accessibilityRole="button"
@@ -441,10 +442,10 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
               backgroundColor: theme.colors.accent,
               borderRadius: theme.radius.md,
               paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.xs,
+              paddingVertical: 6,
             }}
           >
-            <Text style={{ color: theme.colors.accentText, fontSize: t.size.body, fontWeight: t.weight.bold }}>
+            <Text style={{ color: theme.colors.accentText, fontSize: t.size.meta + 1, fontWeight: t.weight.bold }} maxFontSizeMultiplier={1.1}>
               {finishing ? 'Finish…' : 'Finish'}
             </Text>
           </Pressable>

@@ -1,0 +1,57 @@
+# User-owned content: carry-over between sets, custom exercise, plan duplicate.
+# Run: maestro test .maestro/user-content.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+
+# --- Create a custom exercise from the Exercises tab ---
+- tapOn:
+    id: "tab-exercises"
+- tapOn:
+    id: "exercises-new"
+- tapOn:
+    id: "exercise-form-name"
+- inputText: "Zz Test Cable Curl"
+- hideKeyboard
+- tapOn:
+    id: "exercise-form-save"
+- assertVisible:
+    id: "exercise-edit"
+# The detail screen sits above the tab bar; go back to the tabs.
+- pressKey: back
+
+# --- Carry-over: type set 1, add set 2 -> set 2 inherits the values ---
+- tapOn:
+    id: "tab-train"
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Zz Test Cable Curl"
+# Custom ids are random; the search narrows the list to one row.
+- tapOn:
+    id: "add-exercise-row-.*"
+    index: 0
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-weight-1"
+- inputText: "30"
+- tapOn:
+    id: "set-reps-1"
+- inputText: "8"
+- tapOn:
+    id: "add-set"
+- assertVisible:
+    id: "set-weight-2"
+    text: "30"
+- assertVisible:
+    id: "set-reps-2"
+    text: "8"

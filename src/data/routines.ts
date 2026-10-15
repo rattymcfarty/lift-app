@@ -18,6 +18,7 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { db, runInTransaction } from '../db/client';
 import {
+  decodePillars,
   encodePillars,
   routineExercises,
   routines,
@@ -26,7 +27,7 @@ import {
   type Routine,
   type RoutineExercise,
 } from '../db/schema';
-import { getRoutine, listRoutines, withWriteLock } from './repositories';
+import { addRoutineExercise, createRoutine, getRoutine, listRoutines, withWriteLock } from './repositories';
 
 /* ------------------------------------------------------------------ */
 /* internal assertions (duplicated from repositories.ts — see above)   */
@@ -347,4 +348,40 @@ async function replaceRoutineItems(
       notes: item.notes,
     });
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* duplicate                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Copies a plan (and every exercise target in it) into a new, fully
+ * user-owned plan. This is how a catalogue/program plan is customised:
+ * the copy has no kb link, so a knowledge-base update never overwrites it.
+ * Returns the new plan's id.
+ */
+export async function duplicateRoutine(id: string, name?: string): Promise<string> {
+  const source = await getRoutine(id);
+  if (!source) throw new RangeError('That plan no longer exists.');
+  const newId = await createRoutine({
+    name: (name ?? `${source.routine.name} (copy)`).trim(),
+    notes: source.routine.notes ?? undefined,
+    estimatedMinutes: source.routine.estimatedMinutes ?? undefined,
+    longevityPillars: decodePillars(source.routine.longevityPillars),
+  });
+  for (const item of source.items) {
+    const re = item.routineExercise;
+    await addRoutineExercise({
+      routineId: newId,
+      exerciseId: re.exerciseId,
+      position: re.position,
+      targetSets: re.targetSets ?? undefined,
+      targetReps: re.targetReps ?? undefined,
+      targetWeightKg: re.targetWeightKg ?? undefined,
+      targetRpe: re.targetRpe ?? undefined,
+      targetRestSeconds: re.targetRestSeconds ?? undefined,
+      notes: re.notes ?? undefined,
+    });
+  }
+  return newId;
 }

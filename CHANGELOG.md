@@ -25,6 +25,17 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Added (refinement pass)
+- Set logging table rebuilt on a shared column grid (labels always align, one
+  line per set at any text size); new sets inherit the previous set's
+  numbers, and untouched waiting rows inherit a set when it is logged.
+- Compact "+ Add set" / "Swap" actions; smaller, calmer type scale and a
+  1.15x text-scaling cap (set table 1.1x).
+- Create, edit and delete your own exercises (Exercises tab → New).
+- Duplicate any plan into your own editable copy.
+- Settings → Your data: export a backup (share sheet / Save to Files) and
+  import one back, with a preview before anything is changed.
+
 ### Notes
 - Media is parked: all exercises use the standard placeholder image.
 - Icon is a placeholder; final artwork pending.

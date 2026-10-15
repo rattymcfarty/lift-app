@@ -29,6 +29,7 @@ import {
   startWorkoutFromRoutine,
   type RoutineDetail,
 } from '../../src/data/repositories';
+import { duplicateRoutine } from '../../src/data/routines';
 import { useTheme } from '../../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { trimNumber } from '../../src/components/workout/format';
@@ -306,6 +307,21 @@ export default function PlanDetailScreen(): JSX.Element {
             variant="secondary"
             testID="plan-edit"
             onPress={() => router.push(`/plans/${planId}/edit`)}
+          />
+          <Button
+            title="Duplicate as my own plan"
+            variant="secondary"
+            testID="plan-duplicate"
+            onPress={() => {
+              void (async () => {
+                try {
+                  const copyId = await duplicateRoutine(planId);
+                  router.replace(`/plans/${copyId}`);
+                } catch (e) {
+                  Alert.alert('Could not duplicate', e instanceof Error ? e.message : 'Try again.');
+                }
+              })();
+            }}
           />
         </View>
 

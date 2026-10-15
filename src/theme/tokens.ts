@@ -111,27 +111,27 @@ export interface TypographyTokens {
    * Dynamic Type setting; text still scales with the OS setting.
    */
   size: {
-    /** 40 — hero numbers (total volume, PRs, timer readouts). */
+    /** 34 — hero numbers (total volume, PRs, timer readouts). */
     display: number;
-    /** 34 — top-level screen titles (ScreenHeader). */
+    /** 28 — top-level screen titles (ScreenHeader). */
     screen: number;
-    /** 26 — screen-title size below 360pt logical width (Display Zoom). */
+    /** 24 — screen-title size below 360pt logical width (Display Zoom). */
     screenCompact: number;
-    /** 22 — section titles, stat values. */
+    /** 20 — section titles, stat values. */
     section: number;
-    /** 20 — card titles (plan names, exercise names in cards). */
+    /** 18 — card titles (plan names, exercise names in cards). */
     card: number;
-    /** 17, semibold at call sites — list row titles, button labels. */
+    /** 16, semibold at call sites — list row titles, button labels. */
     row: number;
-    /** 17 — primary reading text. */
+    /** 16 — primary reading text. */
     body: number;
     /** 13 — metadata, timestamps. */
     meta: number;
     /** 12 — captions, column headers, small labels. */
     caption: number;
-    /** 28 — glyph icons (back arrow). */
+    /** 24 — glyph icons (back arrow). */
     icon: number;
-    /** 28 — the LIFT wordmark (with letterSpacing). Brand only. */
+    /** 26 — the LIFT wordmark (with letterSpacing). Brand only. */
     brand: number;
   };
 }
@@ -187,17 +187,17 @@ const shared: {
     family: undefined,
     weight: FONT_WEIGHT,
     size: {
-      display: 40,
-      screen: 34,
-      screenCompact: 26,
-      section: 22,
-      card: 20,
-      row: 17,
-      body: 17,
+      display: 34,
+      screen: 28,
+      screenCompact: 24,
+      section: 20,
+      card: 18,
+      row: 16,
+      body: 16,
       meta: 13,
       caption: 12,
-      icon: 28,
-      brand: 28,
+      icon: 24,
+      brand: 26,
     },
   },
   radius: { sm: 4, md: 8, lg: 20, pill: 999 },

@@ -20,7 +20,7 @@
  */
 
 import { useEffect, useRef, useState, type JSX } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import {
   logSet,
@@ -43,6 +43,7 @@ import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
 import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
 import { FONT_WEIGHT } from '../../theme/tokens';
+import { SET_GRID } from './setGrid';
 
 interface PendingSetState {
   /**
@@ -61,6 +62,8 @@ interface PendingSetState {
   error: string | null;
   /** Whether a log operation is in flight. */
   busy: boolean;
+  /** Bumped to remount the row when its prefill is replaced. */
+  rev?: number;
 }
 
 interface ExerciseCardProps {
@@ -85,6 +88,8 @@ export function ExerciseCard({
   workoutId = '',
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const hidePrev = windowWidth < SET_GRID.hidePrevBelow;
   const t = theme.typography;
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
@@ -151,7 +156,11 @@ export function ExerciseCard({
   // (see reservedRef note above). When the last pending row leaves,
   // reset the progression-seed flag so the next first row gets a fresh
   // suggestion.
+  // Live (unlogged) edits per pending row, reported by SetRow.
+  const liveRef = useRef<Record<string, { reps: string; weightKg: string; rpe: string }>>({});
+
   const removePending = (key: string): void => {
+    delete liveRef.current[key];
     const next = pendingsRef.current.filter((p) => p.key !== key);
     pendingsRef.current = next;
     setPendings(next);
@@ -177,9 +186,17 @@ export function ExerciseCard({
       : undefined;
   const source = lastLogged ?? lastPrevSet;
   const prefill = (v: number | null | undefined): string => (v == null ? '' : String(v));
+  const hasValue = (v: { reps: string; weightKg: string; rpe: string } | undefined): boolean =>
+    !!v && (v.reps !== '' || v.weightKg !== '' || v.rpe !== '');
   const buildInitial = () => {
+    // Carry over what the user is typing: the previous pending row's LIVE
+    // values win, then its prefill, then the last logged set, then history.
     const lastPending = pendingsRef.current[pendingsRef.current.length - 1];
-    if (lastPending) return { ...lastPending.initial };
+    if (lastPending) {
+      const live = liveRef.current[lastPending.key];
+      if (hasValue(live)) return { ...live };
+      if (hasValue(lastPending.initial)) return { ...lastPending.initial };
+    }
     return {
       reps: prefill(source?.reps),
       weightKg: prefill(source?.weightKg),
@@ -250,6 +267,22 @@ export function ExerciseCard({
       setRestKey((k) => k + 1);
       setRestSeconds(restSecondsToUse);
       onSetComplete(restSecondsToUse, workoutExercise.id, isLastInSuperset);
+      // Rows still waiting that the user hasn't touched inherit this set's
+      // numbers, so a run of sets only needs the first one typed.
+      const logged = {
+        reps: values.reps != null ? String(values.reps) : '',
+        weightKg: values.weightKg != null ? String(values.weightKg) : '',
+        rpe: '',
+      };
+      if (!isWarmup && hasValue(logged)) {
+        const updated = pendingsRef.current.map((p) =>
+          p.key !== key && !p.isWarmup && !hasValue(liveRef.current[p.key]) && !hasValue(p.initial)
+            ? { ...p, initial: logged, rev: (p.rev ?? 0) + 1 }
+            : p,
+        );
+        pendingsRef.current = updated;
+        setPendings(updated);
+      }
       removePending(key);
       onChanged();
     } catch (e) {
@@ -402,14 +435,17 @@ export function ExerciseCard({
       </View>
 
       <View style={{ gap: theme.spacing.xs }}>
-        {/* Column headers */}
+        {/* Column headers — same widths as SetRow's cells (setGrid.ts) */}
         {hasAnyRows && (
-          <View style={[styles.headerRow, styles.columnHeaders, { borderBottomColor: theme.colors.border }]}>
-            <Text style={[styles.columnHeader, { color: theme.colors.muted, fontSize: t.size.caption }]}>Set</Text>
-            <Text style={[styles.columnHeader, styles.columnHeaderPrev, { color: theme.colors.muted, fontSize: t.size.caption }]}>Target</Text>
-            <Text style={[styles.columnHeader, { color: theme.colors.muted, fontSize: t.size.caption }]}>{displayUnit === 'kg' ? 'Kg' : 'Lbs'}</Text>
-            <Text style={[styles.columnHeader, { color: theme.colors.muted, fontSize: t.size.caption }]}>Reps</Text>
-            <View style={styles.columnHeaderRPE} />
+          <View style={[styles.headerRow, styles.columnHeaders, { borderBottomColor: theme.colors.border, gap: SET_GRID.gap }]}>
+            <Text style={[styles.columnHeader, { width: SET_GRID.set, color: theme.colors.muted, fontSize: t.size.caption }]} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Set</Text>
+            {hidePrev ? <View style={{ flex: 1 }} /> : (
+              <Text style={[styles.columnHeader, { flex: 1, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Prev</Text>
+            )}
+            <Text style={[styles.columnHeader, { width: SET_GRID.weight, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>{displayUnit === 'kg' ? 'Kg' : 'Lb'}</Text>
+            <Text style={[styles.columnHeader, { width: SET_GRID.reps, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Reps</Text>
+            <Text style={[styles.columnHeader, { width: SET_GRID.rpe, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>RPE</Text>
+            <View style={{ width: SET_GRID.action + SET_GRID.remove + SET_GRID.gap }} />
           </View>
         )}
 
@@ -431,7 +467,7 @@ export function ExerciseCard({
             another row first. */}
         {pendings.map((p) => (
           <SetRow
-            key={p.key}
+            key={`${p.key}-${p.rev ?? 0}`}
             setNumber={p.setNumber}
             mode="pending"
             initial={p.initial}
@@ -442,26 +478,27 @@ export function ExerciseCard({
             error={p.error}
             onLog={(values) => void handleLogPending(p.key, p.setNumber, values, p.isWarmup)}
             onCancel={() => cancelPending(p.key)}
+            onValuesChange={(v) => {
+              liveRef.current[p.key] = v;
+            }}
           />
         ))}
 
-        {/* Add / Swap — reference-style text actions, always visible even
-            with pending rows open, so sets can be added freely and filled
-            in afterward. */}
+        {/* Add / Swap — compact tonal actions; Add set is always available
+            so sets can be added freely and filled in afterward. */}
         <View style={styles.footerRow}>
           <Pressable
             testID="add-set"
             onPress={() => void handleAddSet(false)}
             accessibilityRole="button"
             accessibilityLabel="Add set"
-            hitSlop={8}
             style={({ pressed }) => [
-              styles.footerAction,
-              { opacity: pressed ? 0.6 : 1 },
+              styles.footerButton,
+              { flex: 1, backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}>
-              ⊕ Add Set
+            <Text style={{ color: theme.colors.text, fontSize: t.size.meta + 1, fontWeight: t.weight.semibold }} maxFontSizeMultiplier={1.15}>
+              + Add set
             </Text>
           </Pressable>
           <Pressable
@@ -469,13 +506,12 @@ export function ExerciseCard({
             onPress={() => router.push(`/workout/${workoutId}/swap-exercise?workoutExerciseId=${workoutExercise.id}`)}
             accessibilityRole="button"
             accessibilityLabel="Swap exercise"
-            hitSlop={8}
             style={({ pressed }) => [
-              styles.footerAction,
-              { opacity: pressed ? 0.6 : 1 },
+              styles.footerButton,
+              { paddingHorizontal: theme.spacing.md, backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}>
+            <Text style={{ color: theme.colors.muted, fontSize: t.size.meta + 1, fontWeight: t.weight.medium }} maxFontSizeMultiplier={1.15}>
               ⇄ Swap
             </Text>
           </Pressable>
@@ -519,24 +555,19 @@ const styles = StyleSheet.create({
   columnHeader: {
     fontWeight: FONT_WEIGHT.semibold,
     textTransform: 'uppercase',
-    flex: 1,
     textAlign: 'center',
   },
-  columnHeaderPrev: {
-    width: 72,
-    textAlign: 'right',
-  },
-  columnHeaderRPE: {
-    width: 52,
-  },
   footerRow: {
-    marginTop: 4,
+    marginTop: 6,
     flexDirection: 'row',
-    gap: 24,
+    gap: 8,
     alignItems: 'center',
   },
-  footerAction: {
-    minHeight: 44,
+  footerButton: {
+    minHeight: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
     justifyContent: 'center',
   },
 });

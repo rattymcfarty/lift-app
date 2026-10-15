@@ -161,6 +161,8 @@ interface ScreenHeaderProps {
   /** Back affordance glyph. Default '←'. Pickers-as-sheets use '✕' (close). */
   backGlyph?: '←' | '✕';
   right?: ReactNode;
+  /** Smaller title for dense working screens (the active workout, editors). */
+  compact?: boolean;
 }
 
 /**
@@ -170,7 +172,7 @@ interface ScreenHeaderProps {
  * windows (iOS Display Zoom = 320pt) so it fits instead of truncating.
  * Long titles may wrap to two lines rather than clip mid-word.
  */
-export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right }: ScreenHeaderProps): JSX.Element {
+export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right, compact = false }: ScreenHeaderProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   // Narrow windows (iOS Display Zoom = 320pt) get a smaller hero title;
@@ -207,7 +209,7 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
           <Text
             style={{
               color: theme.colors.text,
-              fontSize: narrow ? t.size.screenCompact : t.size.screen,
+              fontSize: narrow || compact ? t.size.screenCompact : t.size.screen,
               fontWeight: t.weight.bold,
             }}
             numberOfLines={2}
@@ -285,6 +287,8 @@ interface NumberInputProps {
   editable?: boolean;
   label?: string;
   testID?: string;
+  /** Dense variant for set tables: less padding, text scaling capped at 1.1x. */
+  compact?: boolean;
 }
 
 /**
@@ -303,6 +307,7 @@ export function NumberInput({
   editable = true,
   label,
   testID,
+  compact = false,
 }: NumberInputProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -330,6 +335,7 @@ export function NumberInput({
         returnKeyType="done"
         editable={editable}
         textAlign="center"
+        maxFontSizeMultiplier={compact ? 1.1 : undefined}
         selectTextOnFocus
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
@@ -344,7 +350,8 @@ export function NumberInput({
             fontSize: t.size.body,
             fontVariant: ['tabular-nums'],
             borderRadius: theme.radius.md,
-            paddingVertical: theme.spacing.xs,
+            paddingVertical: compact ? 6 : theme.spacing.xs,
+            paddingHorizontal: compact ? 2 : undefined,
           },
         ]}
       />

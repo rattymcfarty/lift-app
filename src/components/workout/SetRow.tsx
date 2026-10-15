@@ -36,6 +36,7 @@ import { formatWeight, parseWeightInput } from '../../lib/units';
 import { parseUserInt, parseUserNumber } from './format';
 import { Button, NumberInput } from './ui';
 import { FONT_WEIGHT } from '../../theme/tokens';
+import { SET_GRID } from './setGrid';
 
 export interface SetInputValues {
   reps?: number;
@@ -59,6 +60,7 @@ interface LoggedSetRowProps {
   error?: never;
   onLog?: never;
   onCancel?: never;
+  onValuesChange?: never;
 }
 
 interface PendingSetRowProps {
@@ -73,194 +75,142 @@ interface PendingSetRowProps {
   error: string | null;
   onLog: (values: SetInputValues) => void;
   onCancel: () => void;
+  /** Live edits, so the parent can carry them to the next added set. */
+  onValuesChange?: (values: { reps: string; weightKg: string; rpe: string }) => void;
   // Not used in pending mode
   onDelete?: never;
 }
 
 export type SetRowProps = LoggedSetRowProps | PendingSetRowProps;
 
-/** Logical-width breakpoint: below this, tighten gaps and cell floors. */
-const COMPACT_WIDTH = 360;
+/** One compact numeric cell used by logged rows. */
+function Cell({ width, children, color, bold }: { width: number; children: string; color: string; bold?: boolean }): JSX.Element {
+  const { theme } = useTheme();
+  return (
+    <Text
+      style={{
+        width,
+        textAlign: 'center',
+        color,
+        fontSize: theme.typography.size.body,
+        fontWeight: bold ? FONT_WEIGHT.bold : FONT_WEIGHT.regular,
+        fontVariant: ['tabular-nums'],
+      }}
+      numberOfLines={1}
+      maxFontSizeMultiplier={SET_GRID.maxFontScale}
+    >
+      {children}
+    </Text>
+  );
+}
+
+/** The flexible "Target" (previous performance) column. */
+function PrevCell({ text, testID, hidden }: { text: string; testID: string; hidden: boolean }): JSX.Element | null {
+  const { theme } = useTheme();
+  if (hidden) return null;
+  return (
+    <Text
+      testID={testID}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        textAlign: 'center',
+        color: theme.colors.faint,
+        fontSize: theme.typography.size.meta,
+        fontVariant: ['tabular-nums'],
+      }}
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.7}
+      maxFontSizeMultiplier={SET_GRID.maxFontScale}
+    >
+      {text}
+    </Text>
+  );
+}
 
 export function SetRow(props: SetRowProps): JSX.Element {
   const { theme } = useTheme();
-  const t = theme.typography;
   const { width: windowWidth } = useWindowDimensions();
-  const compact = windowWidth < COMPACT_WIDTH;
-
-  if (props.mode === 'logged') {
-    return renderLoggedRow(props, theme, t, compact);
-  }
-  return renderPendingRow(props, theme, t, compact);
+  const hidePrev = windowWidth < SET_GRID.hidePrevBelow;
+  return props.mode === 'logged'
+    ? <LoggedRow {...props} theme={theme} hidePrev={hidePrev} />
+    : <PendingRow {...props} theme={theme} hidePrev={hidePrev} />;
 }
 
-function renderLoggedRow(
-  props: LoggedSetRowProps,
-  theme: ReturnType<typeof useTheme>['theme'],
-  t: ReturnType<typeof useTheme>['theme']['typography'],
-  compact: boolean,
-): JSX.Element {
-  const { loggedSet, displayUnit, previousText, onDelete, setNumber } = props;
-  const isWarmup = loggedSet.isWarmup === true;
+type ThemeT = ReturnType<typeof useTheme>['theme'];
 
-  // Format weight as just the number (unit is in column header)
+function WarmupBadge({ theme, setNumber }: { theme: ThemeT; setNumber: number }): JSX.Element {
+  return (
+    <View style={[styles.warmupBadge, { backgroundColor: theme.colors.surfaceMuted }]} testID={`set-warmup-badge-${setNumber}`}>
+      <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.caption, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>
+        W
+      </Text>
+    </View>
+  );
+}
+
+function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean }): JSX.Element {
+  const { theme, hidePrev, loggedSet, displayUnit, previousText, onDelete, setNumber } = props;
+  const t = theme.typography;
+  const isWarmup = loggedSet.isWarmup === true;
+  const dim = isWarmup ? theme.colors.muted : theme.colors.text;
   const weightDisplay = loggedSet.weightKg != null
     ? formatWeight(loggedSet.weightKg, displayUnit).replace(/ (kg|lb)$/, '')
     : '';
   const repsDisplay = loggedSet.reps != null ? String(loggedSet.reps) : '';
-  const rpeDisplay = loggedSet.rpe != null ? `RPE ${loggedSet.rpe}` : '';
-  const gap = compact ? theme.spacing.xs : theme.spacing.sm;
-
+  const rpeDisplay = loggedSet.rpe != null ? String(loggedSet.rpe) : '';
   return (
-    <View
-      style={[
-        styles.row,
-        { paddingVertical: theme.spacing.xs, gap },
-        isWarmup && styles.warmupRow,
-        compact && styles.wrapRow,
-      ]}
-    >
-      <Text
-        style={[
-          styles.setNumber,
-          compact && styles.setNumberCompact,
-          {
-            color: isWarmup ? theme.colors.muted : theme.colors.highlight,
-          },
-        ]}
-      >
-        {loggedSet.setNumber}
-      </Text>
-      <Text
-        testID={`exercise-previous-${setNumber}`}
-        style={[
-          styles.previousCell,
-          compact && styles.previousCellCompact,
-          { color: theme.colors.muted },
-        ]}
-        numberOfLines={1}
-      >
-        {previousText}
-      </Text>
-      <Text
-        style={[
-          styles.weightCell,
-          compact && styles.weightCellCompact,
-          { color: isWarmup ? theme.colors.muted : theme.colors.text },
-        ]}
-        numberOfLines={1}
-      >
-        {weightDisplay}
-      </Text>
-      <Text
-        style={[
-          styles.repsCell,
-          compact && styles.repsCellCompact,
-          { color: isWarmup ? theme.colors.muted : theme.colors.text },
-        ]}
-        numberOfLines={1}
-      >
-        {repsDisplay}
-      </Text>
-      {rpeDisplay ? (
-        <Text
-          style={[
-            styles.rpeCell,
-            compact && styles.rpeCellCompact,
-            { color: isWarmup ? theme.colors.muted : theme.colors.faint },
-          ]}
-          numberOfLines={1}
-        >
-          {rpeDisplay}
-        </Text>
-      ) : (
-        <View style={[styles.rpeCell, compact && styles.rpeCellCompact]} />
-      )}
+    <View style={[styles.row, { gap: SET_GRID.gap, paddingVertical: theme.spacing.xs }, isWarmup && styles.warmupRow]}>
+      <Cell width={SET_GRID.set} color={isWarmup ? theme.colors.muted : theme.colors.highlight} bold>
+        {String(loggedSet.setNumber)}
+      </Cell>
+      <PrevCell text={previousText} testID={`exercise-previous-${setNumber}`} hidden={hidePrev} />
+      {hidePrev ? <View style={{ flex: 1 }} /> : null}
+      <Cell width={SET_GRID.weight} color={dim}>{weightDisplay}</Cell>
+      <Cell width={SET_GRID.reps} color={dim}>{repsDisplay}</Cell>
+      <Cell width={SET_GRID.rpe} color={theme.colors.faint}>{rpeDisplay}</Cell>
       <View
         style={[
           styles.checkCircle,
-          {
-            backgroundColor: isWarmup ? theme.colors.surfaceMuted : theme.colors.highlight,
-          },
+          { backgroundColor: isWarmup ? theme.colors.surfaceMuted : theme.colors.highlight },
         ]}
       >
-        <Text
-          style={[
-            styles.checkGlyph,
-            {
-              color: isWarmup ? theme.colors.muted : theme.colors.highlightText,
-              fontSize: t.size.row,
-            },
-          ]}
-        >
-          ✓
-        </Text>
+        {isWarmup ? <WarmupBadge theme={theme} setNumber={setNumber} /> : (
+          <Text style={{ color: theme.colors.highlightText, fontSize: t.size.meta, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>✓</Text>
+        )}
       </View>
       <Pressable
         onPress={onDelete}
         accessibilityRole="button"
         accessibilityLabel={`Delete set ${loggedSet.setNumber}`}
-        hitSlop={12}
-        style={[styles.deleteButton, compact && styles.deleteButtonCompact]}
+        hitSlop={10}
+        style={styles.removeButton}
       >
-        <Text
-          style={[
-            { fontSize: t.size.body },
-            isWarmup ? { color: theme.colors.faint } : { color: theme.colors.danger },
-          ]}
-        >
-          ×
-        </Text>
+        <Text style={{ color: theme.colors.faint, fontSize: t.size.body }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>×</Text>
       </Pressable>
-      {isWarmup && (
-        <View
-          style={[
-            styles.warmupBadge,
-            { backgroundColor: theme.colors.surfaceMuted },
-          ]}
-          testID={`set-warmup-badge-${setNumber}`}
-        >
-          <Text style={[styles.warmupBadgeText, { color: theme.colors.muted, fontSize: t.size.caption }]}>WARMUP</Text>
-        </View>
-      )}
     </View>
   );
 }
 
-function renderPendingRow(
-  props: PendingSetRowProps,
-  theme: ReturnType<typeof useTheme>['theme'],
-  t: ReturnType<typeof useTheme>['theme']['typography'],
-  compact: boolean,
-): JSX.Element {
-  const {
-    setNumber,
-    displayUnit,
-    previousText,
-    initial,
-    isWarmup,
-    busy,
-    error,
-    onLog,
-    onCancel,
-  } = props;
-
-  const [reps, setReps] = useState(initial.reps);
-  const [weightKg, setWeightKg] = useState(initial.weightKg);
-  const [rpe, setRpe] = useState(initial.rpe);
+function PendingRow(props: PendingSetRowProps & { theme: ThemeT; hidePrev: boolean }): JSX.Element {
+  const { theme, hidePrev, setNumber, displayUnit, previousText, initial, isWarmup, busy, error, onLog, onCancel, onValuesChange } = props;
+  const t = theme.typography;
+  const [reps, setRepsState] = useState(initial.reps);
+  const [weightKg, setWeightState] = useState(initial.weightKg);
+  const [rpe, setRpeState] = useState(initial.rpe);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  const report = (next: { reps: string; weightKg: string; rpe: string }): void => onValuesChange?.(next);
+  const setReps = (v: string): void => { setRepsState(v); report({ reps: v, weightKg, rpe }); };
+  const setWeight = (v: string): void => { setWeightState(v); report({ reps, weightKg: v, rpe }); };
+  const setRpe = (v: string): void => { setRpeState(v); report({ reps, weightKg, rpe: v }); };
+
   const handleLog = (): void => {
-    // Parse using the display unit for weight
     const parsedReps = parseUserInt(reps);
     const parsedWeight = parseWeightInput(weightKg, displayUnit);
     const parsedRpe = parseUserNumber(rpe);
-
-    if (
-      Number.isNaN(parsedReps) ||
-      Number.isNaN(parsedWeight) ||
-      Number.isNaN(parsedRpe)
-    ) {
+    if (Number.isNaN(parsedReps) || Number.isNaN(parsedWeight) || Number.isNaN(parsedRpe)) {
       setLocalError('Enter valid numbers.');
       return;
     }
@@ -278,57 +228,35 @@ function renderPendingRow(
   };
 
   const shownError = localError ?? error;
-  const gap = compact ? theme.spacing.xs : theme.spacing.sm;
-
   return (
     <View style={{ gap: theme.spacing.xs }}>
-      <View style={[styles.row, { gap }, compact && styles.wrapRow]}>
-        <Text
-          style={{
-            color: theme.colors.muted,
-            fontSize: t.size.body,
-            flexGrow: 0,
-            flexShrink: 0,
-            flexBasis: compact ? 20 : 24,
-            textAlign: 'center',
-          }}
-        >
-          {setNumber}
-        </Text>
-        <Text
-          testID={`exercise-previous-${setNumber}`}
-          style={{
-            color: theme.colors.muted,
-            fontSize: t.size.body,
-            flexGrow: 0,
-            flexShrink: 1,
-            flexBasis: compact ? 48 : 72,
-            minWidth: compact ? 28 : 40,
-            textAlign: 'right',
-          }}
-          numberOfLines={1}
-        >
-          {previousText}
-        </Text>
+      <View style={[styles.row, { gap: SET_GRID.gap }]}>
+        <View style={{ width: SET_GRID.set, alignItems: 'center' }}>
+          {isWarmup ? <WarmupBadge theme={theme} setNumber={setNumber} /> : (
+            <Text style={{ color: theme.colors.muted, fontSize: t.size.body, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>
+              {setNumber}
+            </Text>
+          )}
+        </View>
+        <PrevCell text={previousText} testID={`exercise-previous-${setNumber}`} hidden={hidePrev} />
+        {hidePrev ? <View style={{ flex: 1 }} /> : null}
+        <NumberInput
+          value={weightKg}
+          testID={`set-weight-${setNumber}`}
+          onChangeText={setWeight}
+          placeholder="0"
+          decimal
+          width={SET_GRID.weight}
+          compact
+          editable={!busy}
+        />
         <NumberInput
           value={reps}
           testID={`set-reps-${setNumber}`}
           onChangeText={setReps}
           placeholder="0"
-          label="reps"
-          flexBasis={compact ? 44 : 56}
-          minWidth={compact ? 36 : 40}
-          editable={!busy}
-        />
-        <NumberInput
-          value={weightKg}
-          testID={`set-weight-${setNumber}`}
-          onChangeText={setWeightKg}
-          placeholder="0"
-          decimal
-          label={displayUnit === 'kg' ? 'kg' : 'lb'}
-          flexBasis={compact ? 52 : 64}
-          minWidth={compact ? 40 : 44}
+          width={SET_GRID.reps}
+          compact
           editable={!busy}
         />
         <NumberInput
@@ -336,179 +264,63 @@ function renderPendingRow(
           onChangeText={setRpe}
           placeholder="–"
           decimal
-          label="RPE"
-          flexBasis={compact ? 44 : 52}
-          minWidth={compact ? 34 : 40}
+          width={SET_GRID.rpe}
+          compact
           editable={!busy}
         />
-        <View style={styles.logCircle}>
+        <View style={styles.checkCircle}>
           <Pressable
             testID={`log-set-${setNumber}`}
             onPress={handleLog}
             disabled={busy}
             accessibilityRole="button"
             accessibilityLabel={busy ? 'Logging…' : `Log set ${setNumber}`}
-            hitSlop={12}
-            style={[
-              styles.circle,
-              {
-                borderColor: busy ? theme.colors.border : theme.colors.highlight,
-                backgroundColor: 'transparent',
-              },
-            ]}
+            hitSlop={8}
+            style={[styles.circle, { borderColor: busy ? theme.colors.border : theme.colors.highlight }]}
           >
-            {busy ? (
-              <ActivityIndicator color={theme.colors.highlight} size="small" />
-            ) : null}
+            {busy ? <ActivityIndicator color={theme.colors.highlight} size="small" /> : null}
           </Pressable>
         </View>
-        {isWarmup && (
-          <View
-            style={[
-              styles.warmupBadge,
-              { backgroundColor: theme.colors.surfaceMuted },
-            ]}
-            testID={`set-warmup-badge-${setNumber}`}
-          >
-            <Text style={[styles.warmupBadgeText, { color: theme.colors.muted, fontSize: t.size.caption }]}>WARMUP</Text>
-          </View>
-        )}
         <Pressable
           onPress={onCancel}
           accessibilityRole="button"
           accessibilityLabel="Cancel"
-          hitSlop={12}
-          style={[styles.cancelButton, compact && styles.cancelButtonCompact]}
+          hitSlop={10}
+          style={styles.removeButton}
         >
-          <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>×</Text>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.body }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>×</Text>
         </Pressable>
       </View>
       {shownError ? (
-        <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>
-          {shownError}
-        </Text>
+        <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>{shownError}</Text>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  wrapRow: {
-    flexWrap: 'wrap',
-  },
-  setNumber: {
-    flexGrow: 0,
-    flexShrink: 0,
-    flexBasis: 24,
-    textAlign: 'center',
-    fontWeight: FONT_WEIGHT.bold,
-  },
-  setNumberCompact: {
-    flexBasis: 20,
-  },
-  previousCell: {
-    fontVariant: ['tabular-nums'],
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 72,
-    minWidth: 40,
-    textAlign: 'right',
-  },
-  previousCellCompact: {
-    flexBasis: 48,
-    minWidth: 28,
-  },
-  weightCell: {
-    fontVariant: ['tabular-nums'],
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 56,
-    minWidth: 32,
-    textAlign: 'center',
-  },
-  weightCellCompact: {
-    flexBasis: 44,
-  },
-  repsCell: {
-    fontVariant: ['tabular-nums'],
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 48,
-    minWidth: 28,
-    textAlign: 'center',
-  },
-  repsCellCompact: {
-    flexBasis: 40,
-  },
-  rpeCell: {
-    fontVariant: ['tabular-nums'],
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: 52,
-    minWidth: 30,
-    textAlign: 'center',
-  },
-  rpeCellCompact: {
-    flexBasis: 40,
-  },
+  row: { flexDirection: 'row', alignItems: 'center' },
   checkCircle: {
-    flexGrow: 0,
-    flexShrink: 0,
-    flexBasis: 28,
+    width: SET_GRID.action,
+    height: SET_GRID.action,
+    borderRadius: SET_GRID.action / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circle: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkGlyph: {
-    fontWeight: FONT_WEIGHT.bold,
-    lineHeight: 20,
-  },
-  summaryCell: {
-    flex: 1,
-  },
-  deleteButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  deleteButtonCompact: {
-    paddingHorizontal: 4,
-  },
-  warmupRow: {
-    opacity: 0.7,
-  },
-  warmupBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  warmupBadgeText: {
-    fontWeight: FONT_WEIGHT.bold,
-  },
-  logCircle: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  circle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cancelButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  removeButton: {
+    width: SET_GRID.remove,
+    height: SET_GRID.action,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cancelButtonCompact: {
-    paddingHorizontal: 4,
-  },
+  warmupRow: { opacity: 0.75 },
+  warmupBadge: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
 });

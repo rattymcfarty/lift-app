@@ -14,10 +14,10 @@ import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary
 import { ThemeProvider, useTheme } from '../src/theme';
 
 /**
- * P5: cap OS dynamic-type scaling at 1.3x app-wide. React Native respects the
+ * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
  * OS text-size setting by default (good for accessibility), but uncapped
  * scaling breaks fixed layouts — buttons overflow, rows clip, charts
- * overlap. 1.3x keeps text readable for low-vision users without breaking
+ * overlap. 1.15x keeps text readable for low-vision users without breaking
  * any screen (verified against the dashboard, workout logging, and charts).
  * Set once here so every Text/TextInput inherits it; individual components
  * can still override per-instance when a design truly needs it.
@@ -26,13 +26,13 @@ if ((Text as unknown as { defaultProps?: object }).defaultProps == null) {
   (Text as unknown as { defaultProps: object }).defaultProps = {};
 }
 Object.assign((Text as unknown as { defaultProps: object }).defaultProps, {
-  maxFontSizeMultiplier: 1.3,
+  maxFontSizeMultiplier: 1.15,
 });
 if ((TextInput as unknown as { defaultProps?: object }).defaultProps == null) {
   (TextInput as unknown as { defaultProps: object }).defaultProps = {};
 }
 Object.assign((TextInput as unknown as { defaultProps: object }).defaultProps, {
-  maxFontSizeMultiplier: 1.3,
+  maxFontSizeMultiplier: 1.15,
 });
 
 function AppShell() {

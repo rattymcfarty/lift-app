@@ -8,12 +8,14 @@
  */
 
 import { useEffect, useState, type JSX } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, type ThemePreference } from '../src/theme';
 import { getSettings, setWeightUnit, type WeightUnit } from '../src/data/settings';
-import { Card, ScreenHeader } from '../src/components/workout/ui';
+import { Button, Card, ScreenHeader } from '../src/components/workout/ui';
+import { deleteBackupFile, exportBackup, shareBackup } from '../src/data/export';
+import { dryRunImport, importBackup, pickBackupFile } from '../src/data/import';
 
 function SegmentedOption<T extends string>({
   label,
@@ -74,6 +76,7 @@ export default function SettingsScreen(): JSX.Element {
   const { theme, preference, setPreference } = useTheme();
   const t = theme.typography;
   const [weightUnit, setWeightUnitState] = useState<WeightUnit>('kg');
+  const [dataBusy, setDataBusy] = useState<'export' | 'import' | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,12 +100,70 @@ export default function SettingsScreen(): JSX.Element {
     });
   };
 
+  const handleExport = async (): Promise<void> => {
+    setDataBusy('export');
+    try {
+      const out = await exportBackup();
+      try {
+        // The share sheet is the only way data leaves the app; on iPhone it
+        // includes "Save to Files", on Android "Save" / Drive / email.
+        await shareBackup(out.uri);
+      } finally {
+        try {
+          deleteBackupFile(out.uri);
+        } catch {
+          // Cache cleanup is best-effort.
+        }
+      }
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : 'Could not create the backup.');
+    } finally {
+      setDataBusy(null);
+    }
+  };
+
+  const handleImport = async (): Promise<void> => {
+    setDataBusy('import');
+    try {
+      const uri = await pickBackupFile();
+      if (!uri) return;
+      const dry = await dryRunImport(uri);
+      if (!dry.ok) {
+        Alert.alert('Not a valid LIFT backup', dry.errors.slice(0, 3).join('\n'));
+        return;
+      }
+      await new Promise<void>((resolve) => {
+        Alert.alert('Import this backup?', `${dry.summaryText}\n\nYour existing data is kept; matching items are merged.`, [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve() },
+          {
+            text: 'Import',
+            onPress: () => {
+              void importBackup(uri)
+                .then(() => Alert.alert('Import complete', 'Your data has been restored.'))
+                .catch((e: unknown) => Alert.alert('Import failed', e instanceof Error ? e.message : 'Try again.'))
+                .finally(() => resolve());
+            },
+          },
+        ]);
+      });
+    } catch (e) {
+      Alert.alert('Import failed', e instanceof Error ? e.message : 'Could not read that file.');
+    } finally {
+      setDataBusy(null);
+    }
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={['top', 'bottom']}
     >
-      <ScreenHeader title="Settings" onBack={() => router.back()} />
+      <ScreenHeader title="Settings" onBack={() => router.back()} compact />
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: theme.spacing.xl,
+        }}
+      >
       <View
         style={{
           paddingHorizontal: theme.spacing.md,
@@ -171,7 +232,43 @@ export default function SettingsScreen(): JSX.Element {
             shown.
           </Text>
         </Card>
+
+        <Card>
+          <Text
+            style={{
+              color: theme.colors.muted,
+              fontSize: t.size.caption,
+              fontWeight: t.weight.medium,
+            }}
+          >
+            YOUR DATA
+          </Text>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
+            Back up everything on this device — workouts, plans, your own
+            exercises and settings — to a file you keep.
+          </Text>
+          <Button
+            title="Export backup"
+            testID="settings-export"
+            busy={dataBusy === 'export'}
+            disabled={dataBusy !== null}
+            onPress={() => void handleExport()}
+          />
+          <Button
+            title="Import backup"
+            variant="secondary"
+            testID="settings-import"
+            busy={dataBusy === 'import'}
+            disabled={dataBusy !== null}
+            onPress={() => void handleImport()}
+          />
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            On iPhone choose &quot;Save to Files&quot; in the share sheet. LIFT
+            never uploads your data anywhere.
+          </Text>
+        </Card>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

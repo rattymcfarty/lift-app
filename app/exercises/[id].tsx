@@ -7,6 +7,7 @@
 import { useEffect, useState, type JSX } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -17,6 +18,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getExercise } from '../../src/data/repositories';
+import { deleteCustomExercise } from '../../src/data/customExercises';
 import { decodeStringArray, type Exercise } from '../../src/db/schema';
 import { useTheme, type Theme } from '../../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
@@ -144,6 +146,37 @@ export default function ExerciseDetailScreen(): JSX.Element {
         <View style={{ marginVertical: theme.spacing.lg }}>
           {renderTabBar()}
         </View>
+        {exercise.isCustom ? (
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <Button
+                title="Edit exercise"
+                variant="secondary"
+                testID="exercise-edit"
+                onPress={() => router.push(`/exercises/new?id=${exercise.id}`)}
+              />
+            </View>
+            <Button
+              title="Delete"
+              variant="danger"
+              testID="exercise-delete"
+              onPress={() =>
+                Alert.alert('Delete exercise?', `"${exercise.name}" will be removed from your library. Logged history is kept.`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => {
+                      void deleteCustomExercise(exercise.id)
+                        .then(() => router.back())
+                        .catch((e: unknown) => Alert.alert('Could not delete', e instanceof Error ? e.message : 'Try again.'));
+                    },
+                  },
+                ])
+              }
+            />
+          </View>
+        ) : null}
         <View style={{ paddingHorizontal: theme.spacing.sm }}>
           {activeTab === 'guide' && <GuideTab exercise={exercise} />}
           {activeTab === 'history' && <HistoryTab exerciseId={exerciseId} />}
