@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -241,7 +242,7 @@ export default function ProgramsScreen(): JSX.Element {
                 testID="programs-create"
                 onPress={() => {
                   void createUserProgram()
-                    .then((p) => router.push(`/programs/${p.id}` as Href))
+                    .then((p) => router.push(`/programs/${p.id}/details?flow=create` as Href))
                     .catch(() => Alert.alert('Could not create the program', 'Try again.'));
                 }}
               />
@@ -273,15 +274,28 @@ export default function ProgramsScreen(): JSX.Element {
                         onPress={() => router.push(`/programs/${p.id}` as Href)}
                         accessibilityRole="button"
                         accessibilityLabel={`Edit ${p.name}`}
-                        style={{ gap: 2 }}
+                        style={{ flexDirection: 'row', gap: theme.spacing.md, alignItems: 'center' }}
                       >
+                        {p.details?.thumbnailUri ? (
+                          <Image
+                            source={{ uri: p.details.thumbnailUri }}
+                            style={{ width: 64, height: 64, borderRadius: theme.radius.md, backgroundColor: c.surfaceMuted }}
+                          />
+                        ) : null}
+                        <View style={{ flex: 1, gap: 2 }}>
                         <Text style={{ color: c.text, fontSize: t.size.card, fontWeight: t.weight.bold }} numberOfLines={2}>
                           {p.name}
                         </Text>
+                        {p.details?.tagline ? (
+                          <Text style={{ color: c.muted, fontSize: t.size.meta + 1 }} numberOfLines={2}>
+                            {p.details.tagline}
+                          </Text>
+                        ) : null}
                         <Text style={{ color: c.faint, fontSize: t.size.meta }}>
                           {p.weeks} week{p.weeks === 1 ? '' : 's'} · {daysPerWeekOf(p)} day{daysPerWeekOf(p) === 1 ? '' : 's'} a week ·{' '}
                           {totalDays(p)} sessions{active ? ' · active' : ''}
                         </Text>
+                        </View>
                       </Pressable>
                       <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
                         <View style={{ flex: 1 }}>

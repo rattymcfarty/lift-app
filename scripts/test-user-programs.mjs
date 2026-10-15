@@ -70,4 +70,24 @@ eq(M.totalDays(mk()), 36, '3 days x 12 weeks');
 eq(M.totalDays(mk({ weeks: 3, schedule: 'custom', weekDays: [['a', 'b'], ['c'], ['d', 'e', 'f']] })), 6, 'custom total');
 for (let k = 1; k <= 7; k++) ok(M.SESSION_DAYS[k].length === k && new Set(M.SESSION_DAYS[k]).size === k, `session days for ${k}`);
 
+// details
+const D = M.normalizeDetails;
+eq(D(undefined), M.DEFAULT_DETAILS, 'missing details -> defaults');
+eq(D({ focus: ['Muscle', 'Bogus'], equipment: 'Nope', difficulty: ['Advanced', 'x'], minutesPerWorkout: 5 }).focus, ['Muscle'], 'unknown focus dropped');
+eq(D({ equipment: 'Nope' }).equipment, 'Full Gym', 'unknown equipment -> default');
+eq(D({ difficulty: ['Advanced', 'x'] }).difficulty, ['Advanced'], 'unknown difficulty dropped');
+eq(D({ minutesPerWorkout: 5 }).minutesPerWorkout, 60, 'out-of-range minutes -> default');
+eq(D({ minutesPerWorkout: 45 }).minutesPerWorkout, 45, 'valid minutes kept');
+eq(D({ tagline: 'x'.repeat(200) }).tagline.length, 160, 'tagline clamped');
+eq(D({ description: 'x'.repeat(4000) }).description.length, 3000, 'description clamped');
+eq(M.equipmentFilterFor('Full Gym'), [], 'full gym: no restriction');
+ok(M.equipmentFilterFor('Dumbbell Only').includes('Dumbbell') && !M.equipmentFilterFor('Dumbbell Only').includes('Barbell'), 'dumbbell only excludes barbell');
+ok(M.equipmentFilterFor('At Home').includes('Bodyweight'), 'at home has bodyweight');
+ok(M.programIssues(mk({ name: 'x'.repeat(51) })).some((s) => /50/.test(s)), 'name over 50 rejected');
+ok(M.programIssues(mk({ details: { ...M.DEFAULT_DETAILS, tagline: 'x'.repeat(161) } })).some((s) => /160/.test(s)), 'tagline over 160 rejected');
+ok(M.programIssues(mk({ details: { ...M.DEFAULT_DETAILS, description: 'x'.repeat(3001) } })).some((s) => /3000/.test(s)), 'description over 3000 rejected');
+eq(M.buildDefinition(mk({ details: { ...M.DEFAULT_DETAILS, tagline: 'Train. Evolve. Endure.' } })).goal, 'Train. Evolve. Endure.', 'tagline becomes goal');
+eq(M.buildDefinition(mk()).goal, 'Custom program', 'goal fallback');
+ok(M.FOCUS_OPTIONS.includes('Athletics') && M.FOCUS_OPTIONS.includes('Olympic Weightlifting'), 'focus options');
+
 console.log(`user programs: ${n} assertions passed`);

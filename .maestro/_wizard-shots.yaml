@@ -1,0 +1,27 @@
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-create"
+- assertVisible: "Program Details"
+- tapOn:
+    id: "details-tagline"
+- inputText: "Train. Evolve. Endure. Build strength, energy and resilience for a longer life."
+- hideKeyboard
+- takeScreenshot: wizard-page1
+- tapOn:
+    id: "details-next"
+- assertVisible: "Time per Workout"
+- tapOn:
+    id: "focus-Muscle"
+- tapOn:
+    id: "focus-Strength"
+- tapOn:
+    id: "equipment-Dumbbell-Only"
+- takeScreenshot: wizard-page2

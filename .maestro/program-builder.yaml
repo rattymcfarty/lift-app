@@ -10,15 +10,42 @@ appId: app.lift.mobile
     id: "tab-programs"
 - tapOn:
     id: "programs-create"
-- assertVisible:
-    id: "program-title"
-# rename the program
+# ---- page 1: name / tagline / description / thumbnail
+- assertVisible: "Program Details"
+- assertVisible: "Program Name"
 - tapOn:
-    id: "program-rename"
+    id: "details-name"
+- eraseText: 40
 - inputText: "My Test Program"
 - tapOn:
-    id: "program-name-input-save"
+    id: "details-tagline"
+- inputText: "Train. Evolve. Endure."
+- hideKeyboard
+- assertVisible: "15/50"
+- tapOn:
+    id: "details-next"
+# ---- page 2: time / focus / equipment / difficulty
+- assertVisible: "Time per Workout"
+- assertVisible: "Equipment"
+- tapOn:
+    id: "focus-Muscle"
+- tapOn:
+    id: "equipment-Dumbbell-Only"
+- tapOn:
+    id: "difficulty-Advanced"
+- tapOn:
+    id: "setup-minutes"
+- tapOn:
+    id: "minutes-sheet-45"
+- assertVisible: "45 mins"
+- tapOn:
+    id: "setup-next"
+# ---- builder
+- assertVisible:
+    id: "program-title"
 - assertVisible: "My Test Program"
+- assertVisible: "Train. Evolve. Endure."
+- assertVisible: ".*Dumbbell Only.*"
 # duration + schedule
 - tapOn:
     id: "program-weeks"
@@ -40,6 +67,8 @@ appId: app.lift.mobile
 # add an exercise to day 1 and set the sets target
 - tapOn:
     id: "day-add-exercise-1"
+# Dumbbell Only was chosen on page 2 -> the picker starts filtered to it
+- assertVisible: "Equipment \\(3\\)"
 - tapOn:
     id: "plan-picker-search"
 - inputText: "Goblet Squat"

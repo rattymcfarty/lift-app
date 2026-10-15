@@ -130,6 +130,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 6. Session log (newest first)
 
+- **2026-10-15 (details pages)** — Program Details wizard (`app/programs/[id]/{details,setup}.tsx`,
+  `src/components/programs/ProgramFormBits.tsx`): create → page 1 → page 2 → builder; edit via ✎.
+  Model: `UserProgram.details` (+ `normalizeDetails`, limits NAME 50 / TAGLINE 160 /
+  DESCRIPTION 3000). Thumbnails live in `Paths.document/program-thumbs` — NOT in backups.
+  `.maestro/_wizard-shots.yaml` captures both pages (screenshots land in ~/.maestro/tests).
+
 - **2026-10-15 (builder)** — User program builder (`app/programs/[id].tsx`,
   `src/programs/{userProgramDef,userPrograms}.ts`): record in AsyncStorage
   `lift:user-programs` (in backups, union-merged), each day a routine with kbId

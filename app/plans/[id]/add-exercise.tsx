@@ -62,13 +62,18 @@ function ExerciseRow({
 export default function AddPlanExerciseScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
-  const params = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; equip?: string }>();
   const planId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [query, setQuery] = useState('');
   // Muscle / equipment filters — same multi-select grids as the workout picker.
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  // Programs pass their equipment choice (e.g. "Dumbbell Only") as a starting
+  // filter; the user can clear or change it.
+  const initialEquip = (Array.isArray(params.equip) ? params.equip[0] : params.equip)
+    ?.split(',')
+    .filter(Boolean) ?? [];
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(initialEquip);
   const [muscleExpanded, setMuscleExpanded] = useState(false);
   const [equipmentExpanded, setEquipmentExpanded] = useState(false);
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;

@@ -6,3 +6,4 @@
 export * from './tokens';
 export * from './ThemeProvider';
 export * from './breakpoints';
+export { withAlpha } from './color';

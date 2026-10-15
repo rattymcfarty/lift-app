@@ -42,6 +42,7 @@ import {
   addDay,
   deleteUserProgram,
   duplicateDay,
+  detailsOf,
   getUserProgram,
   moveDay,
   removeDay,
@@ -54,6 +55,7 @@ import {
   MAX_DAYS_PER_WEEK,
   WEEK_CHOICES,
   daysPerWeekOf,
+  equipmentFilterFor,
   programIssues,
   type ProgramSchedule,
   type UserProgram,
@@ -194,7 +196,9 @@ export default function ProgramEditorScreen(): JSX.Element {
   const pillW = Math.round(54 * scale);
   const repsW = Math.round(68 * scale);
 
-  const openAdd = (rid: string): void => router.push(`/plans/${rid}/add-exercise` as Href);
+  const equip = equipmentFilterFor(detailsOf(program).equipment);
+  const openAdd = (rid: string): void =>
+    router.push(`/plans/${rid}/add-exercise${equip.length ? `?equip=${encodeURIComponent(equip.join(','))}` : ''}` as Href);
 
   const startProgram = async (): Promise<void> => {
     if (issues.length > 0) {
@@ -266,14 +270,27 @@ export default function ProgramEditorScreen(): JSX.Element {
           </Text>
           <Pressable
             testID="program-rename"
-            onPress={() => setRenamingProgram(true)}
+            onPress={() => router.push(`/programs/${program.id}/details` as Href)}
             accessibilityRole="button"
-            accessibilityLabel="Rename program"
+            accessibilityLabel="Edit program details"
             hitSlop={10}
           >
             <Text style={{ color: c.muted, fontSize: t.size.icon }}>✎</Text>
           </Pressable>
         </View>
+
+        {(() => {
+          const d = detailsOf(program);
+          const bits = [d.focus.join(', '), d.equipment, d.difficulty.join(', '), `${d.minutesPerWorkout} min`].filter(Boolean);
+          return (
+            <View style={{ gap: 2 }}>
+              {d.tagline ? <Text style={{ color: c.text, fontSize: t.size.body }}>{d.tagline}</Text> : null}
+              <Text style={{ color: c.faint, fontSize: t.size.meta }} numberOfLines={2}>
+                {bits.join(' · ')}
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* schedule + duration */}
         <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>

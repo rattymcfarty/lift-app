@@ -439,7 +439,7 @@ export default function TrainScreen(): JSX.Element {
                 glyph="✎"
                 testID="home-create-program"
                 onPress={() => {
-                  void createUserProgram().then((p) => router.push(`/programs/${p.id}` as never));
+                  void createUserProgram().then((p) => router.push(`/programs/${p.id}/details?flow=create` as never));
                 }}
               />
             </View>

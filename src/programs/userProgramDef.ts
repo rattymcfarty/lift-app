@@ -23,6 +23,91 @@ import {
 
 export type ProgramSchedule = 'repeating' | 'custom';
 
+/* ---------------- program details (the "Program Details" pages) ---------------- */
+
+export const FOCUS_OPTIONS = [
+  'Athletics',
+  'Muscle',
+  "Women's",
+  'Strength',
+  'Bodyweight Fitness',
+  'Olympic Weightlifting',
+  'Longevity',
+  'Mobility',
+] as const;
+export type ProgramFocus = (typeof FOCUS_OPTIONS)[number];
+
+export const EQUIPMENT_OPTIONS = ['Full Gym', 'Garage Gym', 'Dumbbell Only', 'At Home'] as const;
+export type ProgramEquipment = (typeof EQUIPMENT_OPTIONS)[number];
+
+export const DIFFICULTY_OPTIONS = ['Beginner', 'Intermediate', 'Advanced'] as const;
+export type ProgramDifficulty = (typeof DIFFICULTY_OPTIONS)[number];
+
+export const MINUTES_CHOICES = [20, 30, 45, 60, 75, 90, 120] as const;
+
+export const NAME_MAX = 50;
+export const TAGLINE_MAX = 160;
+export const DESCRIPTION_MAX = 3000;
+
+export interface ProgramDetails {
+  tagline: string;
+  description: string;
+  /** file:// URI of a copied-in image (device only), or null. */
+  thumbnailUri: string | null;
+  minutesPerWorkout: number;
+  focus: ProgramFocus[];
+  equipment: ProgramEquipment;
+  difficulty: ProgramDifficulty[];
+}
+
+export const DEFAULT_DETAILS: ProgramDetails = {
+  tagline: '',
+  description: '',
+  thumbnailUri: null,
+  minutesPerWorkout: 60,
+  focus: [],
+  equipment: 'Full Gym',
+  difficulty: ['Beginner', 'Intermediate'],
+};
+
+/** Fills gaps from older records and drops anything unknown. */
+export function normalizeDetails(d: Partial<ProgramDetails> | undefined | null): ProgramDetails {
+  const x = d ?? {};
+  return {
+    tagline: typeof x.tagline === 'string' ? x.tagline.slice(0, TAGLINE_MAX) : DEFAULT_DETAILS.tagline,
+    description: typeof x.description === 'string' ? x.description.slice(0, DESCRIPTION_MAX) : DEFAULT_DETAILS.description,
+    thumbnailUri: typeof x.thumbnailUri === 'string' ? x.thumbnailUri : null,
+    minutesPerWorkout:
+      typeof x.minutesPerWorkout === 'number' && x.minutesPerWorkout >= 10 && x.minutesPerWorkout <= 240
+        ? Math.round(x.minutesPerWorkout)
+        : DEFAULT_DETAILS.minutesPerWorkout,
+    focus: Array.isArray(x.focus) ? x.focus.filter((f): f is ProgramFocus => (FOCUS_OPTIONS as readonly string[]).includes(f)) : [],
+    equipment: (EQUIPMENT_OPTIONS as readonly string[]).includes(x.equipment as string)
+      ? (x.equipment as ProgramEquipment)
+      : DEFAULT_DETAILS.equipment,
+    difficulty: Array.isArray(x.difficulty)
+      ? x.difficulty.filter((f): f is ProgramDifficulty => (DIFFICULTY_OPTIONS as readonly string[]).includes(f))
+      : [...DEFAULT_DETAILS.difficulty],
+  };
+}
+
+/**
+ * Exercise-picker equipment filter implied by the program's equipment choice
+ * (taxonomy ids from src/kb/taxonomy.ts). Empty = no restriction (Full Gym).
+ */
+export function equipmentFilterFor(e: ProgramEquipment): string[] {
+  switch (e) {
+    case 'Dumbbell Only':
+      return ['Dumbbell', 'Kettlebell', 'Bodyweight'];
+    case 'At Home':
+      return ['Bodyweight', 'Dumbbell', 'Kettlebell', 'Other'];
+    case 'Garage Gym':
+      return ['Barbell', 'Dumbbell', 'Kettlebell', 'Bodyweight', 'Other', 'Safety Bar'];
+    default:
+      return [];
+  }
+}
+
 export interface UserProgram {
   id: string;
   name: string;
@@ -32,6 +117,8 @@ export interface UserProgram {
   weekDays: string[][];
   /** 1-based deload week (50% volume), or null for none. */
   deloadWeek: number | null;
+  /** Optional on records saved before the details pages existed. */
+  details?: ProgramDetails;
   createdAt: number;
   updatedAt: number;
 }
@@ -92,6 +179,10 @@ export function totalDays(p: Pick<UserProgram, 'weekDays' | 'schedule' | 'weeks'
 export function programIssues(p: UserProgram): string[] {
   const issues: string[] = [];
   if (p.name.trim() === '') issues.push('Give the program a name.');
+  if (p.name.length > NAME_MAX) issues.push(`Name is longer than ${NAME_MAX} characters.`);
+  const det = p.details;
+  if (det && det.tagline.length > TAGLINE_MAX) issues.push(`Tagline is longer than ${TAGLINE_MAX} characters.`);
+  if (det && det.description.length > DESCRIPTION_MAX) issues.push(`Description is longer than ${DESCRIPTION_MAX} characters.`);
   if (!Number.isInteger(p.weeks) || p.weeks < MIN_WEEKS || p.weeks > MAX_WEEKS) {
     issues.push(`Duration must be ${MIN_WEEKS}–${MAX_WEEKS} weeks.`);
   }
@@ -138,7 +229,7 @@ export function buildDefinition(p: UserProgram, dayNames?: ReadonlyMap<string, s
     schemaVersion: PROGRAM_DSL_VERSION,
     id: p.id,
     name: p.name.trim(),
-    goal: 'Custom program',
+    goal: p.details?.tagline.trim() || 'Custom program',
     weeks: p.weeks,
     daysPerWeek: daysPerWeekOf(p),
     phases,

@@ -11,6 +11,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { eq } from 'drizzle-orm';
+import { Directory, File, Paths } from 'expo-file-system';
 import { db } from '../db/client';
 import { newId } from '../db/id';
 import { routines } from '../db/schema';
@@ -19,7 +20,10 @@ import { duplicateRoutine } from '../data/routines';
 import { enrollProgram, listEnrollments, type EnrolledProgram } from './enrollments';
 import {
   buildDefinition,
+  DEFAULT_DETAILS,
   defaultDayName,
+  normalizeDetails,
+  type ProgramDetails,
   MAX_DAYS_PER_WEEK,
   MAX_WEEKS,
   MIN_WEEKS,
@@ -107,6 +111,7 @@ export async function createUserProgram(name = 'New Program'): Promise<UserProgr
     schedule: 'repeating',
     weekDays: [ids],
     deloadWeek: null,
+    details: { ...DEFAULT_DETAILS },
     createdAt: now,
     updatedAt: now,
   };
@@ -231,6 +236,14 @@ export async function deleteUserProgram(id: string): Promise<void> {
     throw new RangeError('You are currently following this program. Leave it first, then delete it.');
   }
   await dropRoutines(p.weekDays.flat());
+  const thumb = detailsOf(p).thumbnailUri;
+  if (thumb) {
+    try {
+      new File(thumb).delete();
+    } catch {
+      // already gone
+    }
+  }
   await writeAll((await listUserPrograms()).filter((x) => x.id !== id));
 }
 
@@ -249,3 +262,62 @@ export async function startUserProgram(p: UserProgram): Promise<EnrolledProgram>
 }
 
 export { templateWeekCount };
+
+
+/* ---------------- program details (name, tagline, thumbnail, focus, …) ---------------- */
+
+export function detailsOf(p: UserProgram): ProgramDetails {
+  return normalizeDetails(p.details);
+}
+
+/**
+ * Saves any subset of the details (and optionally the name). Changing the
+ * time-per-workout also updates every day plan's estimated duration so the
+ * rest of the app shows consistent numbers.
+ */
+export async function updateProgramDetails(
+  p: UserProgram,
+  patch: Partial<ProgramDetails> & { name?: string },
+): Promise<UserProgram> {
+  const { name, ...rest } = patch;
+  const before = detailsOf(p);
+  const details = normalizeDetails({ ...before, ...rest });
+  const next: UserProgram = { ...p, name: name !== undefined ? name.slice(0, 50) : p.name, details };
+  if (details.minutesPerWorkout !== before.minutesPerWorkout) {
+    await withWriteLock(async () => {
+      for (const rid of p.weekDays.flat()) {
+        await db.update(routines).set({ estimatedMinutes: details.minutesPerWorkout }).where(eq(routines.id, rid));
+      }
+    });
+  }
+  return save(next);
+}
+
+const THUMB_DIR = 'program-thumbs';
+
+/**
+ * Copies a picked image into the app's private document directory (so it
+ * survives the picker's cache being cleared) and records it. Pass null to
+ * remove. The image never leaves the device.
+ */
+export async function setProgramThumbnail(p: UserProgram, sourceUri: string | null): Promise<UserProgram> {
+  const old = detailsOf(p).thumbnailUri;
+  let uri: string | null = null;
+  if (sourceUri) {
+    const dir = new Directory(Paths.document, THUMB_DIR);
+    dir.create({ idempotent: true });
+    const ext = (sourceUri.split('?')[0].match(/\.([A-Za-z0-9]{2,5})$/)?.[1] ?? 'jpg').toLowerCase();
+    const dest = new File(dir, `${p.id}-${Date.now()}.${ext}`);
+    new File(sourceUri).copy(dest);
+    uri = dest.uri;
+  }
+  const next = await updateProgramDetails(p, { thumbnailUri: uri });
+  if (old && old !== uri) {
+    try {
+      new File(old).delete();
+    } catch {
+      // already gone
+    }
+  }
+  return next;
+}

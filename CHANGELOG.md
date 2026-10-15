@@ -25,6 +25,16 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Added (program details pages, 2026-10-15)
+- Create/edit flow with the multi-page "Program Details" layout: page 1 name
+  (50), tagline (160), description (3000), thumbnail; page 2 time per workout,
+  focus (multi), equipment (one), difficulty (multi); then the weeks/days
+  builder. Editing re-opens the same pages from the ✎ next to the title.
+- The choices are functional: equipment pre-filters the exercise picker while
+  building days; time per workout sets each day's estimated minutes; tagline
+  becomes the program goal; thumbnail is copied into app storage (device only,
+  not in backups).
+
 ### Added (program builder, 2026-10-15)
 - Build your own multi-week programs: name, duration (1–52 weeks), "Repeating
   weeks" or "Different weeks" (plan every week), up to 7 days per week, each day
