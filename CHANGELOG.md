@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased (addendum)
+
+- Program builder: deload-week control (half volume, marked ↓ on the week chip) and "Copy week N to…" (one week or all others).
+- Fix: removing/replacing program days left their `kb_id` held by soft-deleted routines (UNIQUE error on renumber).
+
 ## 0.1.0 — unreleased (closed-test candidate)
 
 ### Added

@@ -94,7 +94,13 @@ async function copyDay(sourceRoutineId: string, name?: string): Promise<string> 
 }
 
 async function dropRoutines(ids: readonly string[]): Promise<void> {
-  for (const id of ids) await softDeleteRoutine(id).catch(() => undefined);
+  for (const id of ids) {
+    // Release the kb_id (UNIQUE) so renumbered/replaced days can reuse it.
+    await withWriteLock(async () => {
+      await db.update(routines).set({ kbId: `dropped:${id}` }).where(eq(routines.id, id));
+    }).catch(() => undefined);
+    await softDeleteRoutine(id).catch(() => undefined);
+  }
 }
 
 /* ---------------- operations ---------------- */
@@ -125,6 +131,28 @@ export async function renameUserProgram(p: UserProgram, name: string): Promise<U
 
 export async function setDeloadWeek(p: UserProgram, week: number | null): Promise<UserProgram> {
   return save({ ...p, deloadWeek: week });
+}
+
+/**
+ * Copies every day of week `from` over each week in `targets` (custom
+ * schedules only). Target weeks' old days are removed; copies get fresh
+ * routines so later edits stay independent.
+ */
+export async function copyWeek(p: UserProgram, from: number, targets: readonly number[]): Promise<UserProgram> {
+  if (p.schedule !== 'custom') throw new RangeError('Copy week needs different weeks.');
+  const src = p.weekDays[from];
+  if (!src) throw new RangeError('That week does not exist.');
+  const weekDays = p.weekDays.map((d) => [...d]);
+  for (const to of new Set(targets)) {
+    if (to === from || to < 0 || to >= weekDays.length) continue;
+    await dropRoutines(weekDays[to]);
+    const copies: string[] = [];
+    for (const rid of src) copies.push(await copyDay(rid, (await getRoutine(rid))?.routine.name));
+    weekDays[to] = copies;
+  }
+  const next = { ...p, weekDays };
+  await applyKbIds(next);
+  return save(next);
 }
 
 /** Adds a day (new blank routine) to week `weekIdx` (0 for repeating). */

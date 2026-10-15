@@ -40,7 +40,9 @@ import { getParqGateStatus } from '../../src/programs/safety';
 import { ProgramError } from '../../src/programs/compile';
 import {
   addDay,
+  copyWeek,
   deleteUserProgram,
+  setDeloadWeek,
   duplicateDay,
   detailsOf,
   getUserProgram,
@@ -137,6 +139,8 @@ export default function ProgramEditorScreen(): JSX.Element {
   const [dayMenu, setDayMenu] = useState<DayMenu>(null);
   const [scheduleSheet, setScheduleSheet] = useState(false);
   const [weeksSheet, setWeeksSheet] = useState(false);
+  const [deloadSheet, setDeloadSheet] = useState(false);
+  const [copySheet, setCopySheet] = useState(false);
 
   const load = useCallback(async () => {
     if (!programId) return;
@@ -293,11 +297,12 @@ export default function ProgramEditorScreen(): JSX.Element {
         })()}
 
         {/* schedule + duration */}
-        <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
           {(
             [
               ['program-schedule', program.schedule === 'repeating' ? 'Repeating Weeks' : 'Different Weeks', () => setScheduleSheet(true)],
               ['program-weeks', `${program.weeks} Week${program.weeks === 1 ? '' : 's'}`, () => setWeeksSheet(true)],
+              ['program-deload', program.deloadWeek != null ? `Deload wk ${program.deloadWeek}` : 'No deload', () => setDeloadSheet(true)],
             ] as const
           ).map(([id, label, onPress]) => (
             <Pressable
@@ -348,12 +353,24 @@ export default function ProgramEditorScreen(): JSX.Element {
                   }}
                 >
                   <Text style={{ color: on ? c.text : c.muted, fontSize: t.size.meta + 1, fontWeight: on ? t.weight.bold : t.weight.regular }}>
-                    Week {i + 1}
+                    Week {i + 1}{program.deloadWeek === i + 1 ? ' ↓' : ''}
                   </Text>
                 </Pressable>
               );
             })}
           </ScrollView>
+        ) : null}
+        {program.schedule === 'custom' && program.weekDays.length > 1 ? (
+          <Pressable
+            testID="program-copy-week"
+            onPress={() => setCopySheet(true)}
+            accessibilityRole="button"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Text style={{ color: c.accent, fontSize: t.size.body, fontWeight: t.weight.semibold }}>
+              Copy week {weekIdx + 1} to…
+            </Text>
+          </Pressable>
         ) : null}
 
         {/* days */}
@@ -519,6 +536,39 @@ export default function ProgramEditorScreen(): JSX.Element {
           } else {
             void run(() => setWeeks(program, w));
           }
+        }}
+      />
+      <OptionSheet<number>
+        visible={deloadSheet}
+        title="Deload week (half volume)"
+        testID="deload-sheet"
+        selected={program.deloadWeek ?? 0}
+        options={[
+          { value: 0, label: 'No deload' },
+          ...Array.from({ length: program.weeks }, (_, i) => ({
+            value: i + 1,
+            label: `Week ${i + 1}`,
+            hint: i + 1 === program.weeks ? 'Final week' : undefined,
+          })),
+        ]}
+        onClose={() => setDeloadSheet(false)}
+        onSelect={(w) => void run(() => setDeloadWeek(program, w === 0 ? null : w))}
+      />
+      <OptionSheet<number>
+        visible={copySheet}
+        title={`Copy week ${weekIdx + 1} to`}
+        testID="copy-week-sheet"
+        options={[
+          { value: -1, label: 'All other weeks', destructive: true, hint: 'Replaces their days' },
+          ...program.weekDays.map((_, i) => ({ value: i, label: `Week ${i + 1}`, disabled: i === weekIdx })),
+        ]}
+        onClose={() => setCopySheet(false)}
+        onSelect={(to) => {
+          const targets = to === -1 ? program.weekDays.map((_, i) => i).filter((i) => i !== weekIdx) : [to];
+          Alert.alert('Replace week?', `${targets.length === 1 ? `Week ${targets[0] + 1}` : 'All other weeks'} will be replaced with a copy of week ${weekIdx + 1}.`, [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Copy', style: 'destructive', onPress: () => void run(() => copyWeek(program, weekIdx, targets)) },
+          ]);
         }}
       />
       <OptionSheet<string>

@@ -165,3 +165,6 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   tabs redesign; typography gate; local signed builds; recovery tooling + this file.
 - **2026-10-13** — P8 catalogue and app batch pushed; Claude Code took over from the
   earlier fallback toolchain.
+
+### Session addendum — deload + copy week
+Program builder gained deload control and Copy week (`copyWeek` in `src/programs/userPrograms.ts`); `dropRoutines` now releases `kb_id`. `.maestro/program-builder.yaml` covers both and passes on the release APK. Remaining ideas: multi-select in plan picker, thumbnails in backups, exercise-detail polish.

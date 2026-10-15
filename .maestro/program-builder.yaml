@@ -61,9 +61,46 @@ appId: app.lift.mobile
 - assertVisible: "Different Weeks"
 # days
 - assertVisible: "Day 3 .*"
+- scrollUntilVisible:
+    element:
+      id: "program-add-day"
 - tapOn:
     id: "program-add-day"
 - assertVisible: "Day 4 .*"
+# deload week + copy week
+- scrollUntilVisible:
+    element:
+      id: "program-deload"
+    direction: UP
+- tapOn:
+    id: "program-deload"
+- tapOn:
+    id: "deload-sheet-4"
+- assertVisible: "Deload wk 4"
+- assertVisible: "Week 4 ↓"
+- tapOn:
+    id: "program-copy-week"
+- tapOn:
+    id: "copy-week-sheet-1"
+- assertVisible: "Replace week\\?"
+- tapOn: "Copy"
+- scrollUntilVisible:
+    element:
+      id: "program-week-2"
+    direction: UP
+- tapOn:
+    id: "program-week-2"
+- scrollUntilVisible:
+    element: "Day 4 .*"
+- scrollUntilVisible:
+    element:
+      id: "program-week-1"
+    direction: UP
+- tapOn:
+    id: "program-week-1"
+- scrollUntilVisible:
+    element:
+      id: "day-add-exercise-1"
 # add an exercise to day 1 and set the sets target
 - tapOn:
     id: "day-add-exercise-1"
