@@ -17,7 +17,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
-const kbRoot = resolve(process.argv[2] ?? join(root, '..', 'p2-kb-content'));
+const kbRoot = resolve(process.argv[2] ?? join(root, '..', 'lift-kb'));
 
 const version = JSON.parse(
   (await import('node:fs')).readFileSync(join(kbRoot, 'kb-version.json'), 'utf8'),
