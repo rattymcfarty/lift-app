@@ -178,7 +178,10 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
   // Narrow windows (iOS Display Zoom = 320pt) get a smaller hero title;
   // adjustsFontSizeToFit shrinks further for long titles.
   const { width } = useWindowDimensions();
-  const narrow = width < 360;
+  // Continuous, width-proportional title size (Display Zoom, small phones,
+  // large phones all land on a sensible size; no abrupt breakpoint).
+  const titleScale = Math.min(1.05, Math.max(0.86, width / 390));
+  const narrow = false;
   return (
     <View
       style={[
@@ -209,7 +212,7 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
           <Text
             style={{
               color: theme.colors.text,
-              fontSize: narrow || compact ? t.size.screenCompact : t.size.screen,
+              fontSize: Math.round((narrow || compact ? t.size.screenCompact : t.size.screen) * titleScale * 2) / 2,
               fontWeight: t.weight.bold,
             }}
             numberOfLines={2}

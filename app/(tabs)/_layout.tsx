@@ -30,7 +30,7 @@ export default function TabsLayout(): JSX.Element {
   const t = theme.typography;
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const iconSize = width < 360 ? 22 : 26;
+  const iconSize = Math.round(26 * Math.min(1.1, Math.max(0.84, width / 390)));
   const labelSize = t.size.caption;
 
   return (

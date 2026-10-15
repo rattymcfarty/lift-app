@@ -89,7 +89,10 @@ settings, reminders, theme) lives in AsyncStorage and rides in the backup's
 - **UI consistency is enforced:** every font size/weight comes from
   `src/theme/tokens.ts` (`npm run test:ui` fails on raw `fontSize`/`fontWeight`).
   Text scaling is capped (1.15× app-wide, 1.1× in the set table). Set-table
-  columns come from `src/components/workout/setGrid.ts` — header and rows share it.
+  columns are **proportional** (`GRID_FLEX` in `src/components/workout/setGrid.ts`; header
+  and rows share it) and sizes derive from window width via `gridMetrics` — never add
+  fixed-point widths to the table. Check any layout change at 288/320/411/514 dp
+  (`adb shell wm size`/`density`; see `.maestro/_zoom-fixture.yaml` + `_resume.yaml`).
 - Colors: gold `accent` = primary actions/active tab; orange `highlight` = set
   numbers, active-card border, stats. Don't invent new brand colors.
 - **This repo is PUBLIC.** Read `docs/ops/SECRETS_POLICY.md`. A pre-commit hook scans

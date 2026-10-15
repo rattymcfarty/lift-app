@@ -43,7 +43,7 @@ import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
 import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
 import { FONT_WEIGHT } from '../../theme/tokens';
-import { SET_GRID } from './setGrid';
+import { GRID_FLEX, GRID_MAX_FONT_SCALE, gridMetrics } from './setGrid';
 import { SwipeableRow } from '../ui/SwipeableRow';
 
 interface PendingSetState {
@@ -90,7 +90,7 @@ export function ExerciseCard({
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
-  const hidePrev = windowWidth < SET_GRID.hidePrevBelow;
+  const gm = gridMetrics(windowWidth);
   const t = theme.typography;
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
@@ -465,17 +465,32 @@ export function ExerciseCard({
       </View>
 
       <View style={{ gap: theme.spacing.xs }}>
-        {/* Column headers — same widths as SetRow's cells (setGrid.ts) */}
+        {/* Column headers — the same proportions as every SetRow (setGrid.ts) */}
         {hasAnyRows && (
-          <View style={[styles.headerRow, styles.columnHeaders, { borderBottomColor: theme.colors.border, gap: SET_GRID.gap }]}>
-            <Text style={[styles.columnHeader, { width: SET_GRID.set, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Set</Text>
-            {hidePrev ? <View style={{ flex: 1 }} /> : (
-              <Text style={[styles.columnHeader, { flex: 1, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Prev</Text>
-            )}
-            <Text style={[styles.columnHeader, { width: SET_GRID.weight, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>{displayUnit === 'kg' ? 'Kg' : 'Lb'}</Text>
-            <Text style={[styles.columnHeader, { width: SET_GRID.reps, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Reps</Text>
-            <Text style={[styles.columnHeader, { width: SET_GRID.rpe, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>RPE</Text>
-            <View style={{ width: SET_GRID.action + SET_GRID.remove + SET_GRID.gap }} />
+          <View style={[styles.headerRow, styles.columnHeaders, { borderBottomColor: theme.colors.border, alignItems: 'center' }]}>
+            {(
+              [
+                ['Set', GRID_FLEX.set],
+                ['Previous', GRID_FLEX.prev],
+                [displayUnit === 'kg' ? 'Kg' : 'Lb', GRID_FLEX.weight],
+                ['Reps', GRID_FLEX.reps],
+                ['RPE', GRID_FLEX.rpe],
+              ] as [string, number][]
+            ).map(([label, flex]) => (
+              <Text
+                key={label}
+                style={[styles.columnHeader, { flex, minWidth: 0, color: theme.colors.muted, fontSize: gm.fontHeader }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
+              >
+                {label}
+              </Text>
+            ))}
+            <Text style={[styles.columnHeader, { flex: GRID_FLEX.check + GRID_FLEX.remove, color: theme.colors.muted, fontSize: gm.fontHeader }]} maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}>
+              ✓
+            </Text>
           </View>
         )}
 
@@ -586,8 +601,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   columnHeader: {
-    fontWeight: FONT_WEIGHT.semibold,
-    textTransform: 'uppercase',
+    fontWeight: FONT_WEIGHT.medium,
     textAlign: 'center',
   },
   footerRow: {

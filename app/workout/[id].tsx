@@ -32,6 +32,7 @@ import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { ExerciseCard } from '../../src/components/workout/ExerciseCard';
 import { TaxonomyIcon } from '../../src/components/icons';
+import { ToolIcon } from '../../src/components/icons/ToolIcons';
 import { RestTimer } from '../../src/components/workout/RestTimer';
 import { advanceEnrollmentForWorkout } from '../../src/programs/sessions';
 import { invalidateConsistencyCache } from '../../src/stats/queries';
@@ -401,6 +402,9 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
   const hours = Math.floor(elapsedMs / 3600000);
   const minutes = Math.floor((elapsedMs % 3600000) / 60000);
   const seconds = Math.floor((elapsedMs % 60000) / 1000);
+  const { width: winW } = useWindowDimensions();
+  const toolScale = Math.min(1.1, Math.max(0.84, winW / 390));
+  const toolIcon = Math.round(22 * toolScale);
   const chipStyle = {
     backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.md,
@@ -418,16 +422,35 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
   return (
     <View style={{ paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, gap: theme.spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: theme.spacing.sm }}>
-        <View style={{ flexDirection: 'row', gap: theme.spacing.xs, alignItems: 'center', flexShrink: 1 }}>
-          <Pressable testID="topbar-timer" onPress={onTimer} accessibilityRole="button" accessibilityLabel="Rest timer" style={chipStyle}>
-            <Text style={chipText} maxFontSizeMultiplier={1.1}>Timer</Text>
-          </Pressable>
-          <Pressable testID="topbar-plate" onPress={onPlate} accessibilityRole="button" accessibilityLabel="Plate calculator" style={chipStyle}>
-            <Text style={chipText} maxFontSizeMultiplier={1.1}>Plates</Text>
-          </Pressable>
-          <Pressable testID="topbar-muscle" onPress={onMuscle} accessibilityRole="button" accessibilityLabel="Muscle view" style={[chipStyle, { paddingHorizontal: theme.spacing.xs }]}>
-            <TaxonomyIcon kind="muscle" id="Full-Body" size={20} tiled={false} />
-          </Pressable>
+        <View style={{ flexDirection: 'row', flex: 1, minWidth: 0, justifyContent: 'space-around', alignItems: 'flex-end' }}>
+          {(
+            [
+              { id: 'topbar-timer', label: 'Timer', a11y: 'Rest timer', onPress: onTimer, icon: <ToolIcon name="timer" color={theme.colors.text} size={toolIcon} /> },
+              { id: 'topbar-plate', label: 'Plates', a11y: 'Plate calculator', onPress: onPlate, icon: <ToolIcon name="plates" color={theme.colors.text} size={toolIcon} /> },
+              { id: 'topbar-muscle', label: 'Muscles', a11y: 'Muscle view', onPress: onMuscle, icon: <TaxonomyIcon kind="muscle" id="Full-Body" size={toolIcon + 2} tiled={false} /> },
+            ] as const
+          ).map((b) => (
+            <Pressable
+              key={b.id}
+              testID={b.id}
+              onPress={b.onPress}
+              accessibilityRole="button"
+              accessibilityLabel={b.a11y}
+              hitSlop={6}
+              style={{ alignItems: 'center', gap: 2, minWidth: 0, flexShrink: 1, paddingHorizontal: 2 }}
+            >
+              {b.icon}
+              <Text
+                style={{ color: theme.colors.muted, fontSize: Math.round(t.size.caption * toolScale * 2) / 2, fontWeight: t.weight.medium }}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                maxFontSizeMultiplier={1.1}
+              >
+                {b.label}
+              </Text>
+            </Pressable>
+          ))}
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>

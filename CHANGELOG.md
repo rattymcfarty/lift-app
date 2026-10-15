@@ -25,6 +25,14 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Changed (proportional layout, 2026-10-15)
+- Set table rebuilt on proportional columns (they always total 100% of the
+  row), a merged kg | reps | RPE input pill, hairline row separators and sizes
+  derived from window width — identical structure at any iOS Display Zoom or
+  phone width (verified from ~288 dp to ~514 dp and at 1.3x text).
+- Workout toolbar: icon-over-label buttons; header titles and tab icons scale
+  continuously with width instead of a single breakpoint.
+
 ### Changed (interaction polish, 2026-10-15)
 - Swipe LEFT to remove, swipe RIGHT to add: a set row adds a pre-filled set, an
   exercise card opens Add exercise, a plan duplicates, a plan exercise row adds
