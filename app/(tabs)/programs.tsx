@@ -24,7 +24,9 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { listRoutinesWithStats, type RoutineListItem } from '../../src/data/routines';
+import { duplicateRoutine, listRoutinesWithStats, type RoutineListItem } from '../../src/data/routines';
+import { softDeleteRoutine } from '../../src/data/repositories';
+import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { useTheme } from '../../src/theme';
 import { Button, Card, EmptyState } from '../../src/components/workout/ui';
 import { SegmentedTitle } from '../../src/components/nav/SegmentedTitle';
@@ -243,7 +245,31 @@ export default function ProgramsScreen(): JSX.Element {
               </Text>
             </View>
           }
-          renderItem={({ item }) => <PlanCard item={item} />}
+          renderItem={({ item }) => (
+            <SwipeableRow
+              backgroundColor={c.background}
+              rightLabel="+ Duplicate"
+              onSwipeRight={() => {
+                void duplicateRoutine(item.routine.id)
+                  .then(() => load())
+                  .catch(() => Alert.alert('Could not duplicate', 'Try again.'));
+              }}
+              confirm={{
+                title: 'Delete plan?',
+                message: `"${item.routine.name}" will be removed from your library. Logged workouts are kept.`,
+              }}
+              onDelete={async () => {
+                try {
+                  await softDeleteRoutine(item.routine.id);
+                  await load();
+                } catch {
+                  Alert.alert('Could not delete the plan', 'Try again.');
+                }
+              }}
+            >
+              <PlanCard item={item} />
+            </SwipeableRow>
+          )}
           ListEmptyComponent={
             <EmptyState
               message="No plans yet."

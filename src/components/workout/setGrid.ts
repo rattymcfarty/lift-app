@@ -7,14 +7,14 @@
  * line.
  */
 export const SET_GRID = {
-  set: 24,
+  set: 28,
   weight: 58,
   reps: 50,
   rpe: 42,
   /** The log circle / logged check. */
   action: 30,
   /** The delete / cancel ×. */
-  remove: 26,
+  remove: 28,
   gap: 6,
   /** Below this window width the "Target" (previous) column is dropped. */
   hidePrevBelow: 350,

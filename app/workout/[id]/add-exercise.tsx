@@ -34,6 +34,7 @@ import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilt
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { RecentExercises } from '../../../src/components/workout/RecentExercises';
+import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 import { ComposerTaxonomyPicker } from '../../../src/components/workout/ComposerTaxonomyPicker';
 import { displayName } from '../../../src/kb/taxonomy';
 
@@ -376,6 +377,7 @@ export default function AddExerciseScreen(): JSX.Element {
       >
       <ScreenHeader
         title="Add exercise"
+        compact
         onBack={() => router.back()}
         backGlyph="✕"
         right={
@@ -474,56 +476,16 @@ export default function AddExerciseScreen(): JSX.Element {
           data={results}
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => {
-            const selected = selectedIds.has(item.id);
-            return (
-              <Pressable
-                onPress={() => toggleRow(item.id)}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                testID={`add-exercise-row-${item.id}`}
-                style={({ pressed }) => [
-                  styles.row,
-                  {
-                    borderBottomColor: theme.colors.border,
-                    paddingVertical: theme.spacing.sm,
-                    opacity: pressed ? 0.7 : 1,
-                    backgroundColor: selected ? theme.colors.surfaceMuted : 'transparent',
-                  },
-                ]}
-              >
-                <View style={styles.rowText}>
-                  <Text
-                    style={{
-                      color: theme.colors.text,
-                      fontSize: t.size.row,
-                      fontWeight: t.weight.medium,
-                    }}
-                    numberOfLines={2}
-                  >
-                    {displayName(item)}
-                  </Text>
-                  <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
-                    {item.category}
-                    {item.isCustom ? ' · custom' : ''}
-                  </Text>
-                </View>
-                <Pressable
-                  onPress={() => router.push(`/exercises/${item.id}`)}
-                  testID={`exercise-info-${item.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`About ${displayName(item)}`}
-                  hitSlop={8}
-                  style={{ padding: 4 }}
-                >
-                  <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>ⓘ</Text>
-                </Pressable>
-                <Text style={{ color: theme.colors.muted, fontSize: t.size.body }}>
-                  {selected ? '✓' : '+'}
-                </Text>
-              </Pressable>
-            );
-          }}
+          renderItem={({ item }) => (
+            <ExercisePickRow
+              exercise={item}
+              mode="select"
+              selected={selectedIds.has(item.id)}
+              onPress={() => toggleRow(item.id)}
+              testID={`add-exercise-row-${item.id}`}
+              infoTestID={`exercise-info-${item.id}`}
+            />
+          )}
           ListEmptyComponent={
             searching ? null : (
               <EmptyState
@@ -621,23 +583,43 @@ export default function AddExerciseScreen(): JSX.Element {
           }
         />
 
-        <View style={[styles.bottomBar, { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, gap: theme.spacing.sm }]}>
-          <Button
-            title="Add as Superset"
-            variant="secondary"
-            disabled={selectedIds.size < 2}
-            busy={addingRef.current}
-            onPress={() => void handleAddAsSuperset()}
-            testID="picker-add-superset"
-          />
-          <Button
-            title="Add Exercises"
-            variant="primary"
-            disabled={selectedIds.size === 0}
-            busy={addingRef.current}
-            onPress={() => void handleAddExercises()}
-            testID="picker-add-exercises"
-          />
+        <View
+          style={[
+            styles.bottomBar,
+            {
+              paddingHorizontal: theme.spacing.md,
+              paddingVertical: theme.spacing.sm,
+              gap: theme.spacing.sm,
+              borderTopColor: theme.colors.border,
+              borderTopWidth: 1,
+              backgroundColor: theme.colors.background,
+            },
+          ]}
+        >
+          <View style={{ flex: 1 }}>
+            <Button
+              title="As superset"
+              variant="secondary"
+              disabled={selectedIds.size < 2}
+              busy={addingRef.current}
+              onPress={() => void handleAddAsSuperset()}
+              testID="picker-add-superset"
+            />
+          </View>
+          <View style={{ flex: 1.4 }}>
+            <Button
+              title={
+                selectedIds.size === 0
+                  ? 'Add exercises'
+                  : `Add ${selectedIds.size} exercise${selectedIds.size === 1 ? '' : 's'}`
+              }
+              variant="primary"
+              disabled={selectedIds.size === 0}
+              busy={addingRef.current}
+              onPress={() => void handleAddExercises()}
+              testID="picker-add-exercises"
+            />
+          </View>
         </View>
         </View>
       </KeyboardAvoidingView>
@@ -667,7 +649,6 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
   },
 });

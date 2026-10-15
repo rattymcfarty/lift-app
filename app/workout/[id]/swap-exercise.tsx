@@ -29,6 +29,7 @@ import { Button, ScreenHeader, EmptyState } from '../../../src/components/workou
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
+import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 import { displayName } from '../../../src/kb/taxonomy';
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -270,42 +271,14 @@ export default function SwapExerciseScreen(): JSX.Element {
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
-            <Pressable
+            <ExercisePickRow
+              exercise={item}
+              mode="select"
+              selected={selectedId === item.id}
               onPress={() => setSelectedId(item.id)}
-              accessibilityRole="button"
               testID={`swap-row-${item.id}`}
-              style={({ pressed }) => [
-                styles.row,
-                {
-                  borderBottomColor: theme.colors.border,
-                  paddingVertical: theme.spacing.sm,
-                  opacity: pressed ? 0.7 : 1,
-                  backgroundColor: selectedId === item.id ? theme.colors.surfaceMuted : 'transparent',
-                },
-              ]}
-            >
-              <View style={styles.rowText}>
-                <Text style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }} numberOfLines={2}>
-                  {displayName(item)}
-                </Text>
-                <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }} numberOfLines={2}>
-                  {decodeStringArray(item.primaryMuscles).join(', ')}
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => router.push(`/exercises/${item.id}`)}
-                testID={`exercise-info-${item.id}`}
-                accessibilityRole="button"
-                accessibilityLabel={`About ${displayName(item)}`}
-                hitSlop={8}
-                style={{ padding: 4 }}
-              >
-                <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>ⓘ</Text>
-              </Pressable>
-              <Text style={{ color: theme.colors.muted, fontSize: t.size.body }}>
-                {selectedId === item.id ? '✓' : '○'}
-              </Text>
-            </Pressable>
+              infoTestID={`exercise-info-${item.id}`}
+            />
           )}
           ListEmptyComponent={
             searching ? null : (

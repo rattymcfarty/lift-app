@@ -18,6 +18,8 @@ import {
   type WorkoutHistoryRow,
 } from '../../data/history';
 import { useTheme } from '../../theme';
+import { softDeleteWorkout } from '../../data/repositories';
+import { SwipeableRow } from '../ui/SwipeableRow';
 import {
   formatDuration,
   formatWorkoutDay,
@@ -119,7 +121,21 @@ export function HistoryList(): JSX.Element {
           data={rows}
           keyExtractor={(r) => r.workout.id}
           contentContainerStyle={{ paddingHorizontal: theme.spacing.md }}
-          renderItem={({ item }) => <HistoryRow row={item} />}
+          renderItem={({ item }) => (
+            <SwipeableRow
+              backgroundColor={theme.colors.background}
+              confirm={{
+                title: 'Delete workout?',
+                message: `"${item.workout.name}" and its sets will be removed. Personal records from it are removed too.`,
+              }}
+              onDelete={async () => {
+                await softDeleteWorkout(item.workout.id);
+                setRows((prev) => prev.filter((r) => r.workout.id !== item.workout.id));
+              }}
+            >
+              <HistoryRow row={item} />
+            </SwipeableRow>
+          )}
           ListEmptyComponent={
             <EmptyState
               message="No workouts yet."

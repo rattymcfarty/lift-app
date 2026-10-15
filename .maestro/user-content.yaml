@@ -7,6 +7,8 @@ appId: app.lift.mobile
 - runFlow: _skip-onboarding.yaml
 
 # --- Create a custom exercise from the Exercises tab ---
+- assertVisible:
+    id: "home-start-workout"
 - tapOn:
     id: "tab-exercises"
 - tapOn:
@@ -76,3 +78,17 @@ appId: app.lift.mobile
 - assertVisible:
     id: "set-reps-2"
     text: "8"
+
+# --- Swipe RIGHT on a logged set adds a set (pre-filled), swipe LEFT removes ---
+- swipe:
+    from:
+      id: "logged-set-1"
+    direction: RIGHT
+- assertVisible:
+    id: "set-reps-2"
+- swipe:
+    from:
+      id: "logged-set-1"
+    direction: LEFT
+- assertNotVisible:
+    id: "logged-set-1"

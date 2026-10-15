@@ -39,6 +39,7 @@ import { parseUserInt, parseUserNumber } from './format';
 import { Button, NumberInput } from './ui';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { SET_GRID } from './setGrid';
+import { SwipeableRow } from '../ui/SwipeableRow';
 
 export interface SetInputValues {
   reps?: number;
@@ -55,6 +56,8 @@ interface LoggedSetRowProps {
   displayUnit: 'kg' | 'lb';
   previousText: string;
   onDelete: () => void;
+  /** Swipe right: add a set pre-filled from this one (values in the display unit). */
+  onAddSet?: (values: { reps: string; weightKg: string; rpe: string }) => void;
   // Not used in logged mode
   initial?: never;
   isWarmup?: never;
@@ -77,6 +80,8 @@ interface PendingSetRowProps {
   error: string | null;
   onLog: (values: SetInputValues) => void;
   onCancel: () => void;
+  /** Swipe right: add a set pre-filled from this row's current values. */
+  onAddSet?: (values: { reps: string; weightKg: string; rpe: string }) => void;
   /** Live edits, so the parent can carry them to the next added set. */
   onValuesChange?: (values: { reps: string; weightKg: string; rpe: string }) => void;
   // Not used in pending mode
@@ -142,6 +147,44 @@ export function SetRow(props: SetRowProps): JSX.Element {
 
 type ThemeT = ReturnType<typeof useTheme>['theme'];
 
+/** Round, aligned remove button used at the end of every set row. */
+function RemoveButton({
+  onPress,
+  label,
+  theme,
+  testID,
+}: {
+  onPress: () => void;
+  label: string;
+  theme: ThemeT;
+  testID?: string;
+}): JSX.Element {
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={8}
+      style={({ pressed }) => ({
+        width: SET_GRID.remove,
+        height: SET_GRID.remove,
+        borderRadius: SET_GRID.remove / 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: pressed ? theme.colors.danger : theme.colors.surfaceMuted,
+      })}
+    >
+      <Text
+        style={{ color: theme.colors.muted, fontSize: theme.typography.size.body, lineHeight: theme.typography.size.body + 2, fontWeight: FONT_WEIGHT.medium }}
+        maxFontSizeMultiplier={SET_GRID.maxFontScale}
+      >
+        ×
+      </Text>
+    </Pressable>
+  );
+}
+
 function WarmupBadge({ theme, setNumber }: { theme: ThemeT; setNumber: number }): JSX.Element {
   return (
     <View style={[styles.warmupBadge, { backgroundColor: theme.colors.surfaceMuted }]} testID={`set-warmup-badge-${setNumber}`}>
@@ -168,6 +211,12 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
     Animated.spring(pop, { toValue: 1, friction: 7, tension: 120, useNativeDriver: true }).start();
   }, [pop]);
   return (
+    <SwipeableRow
+      backgroundColor={theme.colors.surface}
+      onDelete={onDelete}
+      rightLabel="+ Add set"
+      onSwipeRight={() => props.onAddSet?.({ reps: repsDisplay, weightKg: weightDisplay, rpe: loggedSet.rpe != null ? String(loggedSet.rpe) : '' })}
+    >
     <Animated.View
       testID={`logged-set-${loggedSet.setNumber}`}
       style={[
@@ -195,17 +244,14 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; hidePrev: boolean
           <Text style={{ color: theme.colors.highlightText, fontSize: t.size.meta, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>✓</Text>
         )}
       </View>
-      <Pressable
+      <RemoveButton
         testID={`delete-set-${loggedSet.setNumber}`}
         onPress={onDelete}
-        accessibilityRole="button"
-        accessibilityLabel={`Delete set ${loggedSet.setNumber}`}
-        hitSlop={10}
-        style={styles.removeButton}
-      >
-        <Text style={{ color: theme.colors.faint, fontSize: t.size.body }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>×</Text>
-      </Pressable>
+        label={`Delete set ${loggedSet.setNumber}`}
+        theme={theme}
+      />
     </Animated.View>
+    </SwipeableRow>
   );
 }
 
@@ -246,6 +292,12 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; hidePrev: boole
 
   const shownError = localError ?? error;
   return (
+    <SwipeableRow
+      backgroundColor={theme.colors.surface}
+      onDelete={onCancel}
+      rightLabel="+ Add set"
+      onSwipeRight={() => props.onAddSet?.({ reps, weightKg, rpe })}
+    >
     <View style={{ gap: theme.spacing.xs }}>
       <View style={[styles.row, { gap: SET_GRID.gap }]}>
         <View style={{ width: SET_GRID.set, alignItems: 'center' }}>
@@ -298,20 +350,13 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; hidePrev: boole
             {busy ? <ActivityIndicator color={theme.colors.highlight} size="small" /> : null}
           </Pressable>
         </View>
-        <Pressable
-          onPress={onCancel}
-          accessibilityRole="button"
-          accessibilityLabel="Cancel"
-          hitSlop={10}
-          style={styles.removeButton}
-        >
-          <Text style={{ color: theme.colors.faint, fontSize: t.size.body }} maxFontSizeMultiplier={SET_GRID.maxFontScale}>×</Text>
-        </Pressable>
+        <RemoveButton onPress={onCancel} label="Remove set" theme={theme} />
       </View>
       {shownError ? (
         <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>{shownError}</Text>
       ) : null}
     </View>
+    </SwipeableRow>
   );
 }
 

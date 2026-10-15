@@ -36,7 +36,7 @@ import { decodeStringArray } from '../../db/schema';
 import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
 import { getSettings } from '../../data/settings';
-import { formatWeight } from '../../lib/units';
+import { formatWeight, kgToLb } from '../../lib/units';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
@@ -44,6 +44,7 @@ import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { SET_GRID } from './setGrid';
+import { SwipeableRow } from '../ui/SwipeableRow';
 
 interface PendingSetState {
   /**
@@ -186,6 +187,12 @@ export function ExerciseCard({
       : undefined;
   const source = lastLogged ?? lastPrevSet;
   const prefill = (v: number | null | undefined): string => (v == null ? '' : String(v));
+  // Weights are stored in kg; the input is in the user's display unit.
+  const prefillWeight = (kg: number | null | undefined): string => {
+    if (kg == null) return '';
+    if (displayUnit === 'lb') return String(Math.round(kgToLb(kg) * 10) / 10);
+    return String(kg);
+  };
   const hasValue = (v: { reps: string; weightKg: string; rpe: string } | undefined): boolean =>
     !!v && (v.reps !== '' || v.weightKg !== '' || v.rpe !== '');
   const buildInitial = () => {
@@ -199,7 +206,7 @@ export function ExerciseCard({
     }
     return {
       reps: prefill(source?.reps),
-      weightKg: prefill(source?.weightKg),
+      weightKg: prefillWeight(source?.weightKg),
       rpe: prefill(source?.rpe),
     };
   };
@@ -297,17 +304,20 @@ export function ExerciseCard({
   // Handle "Add Set" button press — append a pending input row. Adding
   // never blocks on another pending row and never requires fields: fill
   // reps/weight per row whenever, log rows in any order.
-  const handleAddSet = async (isWarmup = false): Promise<void> => {
+  const handleAddSet = async (
+    isWarmup = false,
+    seed?: { reps: string; weightKg: string; rpe: string },
+  ): Promise<void> => {
     // Reserve BEFORE any await so rapid taps get distinct set numbers.
     const setNumber = reserveSetNumber();
     const key = `pending-${workoutExercise.id}-${++pendingKeyRef.current}`;
     const hadPendings = pendingsRef.current.length > 0;
-    let initial = buildInitial();
+    let initial = seed ?? buildInitial();
     // Progression suggestion seeds the first pending row only, once per
     // empty-to-nonempty transition. The flag is set synchronously here
     // so a second rapid tap doesn't fetch a duplicate suggestion; it
     // resets when pendings empty out (see removePending).
-    const shouldSeed = !hadPendings && !progressionSeededRef.current;
+    const shouldSeed = !seed && !hadPendings && !progressionSeededRef.current;
     if (shouldSeed) {
       progressionSeededRef.current = true;
       const available = await isProgressionAvailable(workoutId, workoutExercise.exerciseId).catch(() => false);
@@ -317,7 +327,7 @@ export function ExerciseCard({
         if (suggestion) {
           initial = {
             reps: prefill(suggestion.reps),
-            weightKg: prefill(suggestion.weightKg),
+            weightKg: prefillWeight(suggestion.weightKg),
             rpe: '',
           };
         }
@@ -386,6 +396,25 @@ export function ExerciseCard({
   const isActive = pendings.length > 0;
 
   return (
+    <SwipeableRow
+      backgroundColor={theme.colors.background}
+      borderRadius={theme.radius.lg}
+      rightLabel="+ Add exercise"
+      onSwipeRight={() => router.push(`/workout/${workoutId}/add-exercise`)}
+      confirm={{
+        title: 'Remove exercise?',
+        message: `"${displayName(exercise)}" and its logged sets will be removed from this workout.`,
+        confirmLabel: 'Remove',
+      }}
+      onDelete={async () => {
+        try {
+          await removeWorkoutExercise(workoutExercise.id);
+          onChanged();
+        } catch (e) {
+          Alert.alert('Error', e instanceof Error ? e.message : 'Could not remove the exercise.');
+        }
+      }}
+    >
     <Card
       style={
         isActive
@@ -439,7 +468,7 @@ export function ExerciseCard({
         {/* Column headers — same widths as SetRow's cells (setGrid.ts) */}
         {hasAnyRows && (
           <View style={[styles.headerRow, styles.columnHeaders, { borderBottomColor: theme.colors.border, gap: SET_GRID.gap }]}>
-            <Text style={[styles.columnHeader, { width: SET_GRID.set, color: theme.colors.muted, fontSize: t.size.caption }]} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Set</Text>
+            <Text style={[styles.columnHeader, { width: SET_GRID.set, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Set</Text>
             {hidePrev ? <View style={{ flex: 1 }} /> : (
               <Text style={[styles.columnHeader, { flex: 1, color: theme.colors.muted, fontSize: t.size.caption }]} numberOfLines={1} maxFontSizeMultiplier={SET_GRID.maxFontScale}>Prev</Text>
             )}
@@ -460,6 +489,7 @@ export function ExerciseCard({
             displayUnit={displayUnit}
             previousText={getPreviousText(s.setNumber)}
             onDelete={() => void handleDeleteSet(s.id)}
+            onAddSet={(v) => void handleAddSet(false, v)}
           />
         ))}
 
@@ -482,6 +512,7 @@ export function ExerciseCard({
             onValuesChange={(v) => {
               liveRef.current[p.key] = v;
             }}
+            onAddSet={(v) => void handleAddSet(false, v)}
           />
         ))}
 
@@ -537,6 +568,7 @@ export function ExerciseCard({
         onAddWarmup={handleAddWarmup}
       />
     </Card>
+    </SwipeableRow>
   );
 }
 

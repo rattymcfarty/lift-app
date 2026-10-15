@@ -30,6 +30,7 @@ import { useTheme } from '../../../src/theme';
 import { EmptyState, ScreenHeader, Button } from '../../../src/components/workout/ui';
 import { ComposerTaxonomyPicker } from '../../../src/components/workout/ComposerTaxonomyPicker';
 import { displayName } from '../../../src/kb/taxonomy';
+import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Picker search cap: covers the whole library (433 exercises); FlatList virtualizes. */
@@ -44,41 +45,14 @@ function ExerciseRow({
   busy: boolean;
   onAdd: () => void;
 }): JSX.Element {
-  const { theme } = useTheme();
-  const t = theme.typography;
   return (
-    <Pressable
+    <ExercisePickRow
+      exercise={exercise}
+      mode="add"
+      busy={busy}
       onPress={onAdd}
-      disabled={busy}
-      accessibilityRole="button"
-      accessibilityLabel={`Add ${displayName(exercise)} to plan`}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          borderBottomColor: theme.colors.border,
-          paddingVertical: theme.spacing.sm,
-          opacity: pressed || busy ? 0.6 : 1,
-        },
-      ]}
-    >
-      <View style={styles.rowText}>
-        <Text
-          style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
-          numberOfLines={2}
-        >
-          {displayName(exercise)}
-        </Text>
-        <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
-          {exercise.category}
-          {exercise.isCustom ? ' · custom' : ''}
-        </Text>
-      </View>
-      {busy ? (
-        <ActivityIndicator color={theme.colors.muted} size="small" />
-      ) : (
-        <Text style={{ color: theme.colors.muted, fontSize: t.size.card }}>+</Text>
-      )}
-    </Pressable>
+      testID={`plan-add-exercise-row-${exercise.id}`}
+    />
   );
 }
 

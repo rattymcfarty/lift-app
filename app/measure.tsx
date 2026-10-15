@@ -29,6 +29,7 @@ import {
   softDeleteMeasurement,
 } from '../src/data/repositories';
 import type { Measurement } from '../src/db/schema';
+import { SwipeableRow } from '../src/components/ui/SwipeableRow';
 import { useTheme } from '../src/theme';
 import { formatWorkoutDay, parseUserNumber, trimNumber } from '../src/components/workout/format';
 import { Button, Card, EmptyState, NumberInput, ScreenHeader } from '../src/components/workout/ui';
@@ -488,13 +489,23 @@ export default function MeasureScreen(): JSX.Element {
                   HISTORY
                 </Text>
                 {entries.map((e) => (
-                  <EntryRow
+                  <SwipeableRow
                     key={e.id}
-                    entry={e}
-                    unit={e.unit}
-                    onEdit={() => startEdit(e)}
-                    onDelete={() => confirmDelete(e)}
-                  />
+                    backgroundColor={theme.colors.background}
+                    confirm={{ title: 'Delete entry?', message: `${trimNumber(e.value)} ${e.unit} — this can\u2019t be undone.` }}
+                    onDelete={async () => {
+                      await softDeleteMeasurement(e.id);
+                      if (editing?.id === e.id) cancelEdit();
+                      await load();
+                    }}
+                  >
+                    <EntryRow
+                      entry={e}
+                      unit={e.unit}
+                      onEdit={() => startEdit(e)}
+                      onDelete={() => confirmDelete(e)}
+                    />
+                  </SwipeableRow>
                 ))}
               </View>
             ) : (

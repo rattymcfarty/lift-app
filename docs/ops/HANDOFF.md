@@ -115,6 +115,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 6. Session log (newest first)
 
+- **2026-10-15** — Interaction polish from the owner's iPhone screenshots: swipe LEFT removes /
+  swipe RIGHT adds (`src/components/ui/SwipeableRow.tsx`; sets, exercises, plans, plan
+  exercises), exercise rows with muscle icon + strong selected state
+  (`ExercisePickRow`), rounded aligned remove buttons, header "Set" wrap fixed, lb prefill
+  fix. E2E covers swipe add/remove. Owner-reported ×-overlap remains unconfirmed.
+
 - **2026-10-14 (late)** — Disaster-recovery hardening: `scripts/verify-recovery.sh`
   (fresh clone → `npm ci` → all tests) found and fixed three hidden rig dependencies
   (package.json async-storage pin, KB `dist/` needed before `test:kb`, `test:p7`

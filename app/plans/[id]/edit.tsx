@@ -25,6 +25,7 @@ import {
   getRoutine,
   type RoutineDetail,
 } from '../../../src/data/repositories';
+import { SwipeableRow } from '../../../src/components/ui/SwipeableRow';
 import {
   removeRoutineExercise,
   reorderRoutineExercises,
@@ -481,6 +482,29 @@ export default function PlanEditScreen(): JSX.Element {
           const expanded = expandedId === re.id;
           const acting = actingId === re.id;
           return (
+            <SwipeableRow
+              backgroundColor={theme.colors.background}
+              borderRadius={theme.radius.md}
+              rightLabel="+ Add exercise"
+              onSwipeRight={() => router.push(`/plans/${planId}/add-exercise`)}
+              confirm={{
+                title: 'Remove exercise?',
+                message: `"${displayName(item.exercise)}" will be removed from this plan.`,
+                confirmLabel: 'Remove',
+              }}
+              onDelete={async () => {
+                try {
+                  await removeRoutineExercise(re.id);
+                  if (expandedId === re.id) {
+                    setExpandedId(null);
+                    setDraft(null);
+                  }
+                  await load();
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : 'Could not remove the exercise.');
+                }
+              }}
+            >
             <View
               style={[
                 styles.itemCard,
@@ -649,6 +673,7 @@ export default function PlanEditScreen(): JSX.Element {
                 </View>
               ) : null}
             </View>
+            </SwipeableRow>
           );
         }}
         ListEmptyComponent={

@@ -11,6 +11,7 @@
 
 import { useEffect, useState, type JSX } from 'react';
 import {
+  Alert,
   ActivityIndicator,
   FlatList,
   Pressable,
@@ -27,49 +28,51 @@ import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../src/components/workout/TaxonomyFilterGrid';
 import { exerciseMatchesFilters } from '../../src/lib/filterExercises';
-import { displayName, equipmentLabel, muscleLabel } from '../../src/kb/taxonomy';
+import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
+import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
+import { deleteCustomExercise } from '../../src/data/customExercises';
 
 const SEARCH_DEBOUNCE_MS = 250;
 const SEARCH_LIMIT = 500;
 
-function ExerciseRow({ exercise }: { exercise: Exercise }): JSX.Element {
+function ExerciseRow({
+  exercise,
+  onDeleted,
+}: {
+  exercise: Exercise;
+  onDeleted: (id: string) => void;
+}): JSX.Element {
   const { theme } = useTheme();
-  const t = theme.typography;
-  const muscles = decodeStringArray(exercise.primaryMuscles).map(muscleLabel);
-  const equipment = decodeStringArray(exercise.equipment).map(equipmentLabel);
-  const meta = [exercise.category, ...muscles, ...equipment]
-    .filter(Boolean)
-    .join(' · ');
   return (
-    <Pressable
-      onPress={() => router.push(`/exercises/${exercise.id}`)}
-      accessibilityRole="button"
-      accessibilityLabel={`Open ${displayName(exercise)}`}
-      testID={`browse-exercise-row-${exercise.id}`}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          borderBottomColor: theme.colors.border,
-          paddingVertical: theme.spacing.sm,
-          opacity: pressed ? 0.7 : 1,
-        },
-      ]}
+    <SwipeableRow
+      backgroundColor={theme.colors.background}
+      rightLabel="+ New exercise"
+      onSwipeRight={() => router.push('/exercises/new')}
+      confirm={{
+        title: 'Delete exercise?',
+        message: `"${exercise.name}" will be removed from your library. Logged history is kept.`,
+      }}
+      onDelete={
+        exercise.isCustom
+          ? async () => {
+              try {
+                await deleteCustomExercise(exercise.id);
+                onDeleted(exercise.id);
+              } catch (e) {
+                Alert.alert('Could not delete', e instanceof Error ? e.message : 'Try again.');
+              }
+            }
+          : undefined
+      }
     >
-      <View style={styles.rowText}>
-        <Text
-          style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium }}
-          numberOfLines={2}
-        >
-          {displayName(exercise)}
-        </Text>
-        {meta ? (
-          <Text style={{ color: theme.colors.faint, fontSize: t.size.meta }} numberOfLines={2}>
-            {meta}
-          </Text>
-        ) : null}
-      </View>
-      <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>›</Text>
-    </Pressable>
+      <ExercisePickRow
+        exercise={exercise}
+        mode="browse"
+        onPress={() => router.push(`/exercises/${exercise.id}`)}
+        testID={`browse-exercise-row-${exercise.id}`}
+        infoTestID={`browse-exercise-info-${exercise.id}`}
+      />
+    </SwipeableRow>
   );
 }
 
@@ -141,6 +144,7 @@ function FilterChip({
     </View>
   );
 }
+
 
 export default function BrowseExercisesScreen(): JSX.Element {
   const { theme } = useTheme();
@@ -285,7 +289,9 @@ export default function BrowseExercisesScreen(): JSX.Element {
           data={results}
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <ExerciseRow exercise={item} />}
+          renderItem={({ item }) => (
+            <ExerciseRow exercise={item} onDeleted={(id) => setResults((prev) => prev.filter((e) => e.id !== id))} />
+          )}
           ListEmptyComponent={
             searching ? null : (
               <EmptyState

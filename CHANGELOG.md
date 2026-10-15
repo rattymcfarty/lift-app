@@ -25,6 +25,18 @@
 - Muscle-group and equipment icons redrawn.
 - Catalogue deduped: 577 live exercises (bundle 0.5.0).
 
+### Changed (interaction polish, 2026-10-15)
+- Swipe LEFT to remove, swipe RIGHT to add: a set row adds a pre-filled set, an
+  exercise card opens Add exercise, a plan duplicates, a plan exercise row adds
+  an exercise; swipe left also removes workouts, measurements and your own
+  exercises (confirmed whenever more than one row goes).
+- Prefilled weights now honour the display unit (lb users no longer get kg
+  numbers carried into lb fields).
+- Exercise lists show the muscle icon and the muscles trained; multi-select
+  rows get a gold bar, tint, bold name and a filled check; the add button
+  reads "Add N exercises".
+- Rounded, aligned remove buttons on set rows; header columns no longer wrap.
+
 ### Added (P9 — personalisation & feel)
 - First-launch onboarding: profile (name, weight, height, birth year,
   experience, goal, days, session length, equipment, limitations) and a
