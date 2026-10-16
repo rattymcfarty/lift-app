@@ -62,34 +62,41 @@ export {
  */
 export async function ensureSessionStates(enrollmentId: string): Promise<void> {
   const { enrollment, program } = await getEnrollment(enrollmentId);
-  const sessions = programSessions(program);
-  const enrolledAtMs = enrollment.enrolledAt.getTime();
   await withWriteLock(() =>
-    runInTransaction(async () => {
-      for (const s of sessions) {
-        // scheduledDateFor validates week/day — invalid program data
-        // fails loudly here instead of writing corrupt dates.
-        const scheduledDate = new Date(
-          scheduledDateFor(enrolledAtMs, s.week, s.day),
-        );
-        // Bare ON CONFLICT DO NOTHING (no target): the partial unique
-        // index carries WHERE deleted_at IS NULL, and SQLite rejects an
-        // explicit conflict target that doesn't repeat the WHERE clause.
-        // Bare DO NOTHING catches the conflict regardless.
-        await db
-          .insert(programSessionStates)
-          .values({
-            enrollmentId,
-            week: s.week,
-            day: s.day,
-            routineKbId: s.routineKbId,
-            scheduledDate,
-            status: 'scheduled',
-          })
-          .onConflictDoNothing();
-      }
-    }),
+    runInTransaction(() => insertSessionStates(enrollment, program)),
   );
+}
+
+/**
+ * The writes of ensureSessionStates, WITHOUT taking the write lock or opening
+ * a transaction. For callers that already hold both (enrollProgram): asking
+ * for the lock again from inside it would deadlock and hang every later write.
+ */
+export async function insertSessionStates(
+  enrollment: { id: string; enrolledAt: Date },
+  program: ProgramDefinition,
+): Promise<void> {
+  const enrolledAtMs = enrollment.enrolledAt.getTime();
+  for (const s of programSessions(program)) {
+    // scheduledDateFor validates week/day — invalid program data
+    // fails loudly here instead of writing corrupt dates.
+    const scheduledDate = new Date(scheduledDateFor(enrolledAtMs, s.week, s.day));
+    // Bare ON CONFLICT DO NOTHING (no target): the partial unique
+    // index carries WHERE deleted_at IS NULL, and SQLite rejects an
+    // explicit conflict target that doesn't repeat the WHERE clause.
+    // Bare DO NOTHING catches the conflict regardless.
+    await db
+      .insert(programSessionStates)
+      .values({
+        enrollmentId: enrollment.id,
+        week: s.week,
+        day: s.day,
+        routineKbId: s.routineKbId,
+        scheduledDate,
+        status: 'scheduled',
+      })
+      .onConflictDoNothing();
+  }
 }
 
 /**

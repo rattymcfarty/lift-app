@@ -1,0 +1,58 @@
+# Enroll in a library program, then leave it from the Programs tab.
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-segment-explore"
+- tapOn:
+    text: "Start program"
+    index: 0
+# ---- PAR-Q+ gate (all "no")
+- scrollUntilVisible:
+    element: "No, question 1"
+- tapOn: "No, question 1"
+- scrollUntilVisible:
+    element: "No, question 2"
+- tapOn: "No, question 2"
+- scrollUntilVisible:
+    element: "No, question 3"
+- tapOn: "No, question 3"
+- scrollUntilVisible:
+    element: "No, question 4"
+- tapOn: "No, question 4"
+- scrollUntilVisible:
+    element: "No, question 5"
+- tapOn: "No, question 5"
+- scrollUntilVisible:
+    element: "No, question 6"
+- tapOn: "No, question 6"
+- scrollUntilVisible:
+    element: "No, question 7"
+- tapOn: "No, question 7"
+- scrollUntilVisible:
+    element:
+      id: "parq-submit"
+- tapOn:
+    id: "parq-submit"
+- tapOn:
+    id: "parq-done"
+- tapOn:
+    text: "Start program"
+    index: 0
+- extendedWaitUntil:
+    visible: "Program started"
+    timeout: 20000
+- tapOn: "OK"
+# ---- leave it
+- tapOn:
+    id: "programs-segment-library"
+- scrollUntilVisible:
+    element: "Leave program"
+- tapOn: "Leave program"
+- assertVisible: "Leave program\\?"
+- tapOn: "Leave"
+- assertNotVisible: "ACTIVE PROGRAM"

@@ -143,6 +143,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 6. Session log (newest first)
 
+### 2026-10-16 — leave-program deadlock fixed (opencode helper)
+- Leaving a program works again: enrolling re-took the database write lock from inside itself
+  (`enrollProgram` → `ensureSessionStates`) and deadlocked, so every later write waited
+  forever; enrollment now uses a lock-free `insertSessionStates`, covered by the new
+  `.maestro/program-leave.yaml` flow. Owner rule: lead agent delegates first (CLAUDE.md).
+
 ### 2026-10-16 — cross-agent foundation, OpenCode helper (claude-code)
 - Program builder: deload control + copy week; fixed a kb_id UNIQUE bug in dropped days.
 - Found two opencode installs; v1 (`~/.opencode/bin`) retired, v2 pinned.

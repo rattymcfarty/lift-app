@@ -8,6 +8,12 @@ only adds Claude Code specifics.
 
 ## Claude Code specifics
 
+- **Delegate first (owner rule, budget is limited):** you are the orchestrator.
+  Assess every request and hand investigation and edits to the OpenCode helper
+  (`lift-delegate` skill) before doing them yourself. Do yourself only what it
+  can't: device/emulator runs, secrets, judgment calls, final review. Read its
+  summary and diff, not whole files.
+
 - Skills: `.claude/skills` is a symlink to `.agents/skills`, so the shared
   playbooks show up as Claude Code skills (`lift-resume`, `lift-verify`, …).
 - Background processes die when a tool call ends, and background commands are

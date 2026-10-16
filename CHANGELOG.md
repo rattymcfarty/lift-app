@@ -10,6 +10,11 @@
 
 - Program builder: deload-week control (half volume, marked ↓ on the week chip) and "Copy week N to…" (one week or all others).
 - Fix: removing/replacing program days left their `kb_id` held by soft-deleted routines (UNIQUE error on renumber).
+- Fix: leaving a program works again. Enrolling re-took the database write lock
+  from inside itself (`enrollProgram` → `ensureSessionStates`), which deadlocked;
+  every later write, including Leave program, then waited forever. Enrollment now
+  uses a lock-free `insertSessionStates`. New Maestro flow
+  `.maestro/program-leave.yaml` covers enroll then leave.
 
 ## 0.1.0 — unreleased (closed-test candidate)
 

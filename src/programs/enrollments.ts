@@ -130,10 +130,10 @@ export async function enrollProgram(program: ProgramDefinition): Promise<Enrolle
         .returning();
       const enrolled = toEnrolledProgram(row);
       // Generate the session calendar rows. Dynamic import avoids a
-      // sessions↔enrollments module cycle; ensureSessionStates is
-      // idempotent so a retry is safe.
-      const { ensureSessionStates } = await import('./sessions');
-      await ensureSessionStates(enrolled.enrollment.id);
+      // sessions↔enrollments module cycle. Use the lock-free variant: we
+      // already hold the write lock, and re-taking it would deadlock.
+      const { insertSessionStates } = await import('./sessions');
+      await insertSessionStates(enrolled.enrollment, enrolled.program);
       return enrolled;
     }),
   );
