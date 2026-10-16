@@ -10,7 +10,8 @@ The only things GitHub cannot hold are listed in §2.
 |---|---|---|
 | App source, docs, scripts, tests, lockfile | GitHub `lift-app` | `git clone` |
 | Exercise/program content, KB build, CI | GitHub `lift-kb` | `git clone` |
-| Agent instructions + state | `CLAUDE.md`, `docs/ops/HANDOFF.md` (in `lift-app`) | `git clone` |
+| Agent instructions + state | `AGENTS.md` (canonical), `CLAUDE.md`/`GEMINI.md` pointers, `.agents/skills/`, `docs/ops/HANDOFF.md` (in `lift-app`) | `git clone` |
+| OpenCode helper (delegation) | rig: `opencode` v2 + Console sign-in; service-account key `~/lift/secrets/opencode-sa.key` | §2c |
 | Toolchain (Node, JDK, SDK, emulator, Maestro) | reinstallable | `scripts/bootstrap-rig.sh` |
 | **Android upload keystore + passwords** | **only on the rig** (+ your encrypted backup) | restore from backup, else §2 |
 | `gh` login token | rig (`~/.config/gh`) | `gh auth login` |
@@ -71,14 +72,23 @@ cloud drive). Never commit it. Never paste the passphrase into a chat.
 account `rattymcfarty`. If the account itself is lost, any clone is a complete
 copy (full history) — see §4.
 
-## 3. Resuming development with a fresh AI agent
+### 2c. OpenCode helper (optional; only needed for delegation)
+`npm install -g @opencode/cli` (v2), run `opencode` once and `/connect` → OpenCode
+Console (owner signs in). For the Jev router, create a key on the Console
+service account (Settings → Service accounts) and save it with
+`scripts/opencode-key.sh set`. Check with `scripts/delegate.sh health`.
+Losing the key costs nothing: revoke it in the Console and make a new one.
 
-1. Start Claude Code (or any agent) in `~/lift/lift-app`. `CLAUDE.md` loads
-   automatically; `AGENTS.md` points other agents to it.
-2. Tell the agent: *"Read CLAUDE.md and docs/ops/HANDOFF.md, run `npm ci && npm run
-   verify`, then continue with the top item under Next up."*
-3. For device work the agent needs: an emulator (`~/lift/lift-app/CLAUDE.md` §7 explains
-   how), or the owner's iPhone on the same Wi-Fi with Expo Go.
+## 3. Resuming development with a fresh AI agent (any harness)
+
+1. Start the agent (Claude Code, OpenCode, Codex/ChatGPT, Hermes, Gemini CLI, Cursor…)
+   in `~/lift/lift-app`. `AGENTS.md` is the canonical guide; `CLAUDE.md`/`GEMINI.md`
+   import it, and skills live in `.agents/skills/` (also `.claude/skills`).
+2. Tell the agent: *"Read AGENTS.md and docs/ops/HANDOFF.md, run `npm ci && npm run
+   verify`, then continue with the top item under Next up"* (or paste
+   `docs/ops/RESUME_PROMPT.md`).
+3. For device work the agent needs: an emulator (AGENTS.md §8 and the
+   `lift-device-test` skill), or the owner's iPhone with Expo Go (`lift-expo-iphone`).
 
 No chat history, memory or local files are required.
 
@@ -99,6 +109,6 @@ No chat history, memory or local files are required.
 |---|---|
 | `npm ci` fails on a missing lockfile entry | `package-lock.json` is committed; if it drifted, `npm install` then commit the result |
 | Gradle can't find SDK | `echo "sdk.dir=$HOME/Android/Sdk" > android/local.properties` (the build script does this) |
-| `adb` offline / emulator gone mid-run | reboot it inside the same command as the test run (CLAUDE.md §7) |
+| `adb` offline / emulator gone mid-run | reboot it inside the same command as the test run (AGENTS.md §8) |
 | App shows old exercises after a KB bump | refresh the snapshot: `node scripts/sync-kb-snapshot.mjs ~/lift/lift-kb`; existing installs keep their imported rows |
 | Push rejected (non-fast-forward) | `git pull --rebase origin main`, re-run `npm run verify`, push |

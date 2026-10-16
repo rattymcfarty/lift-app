@@ -23,4 +23,5 @@ check "test:calculators" "npm run test:calculators"
 check "test:programs" "npm run test:programs"
 check "test:progression" "npm run test:progression"
 check "test:stats" "npm run test:stats"
+check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi

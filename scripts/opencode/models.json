@@ -1,0 +1,35 @@
+{
+  "$comment": "Delegation model registry. Owner rule: free Console models ONLY. 'rank' lists are tried in order (fallback on hang/failure). Update rankings from measured results (docs/ops/DELEGATION.md section 6), never from guesses.",
+  "allowed": [
+    "opencode/deepseek-v4.1-flash-free",
+    "opencode/glm-5.3-flash-free",
+    "opencode/big-pickle",
+    "opencode/longcat-2.5-preview-free",
+    "opencode/cat-jam-free",
+    "opencode/space-bunny-free",
+    "opencode/ll-alpha-free",
+    "opencode/mimo-v2.6-flash-free",
+    "opencode/nemotron-3-ultra-free",
+    "opencode/nemotron-3.5-lightning-free",
+    "opencode/nemotron-3.5-super-vl-free",
+    "opencode/muse-spark-1.3-contributor-free"
+  ],
+  "maintenance_model": "opencode/glm-5.3-flash-free",
+  "categories": {
+    "code":     { "criteria": "Write or change source code: unit tests, small features, refactors, bug fixes, type or lint cleanups.",
+                  "rank": ["opencode/deepseek-v4.1-flash-free", "opencode/glm-5.3-flash-free", "opencode/big-pickle"] },
+    "docs":     { "criteria": "Write or edit prose documentation: changelog, README, handoff notes, release notes, comments.",
+                  "rank": ["opencode/glm-5.3-flash-free", "opencode/deepseek-v4.1-flash-free", "opencode/longcat-2.5-preview-free"] },
+    "content":  { "criteria": "Exercise or program content for the knowledge base: instructions, cues, safety notes, descriptions.",
+                  "rank": ["opencode/glm-5.3-flash-free", "opencode/deepseek-v4.1-flash-free", "opencode/longcat-2.5-preview-free"] },
+    "analysis": { "criteria": "Read and answer without editing: parse logs, write a regex, search the codebase, summarize files, explain code.",
+                  "rank": ["opencode/deepseek-v4.1-flash-free", "opencode/nemotron-3.5-lightning-free", "opencode/glm-5.3-flash-free"] },
+    "vision":   { "criteria": "Look at screenshots or images and describe or compare them.",
+                  "rank": ["opencode/nemotron-3.5-super-vl-free"] }
+  },
+  "jev": {
+    "endpoint": "https://opencode.ai/inference/systemone/v1/systemone",
+    "model": "jev-1.13-free",
+    "note": "Router asks Jev to classify the task into a category; falls back to keyword rules when Jev is unavailable (it was 'Endpoint is unavailable' on 2026-10-16)."
+  }
+}

@@ -39,6 +39,18 @@ npm run setup:keystore
 npm run build:android
 ```
 
+## For AI agents and contributors
+
+This project is built to be continued by **any** coding agent or harness
+(Claude Code, OpenCode, Codex/ChatGPT, Hermes, Gemini CLI, Cursor, Copilot) or a human:
+
+- [`AGENTS.md`](AGENTS.md) is the canonical guide: rules, map, commands, definition of done.
+- [`docs/ops/HANDOFF.md`](docs/ops/HANDOFF.md) holds current state and next steps;
+  [`docs/ops/AGENT_COLLABORATION.md`](docs/ops/AGENT_COLLABORATION.md) explains how agents share the repo.
+- `.agents/skills/` has step-by-step playbooks (also exposed as `.claude/skills`).
+- [`docs/ops/DELEGATION.md`](docs/ops/DELEGATION.md): the lead agent can hand grunt work to an
+  OpenCode helper on free models (`scripts/delegate.sh`, MCP server in `.mcp.json`).
+
 ## Project structure
 
 ```

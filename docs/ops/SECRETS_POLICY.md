@@ -9,7 +9,7 @@ Rule zero: **if it is not meant for the whole internet, it never touches a commi
 
 | Class | Examples | Where it lives |
 |---|---|---|
-| **Secret** — never in git | Android upload keystore (`*.jks`) and its passwords, GitHub tokens/`gh` login, any API key, signing certs, Play/Apple credentials | rig only (`~/lift/secrets/`, `~/.gradle/gradle.properties`, `~/.config/gh`) + **encrypted** offline backup (`scripts/backup-secrets.sh`) |
+| **Secret** — never in git | Android upload keystore (`*.jks`) and its passwords, GitHub tokens/`gh` login, OpenCode service-account key (`oc_sk_…`, `~/lift/secrets/opencode-sa.key`), any API key, signing certs, Play/Apple credentials | rig only (`~/lift/secrets/`, `~/.gradle/gradle.properties`, `~/.config/gh`) + **encrypted** offline backup (`scripts/backup-secrets.sh`) |
 | **Personal data** — never in git | real email addresses, phone, home LAN IPs, physical location, other people's data | commit identity uses the GitHub **noreply** address; docs use `<lan-ip>` placeholders |
 | **Public by design** — fine in git | upload-key *SHA-256 fingerprint*, app package name, GitHub username, store listing text, privacy policy, the KB content | repo |
 | **Never public** | the user's own training data — it only ever exists on their phone/backup file | user device |

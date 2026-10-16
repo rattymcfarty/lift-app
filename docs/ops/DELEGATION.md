@@ -1,0 +1,116 @@
+# Delegation: lead agent → OpenCode helper
+
+**Goal:** the lead agent (Claude Code, or whichever harness the owner is using)
+is the *brain*: it plans, decides, reviews and merges. **OpenCode is the
+helper, the "AI employee"**: it does self-contained sub-tasks on **free** models,
+so they cost $0 and never fill the lead's context. The lead only reads a short
+report and the diff.
+
+```
+ owner ──► lead agent (orchestrator)
+              │  scripts/delegate.sh  or  MCP tool delegate_to_opencode_free
+              ▼
+           router ── Jev (OpenCode Console, structured decision) ──► category
+              │      └─ keyword rules if Jev is down/unsure
+              ▼
+           OpenCode v2 (shared service on the rig, owner's Console sign-in)
+              │  locked config: free models only, default-deny shell, no push/net/secrets
+              ▼
+           git worktree ~/lift/delegations/<slug> on branch delegate/<slug>
+              │
+              ▼
+           report (tools, blocked attempts, tokens, cost=$0, diffstat) ──► lead reviews,
+           runs npm run verify, squash-merges or rejects
+```
+
+## 1. Owner rules
+
+- **Free Console models only** (list in `scripts/opencode/models.json`). Paid
+  models are disabled in every delegated run, and the wrapper refuses them.
+- The helper never commits to `main`, never pushes, never touches secrets,
+  CI, `package.json`/`app.json` or the delegation config.
+- The lead never merges helper output without reading it and running `npm run verify`.
+
+## 2. How to call it
+
+| From | Use |
+|---|---|
+| Any shell / any harness | `scripts/delegate.sh run <slug> "<task>"` (edits) · `scripts/delegate.sh ask "<question>"` (read-only) |
+| MCP-capable harness (Claude Code, Cursor, Codex, Hermes, Gemini CLI) | tools `delegate_to_opencode_free` (`mode: ask|code`), `opencode_route`, `opencode_delegations`, from `.mcp.json` → `scripts/opencode/mcp-server.mjs` |
+| Check the plumbing | `scripts/delegate.sh health` (one free PONG) · `scripts/delegate.sh models` · `scripts/delegate.sh route "<task>"` |
+
+Claude Code asks once to approve the project MCP server `opencode-helper` the
+first time it starts in this repo. Other harnesses: point their MCP config at
+`node scripts/opencode/mcp-server.mjs` (stdio).
+
+**Writing a good brief:** goal, exact files, an acceptance command that must
+pass (e.g. `npm run test:programs:user`), and what not to touch. Keep tasks
+under ~30 minutes; split bigger ones.
+
+**Delegate:** unit tests for pure functions, boilerplate, doc/changelog drafts,
+KB content passes, mechanical refactors, lint/type cleanups, regex, log
+parsing, code search and explanation.
+**Keep with the lead:** system design, DB migrations, backup/import format,
+workout lifecycle policy, privacy or security code, secrets, release signing,
+complex debugging, and the final review of everything.
+
+## 3. Model choice (router)
+
+`scripts/opencode/route.mjs` asks **Jev 1.13 Free**, a structured-decision
+model on the Console (`/inference/systemone/v1/systemone`, using the service-account
+key), to classify the task into a category: `code`, `docs`, `content`,
+`analysis` or `vision`. If Jev is unavailable or unsure (p < 0.5), keyword rules
+decide. Each category has a **ranked** model list in `models.json`; the run
+uses #1 and falls back to #2 if #1 stalls or fails. Rankings come from measured
+results (§6), never guesses. Force a model with `-m opencode/<id>`.
+
+## 4. How it is wired (and why)
+
+- **Free models only answer OpenCode itself.** Calling the Inference API
+  directly (`/inference/openai/v1/chat/completions`) with a free model returns
+  `FreeTierError: "OpenCode's free tier can only be used from within OpenCode"`,
+  both with the service-account key and without a key (tested 2026-10-16). So
+  delegated runs go through the `opencode` CLI on the rig, on the owner's Console
+  sign-in (`opencode auth list` → "OpenCode Console · Personal"). That also means
+  the helper gets real tools (read/edit/shell) instead of returning text only.
+- **The service-account key** (`srv_ai-rig1`, file `~/lift/secrets/opencode-sa.key`,
+  managed by `scripts/opencode-key.sh`) is used by the Jev router. It is also
+  ready for budget-capped paid models if the owner ever allows them; set the
+  service-account budget in the Console first.
+- **Locked config per run** (`scripts/opencode/delegate.opencode.jsonc` +
+  `build-config.mjs`): only the `opencode` provider is allowed; every Console
+  model not on the allowlist is `disabled`, read live; hidden
+  title/summary/compaction agents are pinned to a free model (OpenCode otherwise
+  writes session titles with cheap *paid* models); shell is default-deny with a
+  small allowlist; push, network and secret paths are hard-denied by policy.
+  Every rule is allow or deny, because **an `ask` rule hangs a non-interactive run forever**.
+- **One run at a time** (a `flock` on `~/lift/delegations/.lock`). Many parallel
+  `opencode run`s wedge the shared service, and a timed-out client leaves its
+  server session stuck. On a stall the wrapper runs `opencode service restart`
+  and retries on the next model.
+- **Pin the binary:** only v2 (`~/.local/node/bin/opencode`) is valid. A stale v1
+  in `~/.opencode/bin` was renamed to `opencode.v1-disabled`, and the wrapper pins
+  the v2 path because agent shells may have a different PATH.
+- OpenCode V2 reads `AGENTS.md` (not `CLAUDE.md`) and `.agents/skills` /
+  `.claude/skills`, so the helper sees the same project rules and playbooks as the lead.
+
+## 5. Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Run prints `events: none`, exit 124 | Service stalled. The wrapper already restarted it, so retry. `scripts/delegate.sh health` must say OK. |
+| `FreeTierError` | Something called the raw API with a free model. Use the CLI path. |
+| `model … is not allowed` | Pick from `scripts/delegate.sh models`. Only the owner may change the list. |
+| `build-config: only N Console models listed` | Console signed out. The owner runs `opencode`, then `/connect` → OpenCode Console. |
+| `cost: ⚠ NON-ZERO` | A paid model was reached. Stop delegating, inspect the log in `~/lift/delegations/.logs/`, fix the config. |
+| Jev `Endpoint is unavailable` / unsure | Expected sometimes; the rules fallback handles it. |
+
+## 6. Measured model results (update after real delegations)
+
+Bake-off 2026-10-16. Task: implement `parseDuration` from a 16-case spec; pass =
+`node test.js` prints ALL PASS with the test file untouched; one run each,
+150 s limit, serial.
+
+| Model | Result | Time |
+|---|---|---|
+| _filled in from the bake-off; see the session log in HANDOFF_ | | |

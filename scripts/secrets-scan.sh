@@ -17,7 +17,7 @@ MODE="${1:---staged}"
 # Files that may legitimately be named like secrets (they are scripts/docs ABOUT secrets).
 EXCLUDE_RE='^(package-lock\.json|assets/kb/snapshot/|scripts/secrets-scan\.sh|scripts/hooks/|docs/ops/SECRETS_POLICY\.md|docs/ops/legacy/)'
 NAME_RE='(\.jks|\.keystore|\.p12|\.pfx|\.pem|\.key|\.p8|\.mobileprovision|\.provisionprofile|\.enc)$|(^|/)(credentials\.json|google-services\.json|GoogleService-Info\.plist|gradle\.properties|local\.properties|id_rsa[^/]*|\.env(\..*)?)$'
-CONTENT_RE='-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{32,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|(storePassword|keyPassword|STORE_PASSWORD|KEY_PASSWORD)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9+/_-]{8,}'
+CONTENT_RE='-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{32,}|oc_sk_[A-Za-z0-9_]{16,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|(storePassword|keyPassword|STORE_PASSWORD|KEY_PASSWORD)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9+/_-]{8,}'
 EMAIL_RE='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
 EMAIL_OK='(users\.noreply\.github\.com|noreply@anthropic\.com|@example\.(com|org)|@localhost|git@stash|@types/|@expo|@react|@babel|@drizzle|@testing|@[a-z-]+/)'
 IP_RE='\b(192\.168\.[0-9]{1,3}\.[0-9]{1,3}|10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}|100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.[0-9]{1,3}\.[0-9]{1,3})\b'

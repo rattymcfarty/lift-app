@@ -1,0 +1,75 @@
+// OpenCode V2 base config for DELEGATED runs. scripts/delegate.sh copies it into
+// each task directory as .opencode/opencode.jsonc (git-excluded, never committed)
+// and adds `providers.opencode.models` entries that DISABLE every Console model
+// not listed in scripts/opencode/models.json (the list is read live).
+//
+// Owner rule: delegated work uses ONLY free Console models. The locks are:
+//   1. only the `opencode` (Console) provider is allowed (policies below),
+//   2. every non-allowed Console model is disabled (generated per run),
+//   3. hidden title/summary/compaction agents are pinned to a free model,
+//   4. scripts/delegate.sh refuses any model not in models.json.
+// Free models only answer requests made by OpenCode itself, on the owner's
+// Console sign-in. Direct API calls get FreeTierError (checked 2026-10-16).
+//
+// Non-interactive runs hang on "ask", so every rule is allow or deny.
+{
+  "$schema": "https://opencode.ai/config.json",
+  "update": "disable",
+
+  // Hard limits: policies never prompt and override every permission below.
+  "policies": [
+    { "action": "provider.use", "resource": "*", "effect": "deny" },
+    { "action": "provider.use", "resource": "opencode", "effect": "allow" },
+    { "action": "tool.use", "resource": "shell:git push *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git remote *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:git commit *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:gh *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:sudo *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:curl *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:wget *", "effect": "deny" },
+    { "action": "tool.use", "resource": "shell:rm -rf *", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*/secrets/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*/.gradle/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*/.ssh/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*/.config/opencode/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*/.local/share/opencode/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*.jks", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*.key", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*.env", "effect": "deny" },
+    { "action": "tool.use", "resource": "read:*.env.*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*.github/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*.opencode/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*/scripts/hooks/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*/scripts/opencode/*", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*package.json", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*package-lock.json", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*app.json", "effect": "deny" },
+    { "action": "tool.use", "resource": "edit:*eas.json", "effect": "deny" }
+  ],
+
+  // Ordered, last match wins. Default-deny shell, then a small allowlist.
+  "permissions": [
+    { "action": "question", "resource": "*", "effect": "deny" },
+    { "action": "webfetch", "resource": "*", "effect": "deny" },
+    { "action": "websearch", "resource": "*", "effect": "deny" },
+
+    { "action": "external_directory", "resource": "*", "effect": "deny" },
+    { "action": "external_directory", "resource": "~/lift/lift-app/node_modules/*", "effect": "allow" },
+    { "action": "read", "resource": "~/lift/lift-app/node_modules/*", "effect": "allow" },
+    { "action": "edit", "resource": "~/lift/lift-app/node_modules/*", "effect": "deny" },
+
+    { "action": "shell", "resource": "*", "effect": "deny" },
+    { "action": "shell", "resource": "npm run typecheck *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run verify *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run test*", "effect": "allow" },
+    { "action": "shell", "resource": "npx tsc *", "effect": "allow" },
+    { "action": "shell", "resource": "node scripts/*", "effect": "allow" },
+    { "action": "shell", "resource": "node test*", "effect": "allow" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git show *", "effect": "allow" },
+    { "action": "shell", "resource": "ls *", "effect": "allow" },
+    { "action": "shell", "resource": "wc *", "effect": "allow" }
+  ]
+}

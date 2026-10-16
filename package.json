@@ -61,7 +61,8 @@
     "secrets:history": "bash scripts/secrets-scan.sh --history",
     "test:lifecycle": "node scripts/test-lifecycle.mjs",
     "e2e": "bash scripts/e2e.sh",
-    "test:programs:user": "node scripts/test-user-programs.mjs"
+    "test:programs:user": "node scripts/test-user-programs.mjs",
+    "test:agents": "node scripts/test-agents.mjs"
   },
   "version": "0.1.0"
 }

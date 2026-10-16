@@ -1,0 +1,9 @@
+---
+description: LIFT project rules (points to AGENTS.md)
+alwaysApply: true
+---
+
+The canonical guide for every AI agent is `AGENTS.md` at the repo root. Read it,
+then `docs/ops/HANDOFF.md`, before changing anything. Playbooks for recurring
+jobs are in `.agents/skills/<name>/SKILL.md`. Done means `npm run verify` prints
+ALL GREEN. The repo is public: never commit secrets, personal emails or private IPs.

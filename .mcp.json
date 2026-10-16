@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "opencode-helper": {
+      "command": "node",
+      "args": ["scripts/opencode/mcp-server.mjs"]
+    }
+  }
+}

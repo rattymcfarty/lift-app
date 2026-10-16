@@ -7,6 +7,17 @@
 
 ## 0. In-flight work (update before every commit)
 
+- [claude-code] **Cross-agent foundation + OpenCode delegation**, branch main, started 2026-10-16.
+  Done and committed: `AGENTS.md` canonical (CLAUDE.md/GEMINI.md import it; Copilot/Cursor
+  pointers), `.agents/skills/` (9 playbooks, `.claude/skills` symlink), `docs/ops/AGENT_COLLABORATION.md`,
+  `docs/ops/DELEGATION.md`, `scripts/delegate.sh` + `scripts/opencode/` (locked config,
+  Jev router, MCP server in `.mcp.json`), `npm run test:agents`.
+  **Next step:** finish the free-model bake-off (done: deepseek-v4.1-flash 20 s, glm-5.3-flash
+  95 s, big-pickle 103 s, all PASS; remaining 9 models), write the results into
+  DELEGATION.md §6 and `models.json` ranks, then a first real delegation on LIFT.
+  Preserve: free models ONLY; delegated runs go through the `opencode` CLI (raw API calls
+  to free models return FreeTierError); one run at a time (parallel runs wedge the service).
+
 _Nothing in flight._ Last completed: **workout lifecycle / idle handling** (2026-10-15):
 `src/workouts/{policy,lifecycle,WorkoutLifecycleWatcher}`, settings (check-in thresholds),
 Train resume/notice cards, workout-screen heartbeat, local nudges. Verified by
@@ -129,6 +140,17 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-16 — cross-agent foundation, OpenCode helper (claude-code)
+- Program builder: deload control + copy week; fixed a kb_id UNIQUE bug in dropped days.
+- Found two opencode installs; v1 (`~/.opencode/bin`) retired, v2 pinned.
+- Researched the OpenCode V2 docs and tested them live: free models refuse direct Inference API
+  calls (FreeTierError) with or without the service-account key, and work through the `opencode`
+  CLI on the owner's Console sign-in. `ask` permissions hang non-interactive runs. Parallel
+  runs wedge the shared service (fix: `opencode service restart`). Jev 1.13 Free (systemone
+  endpoint) works with the service-account key and is used as the task router.
+- Built: AGENTS.md as canonical guide, skills, collaboration protocol, delegation wrapper +
+  MCP tool `delegate_to_opencode_free`, test:agents guard (127 checks). `npm run verify` ALL GREEN.
 
 - **2026-10-15 (details pages)** — Program Details wizard (`app/programs/[id]/{details,setup}.tsx`,
   `src/components/programs/ProgramFormBits.tsx`): create → page 1 → page 2 → builder; edit via ✎.

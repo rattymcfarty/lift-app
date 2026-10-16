@@ -2,6 +2,12 @@
 
 ## Unreleased (addendum)
 
+- Cross-agent foundation: `AGENTS.md` is the canonical guide for any harness
+  (Claude Code, OpenCode, Codex/ChatGPT, Hermes, Gemini CLI, Cursor, Copilot); shared
+  playbooks in `.agents/skills/`; `docs/ops/AGENT_COLLABORATION.md`; `npm run test:agents`.
+- Delegation to an OpenCode helper agent on free models (`scripts/delegate.sh`, MCP tool
+  `delegate_to_opencode_free`, Jev-based model router): `docs/ops/DELEGATION.md`.
+
 - Program builder: deload-week control (half volume, marked ↓ on the week chip) and "Copy week N to…" (one week or all others).
 - Fix: removing/replacing program days left their `kb_id` held by soft-deleted routines (UNIQUE error on renumber).
 

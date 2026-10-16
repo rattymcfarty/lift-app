@@ -21,6 +21,7 @@ all of this; `--check` reports what is missing.
 | Maestro | CLI from get.maestro.mobile.dev | `~/.maestro/bin` |
 | GitHub CLI | 2.102.0 | `~/.local/bin/gh` |
 | Gradle | 9.3.1 via the project wrapper (downloads itself) | `android/gradlew` |
+| OpenCode | **v2** 2.0.31 (npm `@opencode/cli`), shared background service, signed in to the owner's Console | `~/.local/node/bin/opencode` (v1 in `~/.opencode/bin` is retired as `opencode.v1-disabled`) |
 
 Environment variables used by the scripts:
 
@@ -48,7 +49,7 @@ Expo Go on the iPhone must be the version that supports SDK 57.
   (the script warns).
 - `dist/` in `lift-kb` holds the built KB bundle (git-ignored).
 
-## Emulator quirks (see CLAUDE.md §7 for the agent-sandbox ones)
+## Emulator quirks (see AGENTS.md §8 for the agent-sandbox ones)
 - Boot flags that work headless with the host GPU:
   `-gpu host -no-window -no-audio -no-boot-anim -no-snapshot -wipe-data`.
 - Simulate iOS "Display Zoom" / big text: `adb shell wm size 720x1280`,
