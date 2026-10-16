@@ -50,6 +50,19 @@ for (const [file, text] of docs) {
   }
 }
 
+// 3b. portable agent kit: memories and generic skill are well-formed
+const KM = 'docs/ops/agent-kit/memory';
+const kitMem = existsSync(KM) ? readdirSync(KM).filter((f) => f.endsWith('.md')) : [];
+ok(kitMem.length >= 3, `agent kit has memories (found ${kitMem.length})`);
+for (const f of kitMem) {
+  const fm = read(join(KM, f)).match(/^---\n([\s\S]*?)\n---\n/)?.[1] || '';
+  ok(fm.match(/^name:\s*(.+)$/m)?.[1]?.trim() === f.replace(/\.md$/, ''), `kit memory ${f}: name matches file`);
+  ok(/^description:\s*\S/m.test(fm) && /^\s+type:\s*(user|feedback|project|reference)\s*$/m.test(fm), `kit memory ${f}: description + type`);
+  ok(!/@gmail\.com|oc_sk_[A-Za-z0-9]{6,}|\b100\.\d+\.\d+\.\d+\b/.test(read(join(KM, f))), `kit memory ${f}: no personal email, key or IP`);
+}
+ok(existsSync('docs/ops/agent-kit/skills/agent-delegation/SKILL.md'), 'agent kit has the generic agent-delegation skill');
+ok(existsSync('scripts/setup-agent-kit.sh'), 'setup-agent-kit.sh exists');
+
 // 4. delegation tooling consistent
 const reg = JSON.parse(read('scripts/opencode/models.json'));
 ok(Array.isArray(reg.allowed) && reg.allowed.length > 0, 'models.json has an allowlist');

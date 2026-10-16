@@ -188,6 +188,10 @@ scripts/verify-recovery.sh  # fresh clone → install → full test suite
 | `lift-handoff` | ending a session or switching agents (checkpoint) |
 | `lift-delegate` | handing a self-contained task to the OpenCode helper agent |
 
+Machine-level knowledge (generic `agent-delegation` skill, Claude Code memories,
+OpenCode v2) is versioned in `docs/ops/agent-kit/` and installed by
+`scripts/setup-agent-kit.sh`, so a rebuilt rig or a new harness gets it too.
+
 Harnesses without skill support: just open the `SKILL.md` and follow it.
 
 ## 10. Keeping the handoff alive

@@ -72,9 +72,11 @@ cloud drive). Never commit it. Never paste the passphrase into a chat.
 account `rattymcfarty`. If the account itself is lost, any clone is a complete
 copy (full history) — see §4.
 
-### 2c. OpenCode helper (optional; only needed for delegation)
-`npm install -g @opencode/cli` (v2), run `opencode` once and `/connect` → OpenCode
-Console (owner signs in). For the Jev router, create a key on the Console
+### 2c. OpenCode helper + agent kit (delegation, skills, memories)
+`scripts/bootstrap-rig.sh` runs `scripts/setup-agent-kit.sh`, which installs OpenCode
+v2, the generic `agent-delegation` skill (`~/.claude/skills`, `~/.agents/skills`) and
+the Claude Code memories from `docs/ops/agent-kit/` (see its README). Owner steps: run
+`opencode` once and `/connect` → OpenCode Console (sign in). For the Jev router, create a key on the Console
 service account (Settings → Service accounts) and save it with
 `scripts/opencode-key.sh set`. Check with `scripts/delegate.sh health`.
 Losing the key costs nothing: revoke it in the Console and make a new one.

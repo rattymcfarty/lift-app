@@ -10,6 +10,7 @@
 #   ~/.local/node        Node 22     ~/tools/jdk-17.*   Temurin JDK 17
 #   ~/Android/Sdk        Android SDK + emulator + AVD "lift-test"
 #   ~/.maestro           Maestro E2E ~/.local/bin/gh    GitHub CLI
+#   OpenCode v2 + agent kit (skills, memories) via scripts/setup-agent-kit.sh
 # It does NOT restore secrets (upload keystore, gh login) — see
 # docs/ops/RECOVERY.md section "Secrets".
 set -euo pipefail
@@ -133,6 +134,13 @@ if [ "$CHECK" = 0 ]; then
 fi
 if [ "$CHECK" = 0 ] && [ -d "$HOME/lift/lift-app" ] && [ ! -d "$HOME/lift/lift-app/node_modules" ]; then
   (cd "$HOME/lift/lift-app" && npm ci)
+fi
+
+say "agent kit (OpenCode v2, delegation skill, Claude Code memories)"
+# Owner sign-in / key steps are reported, not failed: they need a human.
+if [ -x "$HOME/lift/lift-app/scripts/setup-agent-kit.sh" ]; then
+  if [ "$CHECK" = 1 ]; then bash "$HOME/lift/lift-app/scripts/setup-agent-kit.sh" --check || true
+  else bash "$HOME/lift/lift-app/scripts/setup-agent-kit.sh" || true; fi
 fi
 
 echo
