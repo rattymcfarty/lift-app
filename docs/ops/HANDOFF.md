@@ -12,9 +12,11 @@
   pointers), `.agents/skills/` (9 playbooks, `.claude/skills` symlink), `docs/ops/AGENT_COLLABORATION.md`,
   `docs/ops/DELEGATION.md`, `scripts/delegate.sh` + `scripts/opencode/` (locked config,
   Jev router, MCP server in `.mcp.json`), `npm run test:agents`.
-  **Next step:** finish the free-model bake-off (done: deepseek-v4.1-flash 20 s, glm-5.3-flash
-  95 s, big-pickle 103 s, all PASS; remaining 9 models), write the results into
-  DELEGATION.md §6 and `models.json` ranks, then a first real delegation on LIFT.
+  Bake-off done (7/12 free models pass; ranks in `models.json`, table in DELEGATION.md §6);
+  first real delegation merged (3e4e275). Portable kit: `docs/ops/agent-kit/` +
+  `scripts/setup-agent-kit.sh` (installed on this rig). **Owner to do:** upload
+  `~/lift/agent-kit-export/agent-delegation.skill` to claude.ai Skills and paste the
+  memory text (README in agent-kit). **Next:** use delegation in normal work; re-bake when models change.
   Preserve: free models ONLY; delegated runs go through the `opencode` CLI (raw API calls
   to free models return FreeTierError); one run at a time (parallel runs wedge the service).
 

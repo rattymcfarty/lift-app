@@ -126,6 +126,22 @@ Bake-off 2026-10-16. Task: implement `parseDuration` from a 16-case spec; pass =
 `node test.js` prints ALL PASS with the test file untouched; one run each,
 150 s limit, serial.
 
-| Model | Result | Time |
-|---|---|---|
-| _filled in from the bake-off; see the session log in HANDOFF_ | | |
+| Model | Result | Time | Notes |
+|---|---|---|---|
+| DeepSeek V4.1 Flash Free | ✅ pass | 20 s | fastest, minimal tool use; also did the first real LIFT delegation (14 tests, 67 s) |
+| Space Bunny Free | ✅ pass | 24 s | fast; zero-retention provider |
+| Muse Spark 1.3 Free | ✅ pass | 34 s | responses API, works through OpenCode |
+| Nemotron 3.5 Super VL Free | ✅ pass | 44 s | the vision model, and it codes fine too |
+| GLM-5.3-Flash Free | ✅ pass | 95 s | slower but solid; zero-retention provider |
+| Big Pickle | ✅ pass | 103 s | |
+| MiMo-V2.6-Flash Free | ✅ pass | 148 s | right at the limit, many shell retries |
+| LongCat 2.5 Preview Free | ❌ fail | 91 s | finished without implementing the function |
+| LL Alpha Free | ❌ timeout | 150 s | |
+| Nemotron 3 Ultra Free | ❌ timeout | 150 s | never started a tool call |
+| Nemotron 3.5 Lightning Free | ❌ timeout | 150 s | |
+| Cat Jam Free | ❌ unavailable | 1 s | "Model unavailable" at the time of testing |
+
+Resulting ranks in `models.json`: code/analysis → DeepSeek, Space Bunny, Muse Spark
+(+GLM for code); docs/content → DeepSeek, GLM, Space Bunny (provisional; prose
+wasn't benchmarked); vision → Nemotron Super VL. Re-run a bake-off when models
+change; failing models stay allowed but unranked.
