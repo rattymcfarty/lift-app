@@ -1,0 +1,14 @@
+[Unit]
+Description=LIFT Expo dev server (Expo Go over LAN and Tailscale)
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/lift/lift-app
+Environment=EXPO_NO_TELEMETRY=1 CI=1
+Environment=PATH=/home/dash/.local/node/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/dash/.local/node/bin/npx expo start --lan --port 8081
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
