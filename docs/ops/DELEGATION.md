@@ -145,3 +145,5 @@ Resulting ranks in `models.json`: code/analysis → DeepSeek, Space Bunny, Muse 
 (+GLM for code); docs/content → DeepSeek, GLM, Space Bunny (provisional; prose
 wasn't benchmarked); vision → Nemotron Super VL. Re-run a bake-off when models
 change; failing models stay allowed but unranked.
+
+> **Other repos:** set `DELEGATE_REPO=~/path/to/repo` (for `run`, `diff`, `clean`) to let the helper work in a different repository; the locked config still comes from this repo. Used for lift-kb.

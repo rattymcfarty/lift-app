@@ -16,11 +16,12 @@
 # if the first stalls. Nothing reaches main until the lead reviews the branch
 # and `npm run verify` passes. Exit 0 = run finished, 1 = failed.
 set -uo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+TOOLKIT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="${DELEGATE_REPO:-$TOOLKIT}"   # repo the helper works in (default: this one)
 OC="${LIFT_OPENCODE_BIN:-$HOME/.local/node/bin/opencode}"   # v2 only; a stale v1 lived in ~/.opencode/bin
 TREES="${LIFT_DELEGATIONS_DIR:-$HOME/lift/delegations}"
 LOGS="$TREES/.logs"
-TOOLS="$REPO/scripts/opencode"
+TOOLS="$TOOLKIT/scripts/opencode"
 
 die() { echo "delegate: $*" >&2; exit 1; }
 allowed() { node -e 'console.log(require(process.argv[1]).allowed.join("\n"))' "$TOOLS/models.json"; }
