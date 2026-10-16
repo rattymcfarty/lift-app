@@ -23,14 +23,26 @@ NODE_BIN="$HOME/.local/node/bin"
 OC="$NODE_BIN/opencode"
 CHECK=0; [ "${1:-}" = "--check" ] && CHECK=1
 if [ "${1:-}" = "--export" ]; then
-  out="${2:-$HOME/lift/agent-kit-export}"; work="$(mktemp -d)"; mkdir -p "$out" "$work/agent-delegation"
-  cp "$KIT/skills/agent-delegation/SKILL.md" "$work/agent-delegation/"
-  cp "$KIT/README.md" "$work/agent-delegation/REFERENCE-agent-kit.md"
-  rm -f "$out/agent-delegation.zip"
-  (cd "$work" && python3 -I -c "import zipfile,os;z=zipfile.ZipFile(os.sys.argv[1],'w',zipfile.ZIP_DEFLATED);[z.write(os.path.join('agent-delegation',f)) for f in sorted(os.listdir('agent-delegation'))];z.close()" "$out/agent-delegation.zip")
+  # Self-contained skill package: SKILL.md + references + a working copy of the tooling.
+  out="${2:-$HOME/lift/agent-kit-export}"; work="$(mktemp -d)"; P="$work/agent-delegation"
+  mkdir -p "$out" "$P/references" "$P/scripts/opencode" "$P/assets"
+  cp "$KIT/skills/agent-delegation/SKILL.md" "$P/"
+  cp "$REPO/docs/ops/DELEGATION.md" "$P/references/DELEGATION.md"
+  cp "$KIT/README.md" "$P/references/AGENT_KIT.md"
+  cp "$REPO/scripts/delegate.sh" "$REPO/scripts/opencode-key.sh" "$REPO/scripts/setup-agent-kit.sh" "$P/scripts/"
+  cp "$REPO"/scripts/opencode/* "$P/scripts/opencode/"
+  cp "$REPO/.mcp.json" "$P/assets/mcp.json"
+  rm -f "$out/agent-delegation.zip" "$out/agent-delegation.skill"
+  (cd "$work" && python3 -I -c "
+import zipfile, os, sys
+z = zipfile.ZipFile(sys.argv[1], 'w', zipfile.ZIP_DEFLATED)
+for root, _, files in os.walk('agent-delegation'):
+    for f in sorted(files):
+        z.write(os.path.join(root, f))
+z.close()" "$out/agent-delegation.zip")
   cp "$out/agent-delegation.zip" "$out/agent-delegation.skill"   # same archive; .skill shows a "Save skill" button when sent in a Claude chat
   cp "$KIT/claude-account-memory.txt" "$out/"
-  rm -rf "${work:?}"
+  rm -rf "${work:?}" "${out:?}/pkg"
   echo "exported to $out:"; ls -1 "$out"
   echo "Owner: upload agent-delegation.skill (or .zip) in claude.ai → Settings → Capabilities → Skills,"
   echo "       or attach it in any claude.ai chat and click \"Save skill\"; paste claude-account-memory.txt into Settings → Memory."

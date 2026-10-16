@@ -15,6 +15,25 @@ Reference implementation (copy it): the LIFT repo
 (locked config, `models.json`, Jev router, MCP server, config builder,
 summarizer), `.mcp.json`, and `docs/ops/DELEGATION.md` (full design and troubleshooting).
 
+## What's bundled (when installed as a packaged skill)
+
+- `references/DELEGATION.md`: the full design, rules, troubleshooting and the measured model table.
+- `references/AGENT_KIT.md`: how to rebuild the rig and save this kit to a Claude account.
+- `scripts/`: a working copy of the tooling (`delegate.sh`, `opencode-key.sh`,
+  `setup-agent-kit.sh`, `opencode/*`) to copy into a project's `scripts/` folder.
+- `assets/mcp.json`: the MCP registration (`.mcp.json`) for the
+  `delegate_to_opencode_free` tool.
+
+In the LIFT repo the same files live at their normal paths. Prefer those when they exist.
+
+## Which free model (measured 2026-10-16)
+
+Coding bake-off (16-case spec, 150 s limit). **DeepSeek V4.1 Flash** won (20 s).
+Then Space Bunny (24 s), Muse Spark 1.3 (34 s), Nemotron 3.5 Super VL (44 s, also
+the vision model), GLM-5.3-Flash (95 s), Big Pickle (103 s), MiMo-V2.6 (148 s). LongCat,
+LL Alpha, Nemotron 3 Ultra and Nemotron 3.5 Lightning failed or timed out; Cat Jam
+was unavailable. Default to DeepSeek and fall back to Space Bunny. Re-measure when models change.
+
 ## Set up on a new machine
 
 1. `git clone` the LIFT repo, then run `scripts/setup-agent-kit.sh`. It installs
