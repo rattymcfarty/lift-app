@@ -90,4 +90,24 @@ eq(M.buildDefinition(mk({ details: { ...M.DEFAULT_DETAILS, tagline: 'Train. Evol
 eq(M.buildDefinition(mk()).goal, 'Custom program', 'goal fallback');
 ok(M.FOCUS_OPTIONS.includes('Athletics') && M.FOCUS_OPTIONS.includes('Olympic Weightlifting'), 'focus options');
 
+// daysPerWeekOf / templateWeekCount
+eq(M.daysPerWeekOf(mk()), 3, 'daysPerWeekOf = widest week (repeating)');
+eq(M.daysPerWeekOf(mk({ schedule: 'custom', weeks: 3, weekDays: [['a'], ['a', 'b', 'c', 'd'], ['a', 'b']] })), 4, 'daysPerWeekOf = widest week (custom)');
+eq(M.daysPerWeekOf({ weekDays: [] }), 0, 'daysPerWeekOf with no weeks -> 0');
+eq(M.templateWeekCount(mk()), 1, 'repeating stores one template week');
+eq(M.templateWeekCount(mk({ weeks: 1 })), 1, 'repeating is one template regardless of duration');
+eq(M.templateWeekCount(mk({ schedule: 'custom', weeks: 5, weekDays: [[], [], [], [], []] })), 5, 'custom stores one template per week');
+
+// defaultDayName wraps A..Z every 26 days
+eq([M.defaultDayName(0), M.defaultDayName(25), M.defaultDayName(26), M.defaultDayName(27)], ['Workout A', 'Workout Z', 'Workout A', 'Workout B'], 'default names wrap A..Z');
+eq(M.defaultDayName(51), 'Workout Z', 'second wrap ends at Z');
+
+// normalizeDetails: null / partial input, unknown focus dropped, over-long text sliced
+eq(M.normalizeDetails(null), M.DEFAULT_DETAILS, 'null details -> defaults');
+eq(M.normalizeDetails({}).tagline, M.DEFAULT_DETAILS.tagline, 'empty object -> default tagline');
+eq(M.normalizeDetails({ focus: 'Muscle' }).focus, [], 'non-array focus -> []');
+eq(M.normalizeDetails({ focus: ['Strength', 'Mobility', 'nope'] }).focus, ['Strength', 'Mobility'], 'unknown focus values dropped, known kept');
+eq(M.normalizeDetails({ tagline: 'y'.repeat(161) }), { ...M.DEFAULT_DETAILS, tagline: 'y'.repeat(160) }, 'tagline sliced to 160, rest filled from defaults');
+eq(M.normalizeDetails({ description: 'z'.repeat(3001) }), { ...M.DEFAULT_DETAILS, description: 'z'.repeat(3000) }, 'description sliced to 3000, rest filled from defaults');
+
 console.log(`user programs: ${n} assertions passed`);
