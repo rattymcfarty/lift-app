@@ -5,7 +5,7 @@ description: Change exercise or program content in the lift-kb repo, rebuild the
 
 # Knowledge-base content update
 
-1. Edit content in `~/lift/lift-kb` (exercises/programs; CC BY 4.0).
+1. Edit content in `~/lift/lift-kb/content/` (Markdown pages, the only source: `exercises/<id>.md`, `programs/<id>.md`; CC BY 4.0), then `node scripts/validate-content.mjs` there.
    **IDs are permanent:** never rename or delete. Retire with
    `deprecated: true` + `replacedBy: <id>`.
 2. Bump `kb-version.json`, then `cd ~/lift/lift-kb && node scripts/build-bundle.mjs --write-channel`.
