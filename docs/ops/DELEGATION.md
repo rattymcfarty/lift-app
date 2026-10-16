@@ -94,6 +94,21 @@ results (§6), never guesses. Force a model with `-m opencode/<id>`.
 - OpenCode V2 reads `AGENTS.md` (not `CLAUDE.md`) and `.agents/skills` /
   `.claude/skills`, so the helper sees the same project rules and playbooks as the lead.
 
+## 4b. History and visibility (owner rule)
+
+- **Never delete OpenCode sessions.** Every delegated run is a normal session in
+  the owner's OpenCode service, titled `delegate: <slug>`, listed under the LIFT
+  project (`cd ~/lift/lift-app && opencode session list`). The owner can open it
+  in OpenCode to watch it live or read it later. Run logs stay in
+  `~/lift/delegations/.logs/`.
+- `scripts/delegate.sh clean <slug>` removes only the task's git worktree and
+  `delegate/<slug>` branch, after the work is merged or rejected. It never
+  touches sessions.
+- To take over a task in OpenCode: `cd ~/lift/delegations/<slug> && opencode -c`
+  (same sandbox config, same branch). Do this **before** cleanup; if the owner
+  says they want to continue a task, don't clean it.
+- Read-only `ask` runs use a throwaway worktree, so their sessions are readable but can't be continued.
+
 ## 5. Troubleshooting
 
 | Symptom | Fix |
