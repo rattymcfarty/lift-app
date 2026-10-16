@@ -16,7 +16,8 @@ principles and knowledge. No secrets are stored here.
 
 Files on a machine or VM can be lost; the owner's Claude account can't. Run
 `scripts/setup-agent-kit.sh --export`, then the owner:
-1. claude.ai → Settings → Capabilities → **Skills** → Upload `agent-delegation.zip`.
+1. claude.ai → Settings → Capabilities → **Skills** → Upload `agent-delegation.skill` (or `.zip`),
+   or attach the `.skill` file in any claude.ai chat and click **Save skill**.
    Account skills sync to every Claude session (they appear under `~/.claude/skills/synced/`).
 2. claude.ai → Settings → **Memory** → add the text from `claude-account-memory.txt`.
 

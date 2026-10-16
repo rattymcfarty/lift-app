@@ -28,10 +28,12 @@ if [ "${1:-}" = "--export" ]; then
   cp "$KIT/README.md" "$work/agent-delegation/REFERENCE-agent-kit.md"
   rm -f "$out/agent-delegation.zip"
   (cd "$work" && python3 -I -c "import zipfile,os;z=zipfile.ZipFile(os.sys.argv[1],'w',zipfile.ZIP_DEFLATED);[z.write(os.path.join('agent-delegation',f)) for f in sorted(os.listdir('agent-delegation'))];z.close()" "$out/agent-delegation.zip")
+  cp "$out/agent-delegation.zip" "$out/agent-delegation.skill"   # same archive; .skill shows a "Save skill" button when sent in a Claude chat
   cp "$KIT/claude-account-memory.txt" "$out/"
   rm -rf "${work:?}"
   echo "exported to $out:"; ls -1 "$out"
-  echo "Owner: upload agent-delegation.zip in claude.ai → Settings → Capabilities → Skills; paste claude-account-memory.txt into Settings → Memory."
+  echo "Owner: upload agent-delegation.skill (or .zip) in claude.ai → Settings → Capabilities → Skills,"
+  echo "       or attach it in any claude.ai chat and click \"Save skill\"; paste claude-account-memory.txt into Settings → Memory."
   exit 0
 fi
 todo=()
