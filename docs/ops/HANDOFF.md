@@ -119,7 +119,7 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - User-facing term is **Plan**; internal `routine` stays (backup-format compatibility).
 - Weights stored in kg; display unit is a setting.
 - Tabs: Programs / Train / Analytics / Exercises. No "Community" tab (no servers, by design).
-- Two brand colors only: gold `accent`, orange `highlight` (see tokens.ts rules).
+- Two brand colors only: purple `accent`, blue `highlight` (see tokens.ts rules).
 - Rule-based plan generation (explainable, offline) — not an opaque model. Starting
   loads are conservative bodyweight ratios, labelled as estimates.
 - KB IDs are permanent; dedupe = deprecate + `replacedBy`.

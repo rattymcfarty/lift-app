@@ -1,8 +1,8 @@
 /**
  * Building blocks for the multi-page "Program Details" flow: the page frame
- * (centred title, back arrow, sticky gold Next), labelled sections with an
+ * (centred title, back arrow, sticky purple Next), labelled sections with an
  * optional "(Select One)" hint, character-counted fields, and chip groups
- * whose selected state is a gold-tinted pill.
+ * whose selected state is a purple-tinted pill.
  */
 import type { JSX, ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';

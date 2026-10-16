@@ -2,11 +2,11 @@
  * Shared logging-UI primitives. Every screen in the workout flow composes
  * these — no ad-hoc buttons or cards elsewhere.
  *
- * Brand-color discipline (see src/theme/tokens.ts): gold (`accent`) is for
- * exercise titles + the Finish action; orange (`highlight`) is for set
+ * Brand-color discipline (see src/theme/tokens.ts): purple (`accent`) is for
+ * exercise titles + the Finish action; blue (`highlight`) is for set
  * numbers, the active-card border, focused inputs, and the log/check
  * circle. Button variants:
- * - 'gold'/'primary' → THE primary CTA of a screen/section (gold bg, black
+ * - 'gold'/'primary' → THE primary CTA of a screen/section (purple bg, black
  *                 text). One per zone; everything else steps down.
  * - 'accent'    → legacy alias of gold (kept for existing callers).
  * - 'secondary' → supporting actions (tonal fill + border).
@@ -32,7 +32,7 @@ import { useTheme } from '../../theme';
 type ButtonVariant =
   /** @deprecated Legacy alias of 'gold' — no callers; use 'gold'. */
   | 'accent'
-  /** Primary CTA — gold filled. 'gold' is the same style. */
+  /** Primary CTA — purple filled. 'gold' is the same style. */
   | 'gold'
   | 'primary'
   | 'secondary'
@@ -67,7 +67,7 @@ export function Button({
   const c = theme.colors;
   const t = theme.typography;
 
-  // One primary style: gold filled. Secondary is tonal; danger is ghost.
+  // One primary style: purple filled. Secondary is tonal; danger is ghost.
   const backgroundColor =
     variant === 'secondary'
       ? c.surfaceMuted
@@ -297,7 +297,7 @@ interface NumberInputProps {
 /**
  * Themed numeric field. The optional label renders above the input in
  * caption type (e.g. "kg", "reps") so set rows stay legible mid-workout.
- * The focused input gets the orange highlight border (reference style).
+ * The focused input gets the blue highlight border (reference style).
  */
 export function NumberInput({
   value,

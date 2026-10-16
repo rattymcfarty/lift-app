@@ -15,9 +15,9 @@
  * row may wrap so the WARMUP badge drops to a second line instead of
  * clipping. Behavior (prefill, RPE, warmup flag, log flow) is unchanged.
  *
- * Style (reference): set numbers orange once logged, the log action is an
- * orange-outline empty circle, a logged set shows a filled orange circle
- * with a dark check. The focused input gets the orange border (see
+ * Style (reference): set numbers blue once logged, the log action is a
+ * blue-outline empty circle, a logged set shows a filled blue circle
+ * with a dark check. The focused input gets the blue border (see
  * NumberInput).
  */
 

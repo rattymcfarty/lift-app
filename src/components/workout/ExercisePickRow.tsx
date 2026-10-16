@@ -2,9 +2,9 @@
  * One exercise in a picker / library list: muscle icon tile, name, the
  * muscles it trains, an info button, and a trailing state indicator.
  *
- * Selection (multi-select pickers) is deliberately loud: the row gets a gold
+ * Selection (multi-select pickers) is deliberately loud: the row gets a purple
  * accent bar and tint, the name goes bold, and the trailing "+" becomes a
- * filled gold check — so a glance down the list shows exactly what's chosen.
+ * filled purple check — so a glance down the list shows exactly what's chosen.
  */
 import type { JSX, ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';

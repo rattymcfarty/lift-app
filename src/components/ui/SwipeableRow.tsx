@@ -5,7 +5,7 @@
  * and works in Expo Go. The row follows the finger over a red "Delete"
  * backdrop; releasing past ~35% of the width (or with a fast flick) commits
  * the delete, anything less springs back. Swiping RIGHT runs `onSwipeRight`
- * (an "add" — new set, new exercise, duplicate) over a gold backdrop and the
+ * (an "add" — new set, new exercise, duplicate) over a purple backdrop and the
  * row springs back. A direction with no handler resists like a rubber band.
  * With `confirm` the destructive step asks first (and the row springs back if
  * cancelled).

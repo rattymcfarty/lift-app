@@ -12,8 +12,8 @@
  * rest countdown is the local <RestTimer/> below; #4 may observe or replace
  * it through this callback + the RestTimer props contract.
  *
- * Style (reference): the exercise name is large bold gold; the card gets
- * the orange active border while it has pending (in-progress) set rows;
+ * Style (reference): the exercise name is large bold purple; the card gets
+ * the blue active border while it has pending (in-progress) set rows;
  * the table header is muted small-caps — Set / Target / weight / Reps —
  * where Target is the previous performance to beat; the footer is
  * reference-style text actions ("⊕ Add Set", "Swap").
@@ -391,7 +391,7 @@ export function ExerciseCard({
   // Determine if we should show column headers (any rows exist: logged or pending)
   const hasAnyRows = sets.length > 0 || pendings.length > 0;
 
-  // The card gets the orange active border while it has pending
+  // The card gets the blue active border while it has pending
   // (in-progress) set rows — the reference's "current exercise" signal.
   const isActive = pendings.length > 0;
 

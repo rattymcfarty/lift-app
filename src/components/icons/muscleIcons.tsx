@@ -4,13 +4,13 @@
  * Genre (direction only, from Matt's reference screenshots of another
  * app — no copied, traced, or extracted artwork): a small tile with a
  * gray anatomical-style figure and the working muscle highlighted in
- * orange. Every shape here is an original path drawn for this file on
+ * blue. Every shape here is an original path drawn for this file on
  * a 48x48 grid: one front figure and one back figure share a body
  * outline; muscle highlights are separate paths layered on top, and a
  * per-muscle viewBox zooms the crop (shoulders, forearms, abs, neck).
  *
  * Colors come from props (theme muted = silhouette, theme highlight =
- * orange) so the icons work in both light and dark mode. Fine
+ * blue) so the icons work in both light and dark mode. Fine
  * definition lines use a translucent black stroke so they read on both.
  */
 import type { JSX } from 'react';
@@ -24,7 +24,7 @@ export interface MuscleIconArtProps {
   size: number;
   /** Silhouette color (theme muted). */
   silhouette: string;
-  /** Highlight color (theme highlight orange). */
+  /** Highlight color (theme highlight blue). */
   highlight: string;
 }
 

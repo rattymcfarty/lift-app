@@ -1,7 +1,7 @@
 /**
  * SegmentedTitle — the large screen title that doubles as a section switcher
  * ("Train | History", "Explore | Library"). The active title is full-strength
- * with a gold underline; the others are muted. Sizes come from the type
+ * with a purple underline; the others are muted. Sizes come from the type
  * scale (screen / screenCompact below 360pt) and shrink-to-fit so a long
  * pair still fits a 320pt Display-Zoom screen and 1.3x Dynamic Type.
  */

@@ -1,5 +1,5 @@
 /**
- * Analytics overview — "Lifetime" and "This Week" stat triplets (big orange
+ * Analytics overview — "Lifetime" and "This Week" stat triplets (big blue
  * numbers in an inset pill), Latest PRs, and links to the deeper views.
  * Loads its own data so it can sit at the top of the Analytics scroll.
  */

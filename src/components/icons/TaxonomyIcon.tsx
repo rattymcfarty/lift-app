@@ -1,7 +1,7 @@
 /**
  * TaxonomyIcon — renders a muscle or equipment icon, tiled by default.
  * Colors come from the active theme (muted silhouette, highlight
- * orange) so icons read correctly in both light and dark mode.
+ * blue) so icons read correctly in both light and dark mode.
  * Artwork itself lives in muscleIcons.tsx / equipmentIcons.tsx and is
  * original to LIFT — see those files for the copyright note.
  */

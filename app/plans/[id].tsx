@@ -5,7 +5,7 @@
  * logs sets fresh.
  *
  * Style (reference): the exercises render as one card with a
- * "# EXERCISE SETS REPS" table — orange numbers, name + target detail,
+ * "# EXERCISE SETS REPS" table — blue numbers, name + target detail,
  * sets/reps in darker inset pills. LIFT plans are flat templates (no
  * day-grouping), so the whole plan is one table, not one card per day.
  */

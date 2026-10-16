@@ -5,11 +5,11 @@
  * reference screenshots of another app — no copied, traced, or
  * extracted artwork): small illustrated scenes on a 48x48 grid — a
  * gray figure using the equipment, with the implement itself in the
- * highlight orange. Every shape here is an original primitive drawn
+ * highlight blue. Every shape here is an original primitive drawn
  * for this file.
  *
  * Colors come from props (theme muted = figure/structure, theme
- * highlight = orange implement) so the icons work in both light and
+ * highlight = blue implement) so the icons work in both light and
  * dark mode. Fine detail uses a translucent black stroke.
  */
 import type { JSX } from 'react';
@@ -23,7 +23,7 @@ export interface EquipmentIconArtProps {
   size: number;
   /** Structure / figure color (theme muted). */
   silhouette: string;
-  /** Implement color (theme highlight orange). */
+  /** Implement color (theme highlight blue). */
   highlight: string;
 }
 
@@ -162,7 +162,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Cardio':
-      // Exercise bike: orange flywheel/frame, gray rider.
+      // Exercise bike: blue flywheel/frame, gray rider.
       art = (
         <>
           <Limb x1={7} y1={41} x2={36} y2={41} c={sil} w={3} />
@@ -181,7 +181,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Smith Machine':
-      // Squat inside a Smith frame: gray rails, orange bar and plates.
+      // Squat inside a Smith frame: gray rails, blue bar and plates.
       art = (
         <>
           <Rect x={5} y={4} width={3} height={36} rx={1.2} fill={sil} />
@@ -201,7 +201,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Cable':
-      // Cable tower with an orange stack, pulley and handle; figure pulls.
+      // Cable tower with a blue stack, pulley and handle; figure pulls.
       art = (
         <>
           <Rect x={4} y={4} width={8} height={36} rx={1.6} fill={hl} />
@@ -222,7 +222,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Safety Bar':
-      // Safety squat bar: orange bar and padded yoke with forward handles.
+      // Safety squat bar: blue bar and padded yoke with forward handles.
       art = (
         <>
           <Circle cx={24} cy={9.6} r={3.4} fill={sil} />

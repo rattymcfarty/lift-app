@@ -144,29 +144,25 @@ try {
   check('isKnownCategory("Squat") === true', taxonomy.isKnownCategory('Squat') === true);
   check('isKnownCategory("FakeCategory") === false', taxonomy.isKnownCategory('FakeCategory') === false);
 
-  // 7. KB validation: all 627 exercise files validate against updated schema
+  // 7. KB validation: all 627 exercises validate against updated schema.
+  // Read the checked-in snapshot bundle (what the app actually ships) so this
+  // test has no dependency on the sibling lift-kb repo or a locally built dist/.
   const exerciseSchema = JSON.parse(readFileSync(join(process.cwd(), 'src/kb/schemas/exercise.schema.json'), 'utf8'));
-  const kbRoot = join(process.cwd(), '..', 'lift-kb');
-  const exercisesDir = join(kbRoot, 'exercises');
-  const exerciseFiles = (await import('node:fs')).readdirSync(exercisesDir).filter(f => f.endsWith('.json')).sort();
-  check('627 exercise files in KB', exerciseFiles.length === 627);
+  const bundlePath = join(process.cwd(), 'assets', 'kb', 'snapshot', 'bundle.json');
+  const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
+  check('627 exercises in KB snapshot', bundle.exercises.length === 627);
 
   let allExercisesValid = true;
-  for (const f of exerciseFiles) {
-    const ex = JSON.parse(readFileSync(join(exercisesDir, f), 'utf8'));
+  for (const ex of bundle.exercises) {
     const r = validate.validateSchema(exerciseSchema, ex);
     if (!r.valid) {
-      console.error(`  invalid exercise ${f}: ${validate.formatIssues(r.issues)}`);
+      console.error(`  invalid exercise ${ex.id}: ${validate.formatIssues(r.issues)}`);
       allExercisesValid = false;
     }
   }
   check('all 627 KB exercises pass schema validation', allExercisesValid);
 
   // 8. Snapshot taxonomy check: every exercise in refreshed snapshot has valid taxonomy
-  // Use the checked-in snapshot (what the app actually ships) so this test has
-  // no dependency on a locally built dist/ — a clean clone passes too.
-  const bundlePath = join(process.cwd(), 'assets', 'kb', 'snapshot', 'bundle.json');
-  const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
   check('snapshot has a semver bundleVersion', /^\d+\.\d+\.\d+$/.test(bundle.bundleVersion));
 
   const canonicalMuscles = new Set(taxonomy.MUSCLE_GROUPS.map(m => m.id));

@@ -103,7 +103,7 @@ Pure logic (`src/lib`, `src/programs/*Def.ts`, `src/workouts/policy.ts`,
   288/320/411/514 dp (see the `lift-device-test` skill).
 - **Interaction conventions:** swipe **left = remove**, swipe **right = add**
   (`src/components/ui/SwipeableRow.tsx`) — everywhere: sets, exercises, days, plans.
-- Colors: gold `accent` = primary actions/active tab; orange `highlight` = set
+- Colors: purple `accent` = primary actions/active tab; blue `highlight` = set
   numbers, active-card border, stats. Don't invent new brand colors.
 - **This repo is PUBLIC.** Read `docs/ops/SECRETS_POLICY.md`. A pre-commit hook
   scans every commit and refuses non-noreply author emails; `npm run secrets:scan`

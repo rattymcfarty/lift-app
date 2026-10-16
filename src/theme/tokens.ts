@@ -4,19 +4,19 @@
  *
  * Aesthetic (from Matt's chosen reference screenshots, layout/hierarchy
  * direction only — no copied branding/artwork): near-black surfaces, dark
- * charcoal rounded cards, large bold white titles, gold for exercise
- * titles and the Finish action, orange for numbers, active-card borders,
+ * charcoal rounded cards, large bold white titles, purple for exercise
+ * titles and the Finish action, blue for numbers, active-card borders,
  * focused inputs, and check circles, muted gray small-caps column
  * headers, values in darker inset pills.
  *
  * Color discipline: exactly TWO brand colors, each with one job.
- * - `accent` (gold) — primary actions, exercise titles, the Finish action.
+ * - `accent` (purple) — primary actions, exercise titles, the Finish action.
  *   Nothing else.
- * - `highlight` (orange) — set numbers, the active-card border, the
+ * - `highlight` (blue) — set numbers, the active-card border, the
  *   focused-input border, and the log/check circle. Nothing else.
  * Semantic colors (success/danger/warning) exist for confirmations and
  * safety messaging only — never for decoration. Success is a distinct
- * teal so it can't be mistaken for the gold/orange action colors.
+ * teal so it can't be mistaken for the purple/blue action colors.
  * Screens must consume these tokens; never hard-code colors, spacing,
  * or font sizes.
  *
@@ -59,14 +59,14 @@ export interface ColorTokens {
    *  add a dedicated token if a control needs a high-contrast edge. */
   border: string;
   /**
-   * GOLD — exercise titles + the Finish action. Do not use it for
+   * PURPLE — exercise titles + the Finish action. Do not use it for
    * decoration, charts, or secondary buttons.
    */
   accent: string;
   /** Text drawn on top of the accent color (contrast-safe). */
   accentText: string;
   /**
-   * ORANGE — set numbers, the active-card border, the focused-input
+   * BLUE — set numbers, the active-card border, the focused-input
    * border, and the log/check circle. Do not use it for decoration.
    */
   highlight: string;
@@ -74,7 +74,7 @@ export interface ColorTokens {
   highlightText: string;
   /** Destructive actions and errors. */
   danger: string;
-  /** Confirmations (PRs, completed syncs). Teal — distinct from gold/orange. */
+  /** Confirmations (PRs, completed syncs). Teal — distinct from purple/blue. */
   success: string;
   /** Safety notices (RPE caps, deloads). Meets 4.5:1 for safety text. */
   warning: string;
@@ -213,9 +213,9 @@ export const lightTheme: Theme = {
     muted: '#5c5c60',
     faint: '#67676c',
     border: '#dddde2',
-    accent: '#b8860b',
-    accentText: '#000000',
-    highlight: '#c24e00',
+    accent: '#6c3fd1',
+    accentText: '#ffffff',
+    highlight: '#1a69c8',
     highlightText: '#ffffff',
     danger: '#c81e1e',
     success: '#0f766e',
@@ -233,9 +233,9 @@ export const darkTheme: Theme = {
     muted: '#a1a1a6',
     faint: '#7c7c82',
     border: '#2a2a2e',
-    accent: '#ffc700',
+    accent: '#a073f0',
     accentText: '#000000',
-    highlight: '#ff6b00',
+    highlight: '#4b98e8',
     highlightText: '#000000',
     danger: '#ff453a',
     success: '#2dd4bf',
