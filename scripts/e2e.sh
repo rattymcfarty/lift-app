@@ -66,7 +66,7 @@ for f in "${FLOWS[@]}"; do
   fi
   # The emulator occasionally drops between flows; re-check and retry once.
   adb get-state >/dev/null 2>&1 || { echo "emulator lost before '$f' — rerun"; fail=1; break; }
-  if timeout 600 maestro test ".maestro/$f.yaml" > "$LOG/$f.log" 2>&1; then
+  if timeout 1500 maestro test ".maestro/$f.yaml" > "$LOG/$f.log" 2>&1; then
     echo "PASS  $f"
   else
     echo "FAIL  $f   → $(grep -E 'FAILED|Element not found|Assertion' "$LOG/$f.log" | head -2 | tr '\n' ' ')"

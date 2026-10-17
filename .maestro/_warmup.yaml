@@ -1,0 +1,10 @@
+# Cold-start warm-up (first launch imports the KB; slow on a software-rendered
+# emulator). Run first so the real flows start against a warm install.
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onb-skip"
+    timeout: 240000

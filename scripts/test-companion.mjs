@@ -233,7 +233,7 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   // Default: RIGHT edge, ~38% down, inside the safe-area bounds.
   eq(P.DEFAULT_V_FRACTION, 0.72, 'the default sits 72% down the window');
   const def = P.defaultCompanionPosition(891, B);
-  eq(def.x, 319, 'the default hugs the right bound');
+  eq(def.x, 12, 'the default hugs the left bound');
   eq(def.y, 641.52, 'the default is 72% of the window height down');
   ok(def.y > B.top && def.y < B.bottom, 'the default is inside the bounds');
   ok(def.y > 420 && def.y < 700, 'the default is in the lower part of the screen, clear of the header and the tab bar');
@@ -243,7 +243,7 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   eq(P.defaultCompanionY(240, tiny), 60, 'a short window clamps the default down to the bottom bound');
   const squat = { left: 12, right: 100, top: 60, bottom: 100 };
   eq(P.defaultCompanionY(70, squat), 60, 'a very short window clamps it up to the top bound');
-  eq(P.defaultCompanionPosition(70, squat), { x: 100, y: 60 }, 'the tiny-window default is still the right edge');
+  eq(P.defaultCompanionPosition(70, squat), { x: 12, y: 60 }, 'the tiny-window default is still the left edge');
 
   // Bubble: opens to the left of a right-edge creature, centred otherwise.
   const right = P.placeBubble(319, 80, 411, 260, 12, 8);

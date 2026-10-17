@@ -113,7 +113,7 @@ appId: app.lift.mobile
 - scrollUntilVisible:
     element:
       id: "add-exercise-row-push-up"
-    timeout: 30000
+    timeout: 180000
 # D. Detail tabs (from picker exercise info)
 - tapOn:
     id: "exercise-info-push-up"

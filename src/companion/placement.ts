@@ -4,10 +4,10 @@
  *
  * The creature is dragged anywhere and snaps to the nearest of five anchors
  * (centre/left/right × the top and bottom bands). Its *default* — before the
- * user has ever dragged it, and whenever nothing is stored — is the RIGHT edge
+ * user has ever dragged it, and whenever nothing is stored — is the LEFT edge
  * at `DEFAULT_V_FRACTION` of the window height: the old top-centre default sat
- * on top of screen titles ("Workout · 17 Oct"), while the right edge about a
- * third of the way down is clear of headers, the tab bar and bottom buttons.
+ * on top of screen titles ("Workout · 17 Oct"), while the left edge, where screens keep labels and thumbnails (controls sit on the right), about
+ * three quarters of the way down, is clear of headers, the tab bar and bottom buttons.
  *
  * A stored anchor always wins, so every position the user dragged stays valid;
  * a saved `tc` (the old default) keeps the companion top-centre.
@@ -79,12 +79,12 @@ export function defaultCompanionY(windowHeight: number, b: CompanionBounds): num
   return clampPosition(windowHeight * DEFAULT_V_FRACTION, b.top, b.bottom);
 }
 
-/** The default resting place: the right edge, `DEFAULT_V_FRACTION` down. */
+/** The default resting place: the left edge, `DEFAULT_V_FRACTION` down. */
 export function defaultCompanionPosition(
   windowHeight: number,
   b: CompanionBounds,
 ): { x: number; y: number } {
-  return { x: b.right, y: defaultCompanionY(windowHeight, b) };
+  return { x: b.left, y: defaultCompanionY(windowHeight, b) };
 }
 
 export interface BubblePlacement {
