@@ -99,3 +99,31 @@ appId: app.lift.mobile
 - tapOn:
     id: "reorder-ok"
 - assertVisible: "Romanian Deadlift.*"
+
+# --- Create Superset: link the two exercises, see the group tag, unlink ----
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: "action-create-superset"
+- tapOn:
+    id: "action-create-superset"
+- assertVisible:
+    id: "superset-sheet"
+- tapOn:
+    id: "superset-member-.*"
+    index: 0
+- tapOn:
+    id: "superset-link"
+- assertVisible: "SUPERSET A.*"
+# Unlink again: the tag disappears.
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: "action-remove-superset"
+- tapOn:
+    id: "action-remove-superset"
+- assertNotVisible: "SUPERSET A.*"

@@ -857,7 +857,7 @@ export async function setSupersetGroup(
   if (workoutExerciseIds.length === 0) return;
   return withWriteLock(async () => {
     const rows = await db
-      .select({ id: workoutExercises.id, workoutId: workoutExercises.workoutId })
+      .select({ id: workoutExercises.id, workoutId: workoutExercises.workoutId, supersetId: workoutExercises.supersetId })
       .from(workoutExercises)
       .where(and(inArray(workoutExercises.id, workoutExerciseIds), isNull(workoutExercises.deletedAt)));
     if (rows.length !== workoutExerciseIds.length) {
@@ -871,6 +871,23 @@ export async function setSupersetGroup(
       .update(workoutExercises)
       .set({ supersetId })
       .where(and(inArray(workoutExercises.id, workoutExerciseIds), isNull(workoutExercises.deletedAt)));
+    // Unlinking can strand a lone member of the old group: a superset needs
+    // at least two members, so dissolve any group left with fewer.
+    if (supersetId === null) {
+      const oldGroups = new Set(rows.map((r) => r.supersetId).filter((g): g is string => g != null));
+      for (const gid of oldGroups) {
+        const left = await db
+          .select({ id: workoutExercises.id })
+          .from(workoutExercises)
+          .where(and(eq(workoutExercises.supersetId, gid), isNull(workoutExercises.deletedAt)));
+        if (left.length < 2) {
+          await db
+            .update(workoutExercises)
+            .set({ supersetId: null })
+            .where(and(eq(workoutExercises.supersetId, gid), isNull(workoutExercises.deletedAt)));
+        }
+      }
+    }
   });
 }
 
