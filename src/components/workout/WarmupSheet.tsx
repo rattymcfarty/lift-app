@@ -18,7 +18,7 @@
  *   the still-unlogged ones.
  * - kg/lb aware (stored in kg).
  */
-import React, { useEffect, useState, type JSX } from 'react';
+import React, { useEffect, useRef, useState, type JSX } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useTheme, withAlpha } from '../../theme';
 import { decodeStringArray } from '../../db/schema';
@@ -183,8 +183,16 @@ export function WarmupSheet({
     setPreviewRows(rows);
   };
 
+  // Prefill exactly once per opening. Re-running it while the user types would
+  // write the old value back over the field and corrupt what they are entering.
+  const prefilledRef = useRef(false);
   useEffect(() => {
-    if (visible) {
+    if (!visible) {
+      prefilledRef.current = false;
+      return;
+    }
+    if (!prefilledRef.current) {
+      prefilledRef.current = true;
       // Prefill working weight from first working set on card, else previous, else routine target
       let prefillKg: number | null = firstWorkingWeightKg;
       if (prefillKg == null) prefillKg = previousPerformanceWeightKg;

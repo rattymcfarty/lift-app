@@ -75,7 +75,9 @@ appId: app.lift.mobile
     id: "warmup-weight-input"
 - eraseText: 40
 - inputText: "20"
+- takeScreenshot: shot-warmup-typed
 - hideKeyboard
+- takeScreenshot: shot-warmup-preview
 - tapOn:
     id: "warmup-add"
 # The sheet closes; the ramp rows appear above the working set: the W badge
