@@ -69,15 +69,11 @@ appId: app.lift.mobile
 # The actions sheet closes and the warm-up sheet opens.
 - assertVisible:
     id: "warmup-sheet"
-# The field is prefilled from the logged set; make sure it holds a working
-# weight (erase is a no-op when the field is empty).
-- tapOn:
+# The working weight is prefilled from the logged 20 kg set, so the preview
+# shows 50/70/85% of 20 kg (10, 14, 17). No retyping: tapping the middle of a
+# prefilled field puts the caret between the digits and typing corrupts it.
+- assertVisible:
     id: "warmup-weight-input"
-- eraseText: 40
-- inputText: "20"
-- takeScreenshot: shot-warmup-typed
-- hideKeyboard
-- takeScreenshot: shot-warmup-preview
 - tapOn:
     id: "warmup-add"
 # The sheet closes; the ramp rows appear above the working set: the W badge

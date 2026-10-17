@@ -632,6 +632,8 @@ export function ExerciseActionsSheet({
                       await linkSuperset(workoutId, workoutExercise.id, memberIds);
                       onChanged();
                       setSupersetSheetVisible(false);
+                      // Close the Actions menu too, so the grouped cards are visible.
+                      onClose();
                     } catch (e) {
                       Alert.alert('Error', e instanceof Error ? e.message : 'Could not create superset');
                     }
