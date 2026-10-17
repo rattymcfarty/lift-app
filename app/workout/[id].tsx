@@ -32,7 +32,7 @@ import { plannedSetsBySlot, plannedSetSlotKey, type PlannedSetRow } from '../../
 import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
-import { ExerciseCard } from '../../src/components/workout/ExerciseCard';
+import { ExerciseCard, type SupersetGroupInfo } from '../../src/components/workout/ExerciseCard';
 import { TaxonomyIcon } from '../../src/components/icons';
 import { ToolIcon } from '../../src/components/icons/ToolIcons';
 import { RestTimer } from '../../src/components/workout/RestTimer';
@@ -40,6 +40,7 @@ import { advanceEnrollmentForWorkout } from '../../src/programs/sessions';
 import { invalidateConsistencyCache } from '../../src/stats/queries';
 import { aggregateMuscles } from '../../src/lib/aggregateMuscles';
 import { getSupersetGroups } from '../../src/data/repositories';
+import { buildSupersetRenderGroups, supersetTagText, type SupersetRenderGroup } from '../../src/lib/exerciseMenu';
 import { PlateCalculator } from '../../src/components/workout/PlateCalculator';
 import { AppState, useWindowDimensions } from 'react-native';
 import { recordHeartbeat, reconcileWorkouts } from '../../src/workouts/lifecycle';
@@ -101,6 +102,9 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   const [restSecondsForTimer, setRestSecondsForTimer] = useState<number | null>(null);
   const { width } = useWindowDimensions();
   const compactMode = width < 360;
+
+  // FlatList ref for scrolling to superset members
+  const flatListRef = useRef<FlatList<{ item: WorkoutExerciseDetail; supersetGroup: SupersetGroupInfo | null }> | null>(null);
 
   /** Fetch "last time" only for exercises we haven't looked up yet. */
   const loadPreviousFor = useCallback(async (items: WorkoutExerciseDetail[], wid: string) => {
@@ -307,51 +311,62 @@ export default function ActiveWorkoutScreen(): JSX.Element {
     );
   }, [workoutId]);
 
-  const renderExercise = ({ item }: { item: WorkoutExerciseDetail }): JSX.Element => (
+  // Build superset groups for visual indicators on each card.
+  const supersetRenderGroups = detail
+    ? buildSupersetRenderGroups(detail.items)
+    : [];
+
+  // Flatten groups into individual items with supersetGroup info.
+  // For singletons (no supersetId), supersetGroup is null.
+  // For grouped items, pass { letter, isFirst, isLast, memberCount, supersetId }.
+  const flatItems = supersetRenderGroups.flatMap((group) =>
+    group.items.map((item, index) => ({
+      item,
+      supersetGroup:
+        group.supersetId != null
+          ? {
+              letter: group.label.replace('SUPERSET ', ''),
+              isFirst: index === 0,
+              isLast: index === group.items.length - 1,
+              memberCount: group.items.length,
+              supersetId: group.supersetId,
+            }
+          : null,
+    }))
+  );
+
+  /** Scroll to the exercise card with the given workoutExerciseId. */
+  const scrollToMember = useCallback(
+    (workoutExerciseId: string) => {
+      flatListRef.current?.scrollToIndex({
+        index: flatItems.findIndex((entry) => entry.item.workoutExercise.id === workoutExerciseId),
+        animated: true,
+        viewPosition: 0.3,
+      });
+    },
+    [flatItems],
+  );
+
+
+  // Sets logged in this workout, for the finish sheet's subtitle.
+  const setCount = detail?.items.reduce((n, i) => n + i.sets.length, 0) ?? 0;
+
+  const renderExercise = ({
+    item,
+  }: {
+    item: { item: WorkoutExerciseDetail; supersetGroup: { letter: string; isFirst: boolean; isLast: boolean; memberCount: number; supersetId: string } | null };
+  }): JSX.Element => (
     <ExerciseCard
-      detail={item}
-      previous={item.exercise.id in previousMap ? previousMap[item.exercise.id] : undefined}
+      detail={item.item}
+      previous={item.item.exercise.id in previousMap ? previousMap[item.item.exercise.id] : undefined}
       onChanged={() => void load()}
       onSetComplete={handleSetComplete}
       workoutItems={detail?.items ?? []}
       workoutId={workoutId ?? ''}
       workoutName={detail?.workout.name}
-      plannedSets={plannedFor(item)}
+      plannedSets={plannedFor(item.item)}
+      supersetGroup={item.supersetGroup}
     />
-  );
-
-  // Build superset groups for visual grouping in the list.
-  // Exercises sharing a supersetId are wrapped in a labeled container.
-  const supersetGroups = detail
-    ? getSupersetGroupsForRender(detail.items)
-    : [];
-
-  // Sets logged in this workout, for the finish sheet's subtitle.
-  const setCount = detail?.items.reduce((n, i) => n + i.sets.length, 0) ?? 0;
-
-  const renderGroup = ({ item }: { item: { label: string; items: WorkoutExerciseDetail[] } }): JSX.Element => (
-    <View style={item.label ? [styles.supersetContainer, { borderColor: theme.colors.accent }] : undefined}>
-      {item.label ? (
-        <Text style={[styles.supersetLabel, { color: theme.colors.accent, fontSize: theme.typography.size.caption }]} testID={`superset-group-${item.label.replace(/\s/g, '').toLowerCase()}`}>
-          {item.label}
-        </Text>
-      ) : null}
-      <View style={{ gap: theme.spacing.md }}>
-        {item.items.map((exerciseItem) => (
-          <ExerciseCard
-            key={exerciseItem.workoutExercise.id}
-            detail={exerciseItem}
-            previous={exerciseItem.exercise.id in previousMap ? previousMap[exerciseItem.exercise.id] : undefined}
-            onChanged={() => void load()}
-            onSetComplete={handleSetComplete}
-            workoutItems={detail?.items ?? []}
-            workoutId={workoutId ?? ''}
-            workoutName={detail?.workout.name}
-            plannedSets={plannedFor(exerciseItem)}
-          />
-        ))}
-      </View>
-    </View>
   );
 
   return (
@@ -389,12 +404,12 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         />
       ) : (
         <FlatList
-          data={supersetGroups}
-          keyExtractor={(group) => group.items[0].workoutExercise.id}
+          data={flatItems}
+          keyExtractor={(entry) => entry.item.workoutExercise.id}
           // Taps on Log/Add exercise/Finish must reach the buttons while the
           // numeric keyboard is up (first tap would otherwise only dismiss it).
           keyboardShouldPersistTaps="handled"
-          renderItem={renderGroup}
+          renderItem={renderExercise}
           contentContainerStyle={{
             paddingHorizontal: theme.spacing.md,
             paddingBottom: theme.spacing.xl,
@@ -589,44 +604,6 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Superset group helper (pure JS, no React)                            */
-/* ------------------------------------------------------------------ */
-
-/**
- * Groups workout items by supersetId, preserving position order.
- * Returns an array of groups, each with a label (SUPERSET A/B/C…) and
- * the member items in position order. Non-superset items are returned
- * as singleton groups with label ''.
- */
-export function getSupersetGroupsForRender(
-  items: WorkoutExerciseDetail[],
-): Array<{ label: string; items: WorkoutExerciseDetail[] }> {
-  const groups: Array<{ label: string; items: WorkoutExerciseDetail[] }> = [];
-  const supersetLabels = new Map<string, string>();
-  let letter = 0;
-
-  for (const item of items) {
-    const sid = item.workoutExercise.supersetId;
-    if (sid == null) {
-      groups.push({ label: '', items: [item] });
-      continue;
-    }
-    let group = groups.find(
-      (g) => g.items[0].workoutExercise.supersetId === sid,
-    );
-    if (!group) {
-      const label = `SUPERSET ${String.fromCharCode(65 + letter)}`;
-      letter++;
-      supersetLabels.set(sid, label);
-      group = { label, items: [] };
-      groups.push(group);
-    }
-    group.items.push(item);
-  }
-  return groups;
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -656,17 +633,6 @@ const styles = StyleSheet.create({
   },
   scroll: {
     maxHeight: 500,
-  },
-  supersetContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    gap: 8,
-  },
-  supersetLabel: {
-    fontWeight: FONT_WEIGHT.bold,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
 });
 

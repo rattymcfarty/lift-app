@@ -38,6 +38,7 @@ import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
+import { supersetTagText, shouldStartRest, nextSupersetMember } from '../../lib/exerciseMenu';
 import type { PlannedSetRow } from '../../data/plannedSets';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
@@ -78,6 +79,19 @@ interface PendingSetState {
   seeded?: boolean;
 }
 
+export interface SupersetGroupInfo {
+  /** The superset letter (A, B, C...). */
+  letter: string;
+  /** True if this is the first member of the superset group. */
+  isFirst: boolean;
+  /** True if this is the last member of the superset group. */
+  isLast: boolean;
+  /** Total number of members in the superset group. */
+  memberCount: number;
+  /** The superset ID for testID. */
+  supersetId: string;
+}
+
 interface ExerciseCardProps {
   detail: WorkoutExerciseDetail;
   /**
@@ -97,6 +111,8 @@ interface ExerciseCardProps {
    * template with no declared sets — the card then opens empty.
    */
   plannedSets?: PlannedSetRow[];
+  /** Superset group info for visual indicators, or null if not in a superset. */
+  supersetGroup?: SupersetGroupInfo | null;
 }
 
 export function ExerciseCard({
@@ -108,6 +124,7 @@ export function ExerciseCard({
   workoutId = '',
   workoutName,
   plannedSets,
+  supersetGroup = null,
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
@@ -353,31 +370,63 @@ export function ExerciseCard({
       });
       // Companion: a very occasional cheer (rate-limited in the trigger).
       if (!isWarmup) companionSetLogged();
-      // Determine if this is the last exercise in its superset group.
-      // If so, start the rest timer once using the max of member rest defaults.
+
+      // Superset rest/flow logic
       const supersetId = workoutExercise.supersetId;
-      let isLastInSuperset = true;
       let restSecondsToUse =
         workoutExercise.restSeconds ?? settings?.defaultRestSeconds ?? 90;
+      let shouldRest = true;
+      let nextMemberId: string | null = null;
+
       if (supersetId && workoutItems.length > 0) {
+        // Build member list in position order
         const members = workoutItems
           .filter((w) => w.workoutExercise.supersetId === supersetId)
-          .sort((a, b) => a.workoutExercise.position - b.workoutExercise.position);
-        if (members.length > 0) {
-          isLastInSuperset =
-            members[members.length - 1].workoutExercise.id === workoutExercise.id;
-          if (isLastInSuperset) {
-            const maxRest = members.reduce((max, m) => {
-              const r = m.workoutExercise.restSeconds ?? settings?.defaultRestSeconds ?? 90;
-              return Math.max(max, r);
-            }, 0);
-            restSecondsToUse = maxRest;
+          .sort((a, b) => a.workoutExercise.position - b.workoutExercise.position)
+          .map((m) => m.workoutExercise.id);
+
+        // Build logged counts from workoutItems, adding 1 for the just-logged set
+        const loggedCounts = new Map<string, number>();
+        for (const item of workoutItems) {
+          if (item.workoutExercise.supersetId === supersetId) {
+            loggedCounts.set(item.workoutExercise.id, item.sets.length);
           }
         }
+        // Account for the set we just logged (not yet in workoutItems)
+        loggedCounts.set(workoutExercise.id, (loggedCounts.get(workoutExercise.id) ?? 0) + 1);
+
+        // Decide if rest should start
+        shouldRest = shouldStartRest(members, loggedCounts, workoutExercise.id);
+
+        // If not resting, find next member to focus
+        if (!shouldRest) {
+          nextMemberId = nextSupersetMember(members, loggedCounts, workoutExercise.id);
+        }
+
+        // If this is the last member and we're resting, use max rest of group
+        const isLastInSuperset = members[members.length - 1] === workoutExercise.id;
+        if (shouldRest && isLastInSuperset) {
+          const maxRest = members.reduce((max, m) => {
+            const item = workoutItems.find((w) => w.workoutExercise.id === m);
+            const r = item?.workoutExercise.restSeconds ?? settings?.defaultRestSeconds ?? 90;
+            return Math.max(max, r);
+          }, 0);
+          restSecondsToUse = maxRest;
+        }
       }
-      setRestKey((k) => k + 1);
-      setRestSeconds(restSecondsToUse);
-      onSetComplete(restSecondsToUse, workoutExercise.id, isLastInSuperset);
+
+      if (shouldRest) {
+        setRestKey((k) => k + 1);
+        setRestSeconds(restSecondsToUse);
+      }
+      onSetComplete(restSecondsToUse, workoutExercise.id, shouldRest);
+
+      // If not resting and there's a next member, request scroll to it
+      if (!shouldRest && nextMemberId) {
+        // TODO: implement scroll to next member via callback from parent FlatList
+        // For now, the next member will be visible when the list re-renders after onChanged()
+      }
+
       // Rows still waiting that the user hasn't touched inherit this set's
       // numbers, so a run of sets only needs the first one typed.
       const logged = {
@@ -549,6 +598,14 @@ export function ExerciseCard({
   // card at once; touching one (or adding/loading a row) lights it.
   const isActive = pendings.some((p) => !p.seeded);
 
+  // Superset visual indicators
+  const isInSuperset = supersetGroup != null;
+  const isFirstInSuperset = supersetGroup?.isFirst ?? false;
+  const isLastInSuperset = supersetGroup?.isLast ?? false;
+  const supersetTag = isFirstInSuperset && supersetGroup
+    ? supersetTagText(`SUPERSET ${supersetGroup.letter}`, supersetGroup.memberCount)
+    : null;
+
   return (
     <SwipeableRow
       backgroundColor={theme.colors.background}
@@ -570,12 +627,44 @@ export function ExerciseCard({
       }}
     >
     <Card
-      style={
+      style={[
         isActive
           ? { borderColor: theme.colors.highlight, borderWidth: 2 }
-          : undefined
-      }
+          : undefined,
+        // Reduce vertical margin between superset members (hairline gap)
+        isInSuperset && !isFirstInSuperset ? { marginTop: -theme.spacing.md + 1 } : undefined,
+      ]}
     >
+      {/* Superset visual indicators: left accent bar + tag on first member */}
+      {isInSuperset && (
+        <View style={styles.supersetIndicators} pointerEvents="none">
+          {/* Vertical accent bar on left edge */}
+          <View
+            style={[
+              styles.supersetBar,
+              { backgroundColor: theme.colors.accent, height: '100%' },
+            ]}
+          />
+          {/* Tag on first member */}
+          {supersetTag && (
+            <Text
+              testID={`superset-tag-${supersetGroup.supersetId}`}
+              style={{
+                fontSize: t.size.caption,
+                fontWeight: t.weight.semibold,
+                color: theme.colors.accent,
+                backgroundColor: theme.colors.accent + '26', // 15% opacity
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                borderRadius: theme.radius.sm,
+                marginLeft: -2,
+              }}
+            >
+              {supersetTag}
+            </Text>
+          )}
+        </View>
+      )}
       <View style={styles.headerRow}>
         <Text
           style={{ color: theme.colors.highlight, fontSize: t.size.card, fontWeight: t.weight.bold, marginRight: theme.spacing.sm }}
@@ -803,4 +892,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  // Superset visual indicators
+  supersetIndicators: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    justifyContent: 'flex-start',
+    paddingTop: 12,
+    paddingLeft: 2,
+    zIndex: 1,
+  },
+  supersetBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+  },
+  
 });

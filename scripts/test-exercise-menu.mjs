@@ -225,6 +225,94 @@ eq(M.roundRampWeight(Number.NaN, 'kg'), 0, 'NaN weight clamps to zero');
   eq(res.startRest, false, 'no rest');
 }
 
+// --- nextSupersetMember ----------------------------------------------------
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 0], ['c', 0]]);
+  eq(M.nextSupersetMember(members, counts, 'a'), 'b', 'after a (leader), next behind is b');
+  eq(M.nextSupersetMember(members, counts, 'b'), 'c', 'after b (behind), next behind is c');
+  eq(M.nextSupersetMember(members, counts, 'c'), 'b', 'after c, wraps to b (behind)');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 1], ['c', 0]]);
+  eq(M.nextSupersetMember(members, counts, 'a'), 'c', 'after a, next behind leader is c');
+  eq(M.nextSupersetMember(members, counts, 'b'), 'c', 'after b (caught up), next behind is c');
+  eq(M.nextSupersetMember(members, counts, 'c'), 'c', 'after c (behind), c still needs to catch up');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 1], ['c', 1]]);
+  eq(M.nextSupersetMember(members, counts, 'a'), 'a', 'round complete, next round starts at a');
+  eq(M.nextSupersetMember(members, counts, 'b'), 'a', 'round complete, next round starts at a');
+  eq(M.nextSupersetMember(members, counts, 'c'), 'a', 'round complete, next round starts at a');
+}
+
+{
+  const members = ['a', 'b'];
+  const counts = new Map([['a', 2], ['b', 1]]);
+  eq(M.nextSupersetMember(members, counts, 'a'), 'b', 'after a, b needs to catch up');
+  eq(M.nextSupersetMember(members, counts, 'b'), 'b', 'after b (behind), b still needs to catch up');
+}
+
+{
+  const members = ['a'];
+  const counts = new Map([['a', 3]]);
+  eq(M.nextSupersetMember(members, counts, 'a'), null, 'single member -> null');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map();
+  eq(M.nextSupersetMember(members, counts, 'a'), 'a', 'all zero -> first member');
+  eq(M.nextSupersetMember(members, counts, 'b'), 'a', 'all zero, after b wraps to a');
+  eq(M.nextSupersetMember(members, counts, 'c'), 'a', 'all zero, after c wraps to a');
+}
+
+// --- shouldStartRest -------------------------------------------------------
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 0], ['c', 0]]);
+  eq(M.shouldStartRest(members, counts, 'a'), false, 'not last member');
+  eq(M.shouldStartRest(members, counts, 'b'), false, 'not last member');
+  eq(M.shouldStartRest(members, counts, 'c'), false, 'last member but round not complete');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 1], ['c', 0]]);
+  eq(M.shouldStartRest(members, counts, 'c'), false, 'last member but round not complete');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 1], ['c', 1]]);
+  eq(M.shouldStartRest(members, counts, 'a'), false, 'not last member even if round complete');
+  eq(M.shouldStartRest(members, counts, 'b'), false, 'not last member even if round complete');
+  eq(M.shouldStartRest(members, counts, 'c'), true, 'last member AND round complete -> rest starts');
+}
+
+{
+  const members = ['a', 'b'];
+  const counts = new Map([['a', 2], ['b', 2]]);
+  eq(M.shouldStartRest(members, counts, 'a'), false, 'not last member');
+  eq(M.shouldStartRest(members, counts, 'b'), true, 'last member and round complete');
+}
+
+{
+  const members = ['a'];
+  const counts = new Map([['a', 3]]);
+  eq(M.shouldStartRest(members, counts, 'a'), false, 'single member -> false (ungrouped handled by caller)');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map();
+  eq(M.shouldStartRest(members, counts, 'c'), false, 'all zero -> no rest');
+}
+
 // --- REST_PRESETS / formatRestLabel --------------------------------------
 eq(M.REST_PRESETS, [30, 45, 60, 90, 120, 180, 300], 'rest presets are the seven requested');
 eq(M.formatRestLabel(120), '2:00', '2m');
