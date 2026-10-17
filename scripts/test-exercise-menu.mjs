@@ -1,6 +1,7 @@
 // Unit tests for the in-workout exercise menu's pure logic (src/lib/exerciseMenu.ts):
-// the reorder move function, the warmup ramp calculator and the rest presets.
-// Bundled with esbuild like the other pure-logic tests — no DB, no React.
+// the reorder move function, the warmup ramp calculator, the warmup preview builder,
+// the superset next-action logic, and the rest presets.
+// Bundled with esbuild like the other pure-logic tests \u2014 no DB, no React.
 import { build } from 'esbuild';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -74,6 +75,156 @@ eq(M.roundRampWeight(30.2, 'kg'), 30, 'kg rounds down');
 eq(M.roundRampWeight(0, 'kg'), 0, 'zero weight stays zero');
 eq(M.roundRampWeight(Number.NaN, 'kg'), 0, 'NaN weight clamps to zero');
 
+// --- buildWarmupPreview ---------------------------------------------------
+// Weighted exercise, kg mode
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 100,
+    unit: 'kg',
+  });
+  eq(preview.length, 3, 'three ramp rows for known weight (kg)');
+  eq(preview[0], { reps: '5', weightKg: 50, isBodyweight: false }, '50% x5');
+  eq(preview[1], { reps: '3', weightKg: 70, isBodyweight: false }, '70% x3');
+  eq(preview[2], { reps: '2', weightKg: 85, isBodyweight: false }, '85% x2');
+}
+
+// Weighted exercise, lb mode (rounds to 5lb steps)
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 100, // ~220.5 lb
+    unit: 'lb',
+  });
+  eq(preview.length, 3, 'three ramp rows for known weight (lb)');
+  // 50% of 100kg = 50kg = 110.25lb -> rounded to 110lb = 49.9kg
+  ok(preview[0].weightKg !== null && preview[0].weightKg > 0, 'lb ramp weight positive');
+  eq(preview[0].reps, '5', 'first row reps 5');
+  eq(preview[0].isBodyweight, false, 'not bodyweight');
+}
+
+// Duplicate collapse: 60kg -> 30, 42, 51 (all distinct); 61kg -> 30.5, 42.5, 51.5 (all distinct)
+// Test a case where rounding creates duplicates
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 10, // small weight where rounding might collapse
+    unit: 'kg',
+  });
+  // 50% = 5kg, 70% = 7kg, 85% = 8.5kg -> rounds to 5, 7, 8.5 (distinct)
+  eq(preview.length, 3, 'small weight still distinct after rounding');
+}
+
+// Bodyweight exercise (equipment includes Bodyweight)
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 100,
+    unit: 'kg',
+    equipment: ['Bodyweight'],
+  });
+  eq(preview.length, 2, 'bodyweight -> two reps-only rows');
+  eq(preview[0], { reps: '5', weightKg: null, isBodyweight: true }, 'bodyweight row 1');
+  eq(preview[1], { reps: '3', weightKg: null, isBodyweight: true }, 'bodyweight row 2');
+  ok(preview.every((r) => r.isBodyweight === true), 'all rows marked bodyweight');
+}
+
+// Force bodyweight via flag (No weight toggle)
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 100,
+    unit: 'kg',
+    forceBodyweight: true,
+  });
+  eq(preview.length, 2, 'forceBodyweight -> two reps-only rows');
+  ok(preview.every((r) => r.isBodyweight === true), 'all rows marked bodyweight');
+}
+
+// No weight known, not bodyweight -> two empty rows
+{
+  const preview = M.buildWarmupPreview({
+    unit: 'kg',
+  });
+  eq(preview.length, 2, 'no weight -> two empty rows');
+  eq(preview[0], { reps: '', weightKg: null, isBodyweight: false }, 'empty row 1');
+  eq(preview[1], { reps: '', weightKg: null, isBodyweight: false }, 'empty row 2');
+  ok(preview.every((r) => r.isBodyweight === false), 'not marked bodyweight');
+}
+
+// Priority: firstWorkingWeightKg > previousPerformanceWeightKg > routineTargetWeightKg
+{
+  const preview = M.buildWarmupPreview({
+    firstWorkingWeightKg: 80,
+    previousPerformanceWeightKg: 100,
+    routineTargetWeightKg: 120,
+    unit: 'kg',
+  });
+  eq(preview[0].weightKg, 40, 'uses firstWorkingWeightKg (80 * 0.5 = 40)');
+}
+
+// Previous performance used when first working not set
+{
+  const preview = M.buildWarmupPreview({
+    previousPerformanceWeightKg: 100,
+    routineTargetWeightKg: 120,
+    unit: 'kg',
+  });
+  eq(preview[0].weightKg, 50, 'uses previousPerformanceWeightKg (100 * 0.5 = 50)');
+}
+
+// Routine target used when neither first working nor previous
+{
+  const preview = M.buildWarmupPreview({
+    routineTargetWeightKg: 120,
+    unit: 'kg',
+  });
+  eq(preview[0].weightKg, 60, 'uses routineTargetWeightKg (120 * 0.5 = 60)');
+}
+
+// Zero/negative/NaN weights treated as unknown
+{
+  eq(M.buildWarmupPreview({ firstWorkingWeightKg: 0, unit: 'kg' }).length, 2, 'zero weight -> empty');
+  eq(M.buildWarmupPreview({ firstWorkingWeightKg: -10, unit: 'kg' }).length, 2, 'negative weight -> empty');
+  eq(M.buildWarmupPreview({ firstWorkingWeightKg: Number.NaN, unit: 'kg' }).length, 2, 'NaN weight -> empty');
+}
+
+// --- getSupersetNextAction ------------------------------------------------
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 0], ['c', 0]]);
+  const res = M.getSupersetNextAction(members, counts);
+  eq(res.nextMemberId, 'b', 'next is first member behind the leader');
+  eq(res.startRest, false, 'no rest until round complete');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map([['a', 1], ['b', 1], ['c', 1]]);
+  const res = M.getSupersetNextAction(members, counts);
+  eq(res.nextMemberId, 'a', 'round complete -> next round starts at first member');
+  eq(res.startRest, true, 'rest timer starts after last member');
+}
+
+{
+  const members = ['a', 'b'];
+  const counts = new Map([['a', 2], ['b', 1]]);
+  const res = M.getSupersetNextAction(members, counts);
+  eq(res.nextMemberId, 'b', 'b needs to catch up');
+  eq(res.startRest, false, 'no rest');
+}
+
+{
+  const members = ['a'];
+  const counts = new Map([['a', 3]]);
+  const res = M.getSupersetNextAction(members, counts);
+  eq(res.nextMemberId, null, 'single member -> no superset logic');
+  eq(res.startRest, false, 'no rest from superset logic');
+}
+
+{
+  const members = ['a', 'b', 'c'];
+  const counts = new Map();
+  const res = M.getSupersetNextAction(members, counts);
+  eq(res.nextMemberId, 'a', 'all zero -> first member');
+  eq(res.startRest, false, 'no rest');
+}
+
 // --- REST_PRESETS / formatRestLabel --------------------------------------
 eq(M.REST_PRESETS, [30, 45, 60, 90, 120, 180, 300], 'rest presets are the seven requested');
 eq(M.formatRestLabel(120), '2:00', '2m');
@@ -81,7 +232,7 @@ eq(M.formatRestLabel(45), '0:45', '45s');
 eq(M.formatRestLabel(90), '1:30', '90s');
 eq(M.formatRestLabel(300), '5:00', '5m');
 eq(M.formatRestLabel(30), '0:30', '30s');
-eq(M.formatRestLabel(null), '—', 'null rest shows a dash');
-eq(M.formatRestLabel(undefined), '—', 'undefined rest shows a dash');
+eq(M.formatRestLabel(null), '\u2014', 'null rest shows a dash');
+eq(M.formatRestLabel(undefined), '\u2014', 'undefined rest shows a dash');
 
 console.log(`exercise menu logic: ${n} assertions passed`);

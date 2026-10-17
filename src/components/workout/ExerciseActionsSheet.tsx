@@ -28,14 +28,17 @@ import {
   removeWorkoutExercise,
   isProgressionAvailable,
   setAutoProgressionOverride,
+  getPreviousPerformance,
   type WorkoutExerciseDetail,
+  type PreviousPerformance,
 } from '../../data/repositories';
 import { newId } from '../../db/id';
-import { REST_PRESETS, formatRestLabel } from '../../lib/exerciseMenu';
+import { REST_PRESETS, formatRestLabel, buildWarmupPreview, type WarmupPreviewRow } from '../../lib/exerciseMenu';
 import { displayName } from '../../kb/taxonomy';
 import { ActionIcon, type ActionIconName } from '../icons';
 import { BottomSheet } from '../ui/BottomSheet';
 import { ReorderExercisesSheet } from './ReorderExercisesSheet';
+import { WarmupSheet } from './WarmupSheet';
 
 export interface ExerciseActionsSheetProps {
   visible: boolean;
@@ -47,7 +50,12 @@ export interface ExerciseActionsSheetProps {
   defaultRestSeconds?: number;
   onClose: () => void;
   onChanged: () => void;
-  onAddWarmup?: () => void;
+  /** Called when warmup rows should be added to the exercise card. */
+  onAddWarmupRows?: (rows: Array<{ reps: string; weightKg: number | null; isWarmup: true }>) => void;
+  /** The first working set's weight on the card (if user has typed one), in canonical kg. */
+  firstWorkingWeightKg?: number | null;
+  /** Global display unit (fallback when no per-exercise override). */
+  globalUnit?: 'kg' | 'lb';
 }
 
 /** One full-width sheet row: icon, regular-weight label, right-aligned value. */
