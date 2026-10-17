@@ -9,6 +9,16 @@
   `delegate_to_opencode_free`, Jev-based model router): `docs/ops/DELEGATION.md`.
 
 - Program builder: deload-week control (half volume, marked ↓ on the week chip) and "Copy week N to…" (one week or all others).
+- Fix: starting a workout from a plan or a program day now pre-fills the exercise
+  cards with the plan's set rows (sets × reps, plus planned weight/RPE). Previously
+  every card opened empty ("+ Add set" only) because `startWorkoutFromRoutine` copies
+  only the rest override and notes — `workout_exercises` has no set/reps columns, so the
+  plan's targets never reached the logging screen. The rows are ordinary *unlogged*
+  pending rows seeded from the routine item (`src/data/plannedSets.ts`), so history,
+  stats and auto-finish still count only sets the user actually logs. Cards only seed
+  when the workout came from a routine, nothing is logged yet, and the item declares
+  `targetSets`; templates that never had targets open exactly as before.
+  Unit test: `scripts/test-planned-sets.mjs`.
 - Fix: removing/replacing program days left their `kb_id` held by soft-deleted routines (UNIQUE error on renumber).
 - Fix: leaving a program works again. Enrolling re-took the database write lock
   from inside itself (`enrollProgram` → `ensureSessionStates`), which deadlocked;

@@ -37,6 +37,7 @@ import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb } from '../../lib/units';
+import type { PlannedSetRow } from '../../data/plannedSets';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
@@ -65,6 +66,13 @@ interface PendingSetState {
   busy: boolean;
   /** Bumped to remount the row when its prefill is replaced. */
   rev?: number;
+  /**
+   * True while this row is an untouched plan seed (the plan's opening rows).
+   * Cleared the moment the user edits it, which is what lights the card's
+   * "current exercise" border — a planned workout must not glow on every
+   * card at once.
+   */
+  seeded?: boolean;
 }
 
 interface ExerciseCardProps {
@@ -78,6 +86,12 @@ interface ExerciseCardProps {
   onSetComplete: (restSeconds: number, workoutExerciseId: string, isLastInSuperset: boolean) => void;
   workoutItems?: WorkoutExerciseDetail[];
   workoutId?: string;
+  /**
+   * The plan/program targets this exercise was started from, one entry per
+   * planned set. Absent for a from-scratch workout, an ad-hoc exercise or a
+   * template with no declared sets — the card then opens empty.
+   */
+  plannedSets?: PlannedSetRow[];
 }
 
 export function ExerciseCard({
@@ -87,6 +101,7 @@ export function ExerciseCard({
   onSetComplete,
   workoutItems = [],
   workoutId = '',
+  plannedSets,
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
@@ -211,6 +226,84 @@ export function ExerciseCard({
     };
   };
 
+  /** The progression engine's targets for the opening row, if the program has any. */
+  const firstRowSuggestion = async (): Promise<{ reps: string; weightKg: string; rpe: string } | null> => {
+    const available = await isProgressionAvailable(workoutId, workoutExercise.exerciseId).catch(() => false);
+    if (!resolveAutoProgression(workoutExercise.autoProgression, available).effective) return null;
+    const suggestion = await getProgressionSuggestion(workoutExercise.id).catch(() => null);
+    if (!suggestion) return null;
+    return {
+      reps: prefill(suggestion.reps),
+      weightKg: prefillWeight(suggestion.weightKg),
+      rpe: '',
+    };
+  };
+
+  // Materialise the plan's targets as this workout's opening rows.
+  //
+  // workout_exercises has no set/reps columns (sets are ordinary rows in
+  // `sets`), so `startWorkoutFromRoutine` cannot carry the plan's targets
+  // into the logging screen and a planned workout used to open blank —
+  // only "+ Add set". The mapping lives in src/data/plannedSets.ts; here the
+  // rows become ordinary *pending* rows, so nothing is written until the
+  // user logs a set and history/stats still count only what was done.
+  //
+  // Runs at most once per card, and only while nothing is logged yet: the
+  // plan's opening rows must never reappear after the user has started
+  // (they may be deliberately doing fewer sets). Waits for `settings` so a
+  // lb user sees lb values instead of a flash of kg.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current) return;
+    if (!settings) return;
+    if (sets.length > 0) return;
+    if (!plannedSets || plannedSets.length === 0) return;
+    seededRef.current = true;
+    // Keep "+ Add set" after the plan's rows. The first row still takes the
+    // progression suggestion (above) instead of a second one on "+ Add set".
+    reservedRef.current = Math.max(reservedRef.current, plannedSets.length);
+    progressionSeededRef.current = true;
+    const rows = plannedSets.map((planned, idx) => ({
+      key: `pending-${workoutExercise.id}-${++pendingKeyRef.current}`,
+      setNumber: idx + 1,
+      initial: {
+        reps: prefill(planned.reps),
+        weightKg: prefillWeight(planned.weightKg),
+        rpe: prefill(planned.rpe),
+      },
+      isWarmup: false,
+      error: null,
+      busy: false,
+      seeded: true,
+    }));
+    pendingsRef.current = rows;
+    setPendings(rows);
+    // A program day also knows the weight the progression engine has moved
+    // to; the template's target is the enrollment-time value, so refining
+    // the first row keeps what "+ Add set" gave on an empty card. Guarded:
+    // never clobbers a row the user has already touched or logged.
+    const firstKey = rows[0].key;
+    void firstRowSuggestion().then((suggestion) => {
+      if (!suggestion) return;
+      const current = pendingsRef.current;
+      const first = current.find((p) => p.key === firstKey);
+      if (!first || !first.seeded || hasValue(liveRef.current[firstKey])) return;
+      const refined = {
+        reps: suggestion.reps !== '' ? suggestion.reps : first.initial.reps,
+        weightKg: suggestion.weightKg !== '' ? suggestion.weightKg : first.initial.weightKg,
+        rpe: first.initial.rpe,
+      };
+      const next = current.map((p) =>
+        p.key === firstKey ? { ...p, initial: refined, rev: (p.rev ?? 0) + 1 } : p,
+      );
+      pendingsRef.current = next;
+      setPendings(next);
+    });
+    // prefill/prefillWeight are re-created each render; the guard above keeps
+    // this a one-shot, so they are intentionally not dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, plannedSets, sets.length, workoutExercise.id]);
+
   // Get the "Target" cell text for a given set number (1-based): the
   // previous performance for that set is the target to beat.
   const getPreviousText = (setNumber: number): string => {
@@ -320,18 +413,8 @@ export function ExerciseCard({
     const shouldSeed = !seed && !hadPendings && !progressionSeededRef.current;
     if (shouldSeed) {
       progressionSeededRef.current = true;
-      const available = await isProgressionAvailable(workoutId, workoutExercise.exerciseId).catch(() => false);
-      const effective = resolveAutoProgression(workoutExercise.autoProgression, available);
-      if (effective.effective) {
-        const suggestion = await getProgressionSuggestion(workoutExercise.id).catch(() => null);
-        if (suggestion) {
-          initial = {
-            reps: prefill(suggestion.reps),
-            weightKg: prefillWeight(suggestion.weightKg),
-            rpe: '',
-          };
-        }
-      }
+      const suggestion = await firstRowSuggestion();
+      if (suggestion) initial = suggestion;
     }
     const next = [
       ...pendingsRef.current,
@@ -393,7 +476,9 @@ export function ExerciseCard({
 
   // The card gets the blue active border while it has pending
   // (in-progress) set rows — the reference's "current exercise" signal.
-  const isActive = pendings.length > 0;
+  // Plan-seeded rows start unlit so a planned workout doesn't light every
+  // card at once; touching one (or adding/loading a row) lights it.
+  const isActive = pendings.some((p) => !p.seeded);
 
   return (
     <SwipeableRow
@@ -526,6 +611,9 @@ export function ExerciseCard({
             onCancel={() => cancelPending(p.key)}
             onValuesChange={(v) => {
               liveRef.current[p.key] = v;
+              // First edit on a plan seed: the user has taken over this row,
+              // so the card counts as in progress from now on.
+              if (p.seeded) patchPending(p.key, { seeded: false });
             }}
             onAddSet={(v) => void handleAddSet(false, v)}
           />

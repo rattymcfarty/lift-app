@@ -21,12 +21,14 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   finishWorkout,
   getPreviousPerformance,
+  getRoutine,
   getWorkoutDetail,
   softDeleteWorkout,
   type PreviousPerformance,
   type WorkoutDetail,
   type WorkoutExerciseDetail,
 } from '../../src/data/repositories';
+import { plannedSetsBySlot, plannedSetSlotKey, type PlannedSetRow } from '../../src/data/plannedSets';
 import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
@@ -75,6 +77,12 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   // Tracks whether ANY detail has ever loaded, so a transient refresh
   // failure keeps the stale screen instead of wiping timers and input.
   const hasDetailRef = useRef(false);
+
+  // Planned set rows for the routine this workout was started from, keyed
+  // by workout slot (position + exercise). A miss means "no plan targets":
+  // a from-scratch workout, an exercise added ad hoc, or a template that
+  // never declared sets — those cards open empty, as before.
+  const [plannedSets, setPlannedSets] = useState<Map<string, PlannedSetRow[]>>(() => new Map());
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -145,6 +153,40 @@ export default function ActiveWorkoutScreen(): JSX.Element {
     useCallback(() => {
       void load();
     }, [load]),
+  );
+
+  // A workout started from a routine or a program day knows what was
+  // planned. Fetch the template's targets once per routine; each card seeds
+  // its opening input rows from them (see ExerciseCard). Nothing is written
+  // to the DB here — the rows are ordinary unlogged pending sets, so
+  // history and stats still only ever count what the user logs.
+  const routineId = detail?.workout.routineId ?? null;
+  useEffect(() => {
+    if (!routineId) {
+      setPlannedSets(new Map());
+      return undefined;
+    }
+    let cancelled = false;
+    void getRoutine(routineId)
+      .then((routine) => {
+        if (cancelled) return;
+        setPlannedSets(
+          routine ? plannedSetsBySlot(routine.items.map((i) => i.routineExercise)) : new Map(),
+        );
+      })
+      .catch(() => {
+        // No targets is the safe fallback: the card opens as it did before.
+        if (!cancelled) setPlannedSets(new Map());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [routineId]);
+
+  const plannedFor = useCallback(
+    (item: WorkoutExerciseDetail): PlannedSetRow[] | undefined =>
+      plannedSets.get(plannedSetSlotKey(item.workoutExercise.position, item.exercise.id)),
+    [plannedSets],
   );
 
   // Heartbeat: while this screen is open and the app is foregrounded the
@@ -264,6 +306,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       onSetComplete={handleSetComplete}
       workoutItems={detail?.items ?? []}
       workoutId={workoutId ?? ''}
+      plannedSets={plannedFor(item)}
     />
   );
 
@@ -290,6 +333,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
             onSetComplete={handleSetComplete}
             workoutItems={detail?.items ?? []}
             workoutId={workoutId ?? ''}
+            plannedSets={plannedFor(exerciseItem)}
           />
         ))}
       </View>
