@@ -63,24 +63,19 @@ appId: app.lift.mobile
 - assertVisible:
     text: "25"
 
-# Warmup set
+# Warm-up sets: the Actions menu opens the warm-up sheet (working weight prefilled
+# from the first logged set); adding puts prefilled, unlogged 'W' rows above the
+# working sets.
 - tapOn:
     id: "exercise-actions"
 - tapOn:
     id: "action-add-warmup"
-# Fill and log warmup (pending row appears after add-warmup trigger)
-- tapOn:
-    id: "set-reps-3"
-- inputText: "5"
-- tapOn:
-    id: "set-weight-3"
-- inputText: "10"
-- tapOn:
-    id: "log-set-3"
-# Warmup set logged: 5 reps @ 10 kg (5 is unique to set 3; the WARMUP badge
-# renders but is clipped at the row edge — layout issue noted for UI fix)
 - assertVisible:
-    text: "5"
+    id: "warmup-sheet"
+- tapOn:
+    id: "warmup-add"
+- assertVisible:
+    id: "set-warmup-badge-.*"
 
 # B. Swap exercise
 - tapOn:
