@@ -31,7 +31,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Need | Status | Notes |
 |---|---|---|
 | Fast set logging, carry-over of last numbers | ✅ | Grid + carry-over (this session) |
-| Warm-up sets, supersets, swap, add exercise | ✅ | |
+| Warm-up sets, supersets, swap, add exercise | ✅ | Heading from the actions sheet — the warmups ramp at 50/70/85% ahead of the working sets; supersets group linked exercises |
 | Rest timer + alert | ✅ | |
 | Plate calculator | ✅ | |
 | Feedback that feels good (haptics, motion) | ✅ P9 | Haptics on log, pop animation, PR celebration |

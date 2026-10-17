@@ -6,3 +6,5 @@ export { EquipmentIconArt } from './equipmentIcons';
 export type { EquipmentIconArtProps } from './equipmentIcons';
 export { TaxonomyIcon } from './TaxonomyIcon';
 export type { TaxonomyIconProps } from './TaxonomyIcon';
+export { ActionIcon } from './ActionIcons';
+export type { ActionIconName } from './ActionIcons';

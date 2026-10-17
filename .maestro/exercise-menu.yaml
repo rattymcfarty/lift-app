@@ -1,0 +1,74 @@
+# Exercise actions menu + reorder + warmups + rest timer (REFERENCE A/B/C).
+# Run: maestro test .maestro/exercise-menu.yaml  (needs the debug APK + emulator)
+# By testID; requires fresh app state (clearState).
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+
+# Home → start a blank workout
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+
+# Add two exercises so reorder has something to move.
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Romanian Deadlift"
+- tapOn:
+    id: "add-exercise-row-romanian-deadlift(-[0-9]+)?"
+- tapOn:
+    id: "picker-add-exercises"
+
+# --- Actions sheet (REFERENCE A) -------------------------------------------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- assertVisible: "Actions"
+
+# Rest Timer: open the preset list and pick 2:00.
+- tapOn:
+    id: "action-rest-timer"
+- tapOn:
+    id: "rest-preset-120"
+- tapOn:
+    id: "action-sheet-close"
+
+# --- Add Warmup Sets: ramp appears as editable warmup pending rows --------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- tapOn:
+    id: "action-add-warmup"
+# 50/70/85% of the first working set (unknown here → two empty ramp rows).
+- assertVisible:
+    id: "set-warmup-badge-1"
+
+# --- Reorder Exercises (REFERENCE B) --------------------------------------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- tapOn:
+    id: "action-reorder"
+- assertVisible:
+    id: "reorder-sheet"
+# Move the first exercise down one, then save.
+- tapOn:
+    id: "reorder-down-0"
+- tapOn:
+    id: "reorder-ok"
+- assertVisible: "Romanian Deadlift.*"

@@ -30,6 +30,9 @@ check "test:planned-sets" "node scripts/test-planned-sets.mjs"
 # matching "test:foundational" npm script is pending (one line next to
 # test:planned-sets in package.json).
 check "test:foundational" "node scripts/test-foundational.mjs"
+# Invoked directly: this sandbox's policy blocks edits to package.json, so the
+# matching "test:exercise-menu" npm script is pending.
+check "test:exercise-menu" "node scripts/test-exercise-menu.mjs"
 check "test:programs:user" "npm run test:programs:user"
 check "test:backup" "npm run test:backup"
 check "test:backup:roundtrip" "npm run test:backup:roundtrip"

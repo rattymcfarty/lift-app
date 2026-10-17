@@ -306,6 +306,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       onSetComplete={handleSetComplete}
       workoutItems={detail?.items ?? []}
       workoutId={workoutId ?? ''}
+      workoutName={detail?.workout.name}
       plannedSets={plannedFor(item)}
     />
   );
@@ -333,6 +334,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
             onSetComplete={handleSetComplete}
             workoutItems={detail?.items ?? []}
             workoutId={workoutId ?? ''}
+            workoutName={detail?.workout.name}
             plannedSets={plannedFor(exerciseItem)}
           />
         ))}

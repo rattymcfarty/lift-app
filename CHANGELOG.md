@@ -11,6 +11,26 @@
   default / Blob) persists as `companionStyle` and rides in backups. The overlay
   box grew 64 → 80 dp and the speech bubble still points at the character;
   `docs/product/COMPANION.md`, `scripts/test-companion.mjs` (skin selection).
+- Workout logging: the per-exercise "⋯" actions menu is reworked into a shared
+  full-width bottom sheet (`src/components/ui/BottomSheet.tsx`) — dimmed backdrop,
+  slide-up spring, tap-backdrop / swipe-header-down to dismiss, safe-area padding,
+  line icons (no emoji) and theme tokens only. Rows: Add Warmup Sets, Add Exercise
+  Note, Rest Timer (30/45/60/90/120/180/300s + Use default), Auto Progression
+  (Auto/On/Off with an explanation), Reorder Exercises, View Demo & History,
+  Weight Unit (inline lb|kg, accent = active), Create Superset, Swap, Remove.
+  Several rows previously did nothing (Reorder, View Demo & History, Weight Unit,
+  Create Superset) and now work. Add Warmup Sets builds a ramp at 50/70/85% of the
+  first working set (reps 5/3/2), or two empty rows when no weight is known,
+  idempotently and without touching logged sets. Reorder opens a full sheet
+  (REFERENCE B) that persists `workout_exercises.position` in one transaction under
+  `withWriteLock` (up/down + haptics; logged sets stay attached). Create Superset
+  uses the existing `workout_exercises.superset_id` column (no migration); grouped
+  cards keep the accent container and the rest timer fires after the group's last
+  exercise. The exercise-card footer is now a single light-text row — "(+) Add Set"
+  and "Swap" on the left, "⋯" on the right — and the card header shows the index
+  number and a collapse/expand chevron. New pure logic `src/lib/exerciseMenu.ts`
+  (`moveItem`, `warmupRamp`, `REST_PRESETS`) with `scripts/test-exercise-menu.mjs`
+  (wired into `scripts/dev-loop.sh`) and `.maestro/exercise-menu.yaml`.
 - Exercises tab: a "Core & foundational" section now heads the library — the owner's
   curated 46 movements, in the owner's order, then "All exercises". Search and the
   muscle/equipment filters apply to both groups (a group with no matches hides its

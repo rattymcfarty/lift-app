@@ -21,6 +21,7 @@
 
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import {
   logSet,
@@ -36,13 +37,15 @@ import { decodeStringArray } from '../../db/schema';
 import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
 import { getSettings } from '../../data/settings';
-import { formatWeight, kgToLb } from '../../lib/units';
+import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import type { PlannedSetRow } from '../../data/plannedSets';
+import { warmupRamp } from '../../lib/exerciseMenu';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
 import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
+import { ActionIcon } from '../icons';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { GRID_FLEX, GRID_MAX_FONT_SCALE, gridMetrics } from './setGrid';
 import { SwipeableRow } from '../ui/SwipeableRow';
@@ -87,6 +90,8 @@ interface ExerciseCardProps {
   onSetComplete: (restSeconds: number, workoutExerciseId: string, isLastInSuperset: boolean) => void;
   workoutItems?: WorkoutExerciseDetail[];
   workoutId?: string;
+  /** Workout name, used as the reorder sheet's title. */
+  workoutName?: string;
   /**
    * The plan/program targets this exercise was started from, one entry per
    * planned set. Absent for a from-scratch workout, an ad-hoc exercise or a
@@ -102,6 +107,7 @@ export function ExerciseCard({
   onSetComplete,
   workoutItems = [],
   workoutId = '',
+  workoutName,
   plannedSets,
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
@@ -110,6 +116,8 @@ export function ExerciseCard({
   const t = theme.typography;
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
+  /** Collapsed cards hide the set table; remembered for the session. */
+  const [collapsed, setCollapsed] = useState(false);
   /**
    * Flexible pending rows: "+ Add Set" appends a new editable row
    * immediately — it never waits for another row to be logged, and no
@@ -437,11 +445,52 @@ export function ExerciseCard({
     }
   };
 
-  // One warmup row per tap. (The old double-call was a workaround for the
-  // single-pending guard; with multiple pending rows it would create two
-  // warmup rows, so it is gone.)
+  /**
+   * The first working set's weight, for the warmup ramp: the first editable
+   * working row the user has typed into, else the last logged working set,
+   * else the first set from last time. Canonical kg, or null when unknown.
+   */
+  const firstWorkingWeightKg = (): number | null => {
+    for (const p of pendingsRef.current) {
+      if (p.isWarmup) continue;
+      const live = liveRef.current[p.key];
+      const text = live?.weightKg ?? p.initial.weightKg;
+      if (text) {
+        const kg = parseWeightInput(text, displayUnit);
+        if (kg !== undefined && !Number.isNaN(kg) && kg > 0) return kg;
+      }
+    }
+    const logged = [...sets].reverse().find((s) => s.isWarmup !== true && s.weightKg != null && s.weightKg > 0);
+    if (logged?.weightKg != null) return logged.weightKg;
+    const prevSet = previous?.sets.find((s) => s.weightKg != null && s.weightKg > 0);
+    if (prevSet?.weightKg != null) return prevSet.weightKg;
+    return null;
+  };
+
+  /**
+   * Add the warmup ramp ahead of the working sets: 50/70/85% of the first
+   * working set (reps 5/3/2), or two empty rows when no weight is known.
+   * Idempotent — a second tap does nothing while warmup rows are pending —
+   * and it never touches logged sets (pending rows are local until logged).
+   */
   const handleAddWarmup = (): void => {
-    void handleAddSet(true);
+    if (pendingsRef.current.some((p) => p.isWarmup)) return;
+    const rows = warmupRamp(firstWorkingWeightKg(), displayUnit).map((r) => ({
+      key: `pending-${workoutExercise.id}-${++pendingKeyRef.current}`,
+      setNumber: reserveSetNumber(),
+      initial: {
+        reps: r.reps,
+        weightKg: r.weightKg == null ? '' : prefillWeight(r.weightKg),
+        rpe: '',
+      },
+      isWarmup: true,
+      error: null,
+      busy: false,
+    }));
+    const next = [...rows, ...pendingsRef.current];
+    pendingsRef.current = next;
+    setPendings(next);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
   const handleRemoveExercise = (): void => {
@@ -511,19 +560,27 @@ export function ExerciseCard({
       }
     >
       <View style={styles.headerRow}>
+        <Text
+          style={{ color: theme.colors.highlight, fontSize: t.size.card, fontWeight: t.weight.bold, marginRight: theme.spacing.sm }}
+          accessibilityLabel={`Exercise ${workoutExercise.position + 1}`}
+        >
+          {workoutExercise.position + 1}
+        </Text>
         <View style={styles.headerText}>
-          <Text
-            style={{
-              color: theme.colors.accent,
-              fontSize: t.size.card,
-              fontWeight: t.weight.bold,
-            }}
-          >
-            {displayName(exercise)}
-            {workoutExercise.notes ? (
-              <Text style={{ color: theme.colors.accent, fontSize: t.size.caption, marginLeft: 4 }}>📝</Text>
-            ) : null}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text
+              style={{
+                color: theme.colors.accent,
+                fontSize: t.size.card,
+                fontWeight: t.weight.bold,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+            >
+              {displayName(exercise)}
+            </Text>
+            {workoutExercise.notes ? <ActionIcon name="note" color={theme.colors.accent} size={16} /> : null}
+          </View>
           {muscles ? (
             <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
               {muscles}
@@ -542,16 +599,21 @@ export function ExerciseCard({
           ) : null}
         </View>
         <Pressable
-          testID="exercise-actions"
+          testID="exercise-collapse"
           accessibilityRole="button"
-          accessibilityLabel={`Actions for ${displayName(exercise)}`}
-          onPress={() => setSheetVisible(true)}
+          accessibilityState={{ expanded: !collapsed }}
+          accessibilityLabel={collapsed ? `Expand ${displayName(exercise)}` : `Collapse ${displayName(exercise)}`}
+          onPress={() => setCollapsed((v) => !v)}
+          hitSlop={8}
           style={{ padding: theme.spacing.xs }}
         >
-          <Text style={{ color: theme.colors.faint, fontSize: t.size.body }}>⋯</Text>
+          <View style={{ transform: [{ rotate: collapsed ? '-90deg' : '0deg' }] }}>
+            <ActionIcon name="chevron-down" color={theme.colors.faint} size={22} />
+          </View>
         </Pressable>
       </View>
 
+      {!collapsed ? (
       <View style={{ gap: theme.spacing.xs }}>
         {/* Column headers — the same proportions as every SetRow (setGrid.ts) */}
         {hasAnyRows && (
@@ -576,9 +638,9 @@ export function ExerciseCard({
                 {label}
               </Text>
             ))}
-            <Text style={[styles.columnHeader, { flex: GRID_FLEX.check + GRID_FLEX.remove, color: theme.colors.muted, fontSize: gm.fontHeader }]} maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}>
-              ✓
-            </Text>
+            <View style={{ flex: GRID_FLEX.check + GRID_FLEX.remove, alignItems: 'center' }}>
+              <ActionIcon name="check" color={theme.colors.muted} size={gm.fontHeader + 6} />
+            </View>
           </View>
         )}
 
@@ -622,21 +684,19 @@ export function ExerciseCard({
           />
         ))}
 
-        {/* Add / Swap — compact tonal actions; Add set is always available
-            so sets can be added freely and filled in afterward. */}
+        {/* Footer — light text actions: (+) Add Set and Swap on the left,
+            the actions "⋯" on the right (REFERENCE C). */}
         <View style={styles.footerRow}>
           <Pressable
             testID="add-set"
             onPress={() => void handleAddSet(false)}
             accessibilityRole="button"
             accessibilityLabel="Add set"
-            style={({ pressed }) => [
-              styles.footerButton,
-              { flex: 1, backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
-            ]}
+            style={({ pressed }) => [styles.footerTextButton, { opacity: pressed ? 0.55 : 1 }]}
           >
+            <ActionIcon name="plus" color={theme.colors.text} size={20} />
             <Text style={{ color: theme.colors.text, fontSize: t.size.meta + 1, fontWeight: t.weight.semibold }} maxFontSizeMultiplier={1.15}>
-              + Add set
+              Add Set
             </Text>
           </Pressable>
           <Pressable
@@ -644,17 +704,27 @@ export function ExerciseCard({
             onPress={() => router.push(`/workout/${workoutId}/swap-exercise?workoutExerciseId=${workoutExercise.id}`)}
             accessibilityRole="button"
             accessibilityLabel="Swap exercise"
-            style={({ pressed }) => [
-              styles.footerButton,
-              { paddingHorizontal: theme.spacing.md, backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
-            ]}
+            style={({ pressed }) => [styles.footerTextButton, { opacity: pressed ? 0.55 : 1 }]}
           >
+            <ActionIcon name="swap" color={theme.colors.muted} size={20} />
             <Text style={{ color: theme.colors.muted, fontSize: t.size.meta + 1, fontWeight: t.weight.medium }} maxFontSizeMultiplier={1.15}>
-              ⇄ Swap
+              Swap
             </Text>
+          </Pressable>
+          <View style={{ flex: 1 }} />
+          <Pressable
+            testID="exercise-actions"
+            onPress={() => setSheetVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Actions for ${displayName(exercise)}`}
+            hitSlop={8}
+            style={({ pressed }) => [{ padding: theme.spacing.xs, opacity: pressed ? 0.55 : 1 }]}
+          >
+            <ActionIcon name="more" color={theme.colors.faint} size={24} />
           </Pressable>
         </View>
       </View>
+      ) : null}
 
       {restSeconds != null ? (
         <RestTimer
@@ -669,6 +739,8 @@ export function ExerciseCard({
         detail={detail}
         workoutItems={workoutItems}
         workoutId={workoutId}
+        workoutName={workoutName}
+        defaultRestSeconds={settings?.defaultRestSeconds}
         onClose={() => setSheetVisible(false)}
         onChanged={onChanged}
         onAddWarmup={handleAddWarmup}
@@ -698,14 +770,15 @@ const styles = StyleSheet.create({
   footerRow: {
     marginTop: 6,
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
     alignItems: 'center',
   },
-  footerButton: {
+  footerTextButton: {
     minHeight: 38,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
   },
 });
