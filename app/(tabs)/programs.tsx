@@ -44,6 +44,7 @@ import {
 } from '../../src/programs/userPrograms';
 import { daysPerWeekOf, isUserProgramRoutine, totalDays, type UserProgram } from '../../src/programs/userProgramDef';
 import type { Href } from 'expo-router';
+import { useTopBarInset } from '../../src/components/chrome/TopBar';
 
 type Segment = 'explore' | 'library';
 
@@ -108,6 +109,7 @@ export default function ProgramsScreen(): JSX.Element {
   const [mine, setMine] = useState<UserProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const topInset = useTopBarInset();
 
   const { programs, bundleVersion } = useMemo(() => {
     try {
@@ -185,6 +187,7 @@ export default function ProgramsScreen(): JSX.Element {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
+      <View style={{ paddingTop: topInset }} />
       <SegmentedTitle
         segments={[
           { key: 'explore', label: 'Explore', testID: 'programs-segment-explore' },

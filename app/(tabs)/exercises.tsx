@@ -35,6 +35,7 @@ import { buildExerciseSections, type ExerciseSection } from '../../src/lib/exerc
 import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
 import { deleteCustomExercise } from '../../src/data/customExercises';
+import { useTopBarInset } from '../../src/components/chrome/TopBar';
 
 const SEARCH_DEBOUNCE_MS = 250;
 const SEARCH_LIMIT = 500;

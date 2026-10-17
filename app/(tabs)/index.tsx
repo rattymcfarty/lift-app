@@ -42,6 +42,7 @@ import {
 import { softDeleteWorkout } from '../../src/data/repositories';
 import { createUserProgram } from '../../src/programs/userPrograms';
 import { companionSessionWaiting } from '../../src/companion/triggers';
+import { useTopBarInset } from '../../src/components/chrome/TopBar';
 
 type Segment = 'train' | 'history';
 
@@ -133,6 +134,7 @@ export default function TrainScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   // Stale-response guard: every focus starts a new load; only the latest may write state.
   const loadIdRef = useRef(0);
+  const topInset = useTopBarInset();
 
   const load = useCallback(async () => {
     const loadId = ++loadIdRef.current;
@@ -231,21 +233,9 @@ export default function TrainScreen(): JSX.Element {
   const shown = (kg: number): string => trimNumber(unit === 'lb' ? Math.round(kgToLb(kg) * 10) / 10 : kg);
   const tileWidth = Math.max(120, (width - theme.spacing.md * 2 - theme.spacing.sm) / 2 - theme.spacing.md * 2);
 
-  const gear = (
-    <Pressable
-      testID="home-settings"
-      onPress={() => router.push('/settings')}
-      accessibilityRole="button"
-      accessibilityLabel="Settings"
-      hitSlop={8}
-      style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
-    >
-      <Text style={{ color: c.muted, fontSize: t.size.section }}>⚙</Text>
-    </Pressable>
-  );
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
+      <View style={{ paddingTop: topInset }} />
       <SegmentedTitle
         segments={[
           { key: 'train', label: 'Train', testID: 'train-segment-train' },
@@ -253,7 +243,6 @@ export default function TrainScreen(): JSX.Element {
         ]}
         active={segment}
         onChange={setSegment}
-        right={gear}
       />
       {segment === 'history' ? (
         <HistoryList />

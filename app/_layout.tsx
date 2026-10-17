@@ -14,6 +14,8 @@ import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary
 import { ThemeProvider, useTheme } from '../src/theme';
 import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
 import { Companion } from '../src/companion/Companion';
+import { PanelsProvider } from '../src/chrome/panels';
+import { TopBar } from '../src/components/chrome/TopBar';
 
 /**
  * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
@@ -88,18 +90,22 @@ function AppShell() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
-        }}
-      />
-      <WorkoutLifecycleWatcher />
-      {/* Floating companion: above the Stack and tabs, box-none overlay. */}
-      <Companion />
-      {statusBar}
-    </View>
+    <PanelsProvider>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.background },
+          }}
+        />
+        <WorkoutLifecycleWatcher />
+        {/* Top bar: absolute overlay above the Stack, pointerEvents='box-none'. */}
+        <TopBar />
+        {/* Floating companion: above the Stack and tabs, box-none overlay. */}
+        <Companion />
+        {statusBar}
+      </View>
+    </PanelsProvider>
   );
 }
 

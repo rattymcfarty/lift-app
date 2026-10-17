@@ -1,12 +1,18 @@
-# Debug helper: screenshots of key screens with the companion visible.
+# Debug helper: screenshots of key screens (glass chrome review).
 appId: app.lift.mobile
 ---
 - launchApp:
     clearState: true
 - runFlow: _skip-onboarding.yaml
-- assertVisible:
-    id: "home-start-workout"
 - takeScreenshot: shot-home
+- tapOn:
+    id: "tab-programs"
+- takeScreenshot: shot-programs
+- tapOn:
+    id: "tab-exercises"
+- takeScreenshot: shot-exercises
+- tapOn:
+    id: "tab-train"
 - tapOn:
     id: "home-start-workout"
 - tapOn:
