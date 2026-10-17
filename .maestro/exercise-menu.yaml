@@ -48,15 +48,42 @@ appId: app.lift.mobile
 - tapOn:
     id: "action-sheet-close"
 
-# --- Add Warmup Sets: ramp appears as editable warmup pending rows --------
+# --- Log a working set on the first exercise (20 kg x 5) -------------------
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-reps-1"
+- inputText: "5"
+- tapOn:
+    id: "set-weight-1"
+- inputText: "20"
+- tapOn:
+    id: "log-set-1"
+
+# --- Add Warmup Sets via the sheet -----------------------------------------
 - tapOn:
     id: "exercise-actions"
     index: 0
 - tapOn:
     id: "action-add-warmup"
-# 50/70/85% of the first working set (unknown here → two empty ramp rows).
+# The actions sheet closes and the warm-up sheet opens.
 - assertVisible:
-    id: "set-warmup-badge-1"
+    id: "warmup-sheet"
+# The field is prefilled from the logged set; make sure it holds a working
+# weight (erase is a no-op when the field is empty).
+- tapOn:
+    id: "warmup-weight-input"
+- eraseText: 40
+- inputText: "20"
+- hideKeyboard
+- tapOn:
+    id: "warmup-add"
+# The sheet closes; the ramp rows appear above the working set: the W badge
+# on the first warm-up row (set 2) and 50% of 20 kg prefilled.
+- assertVisible:
+    id: "set-warmup-badge-2"
+- assertVisible:
+    text: "10"
 
 # --- Reorder Exercises (REFERENCE B) --------------------------------------
 - tapOn:

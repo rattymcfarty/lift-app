@@ -33,7 +33,7 @@ import {
   type PreviousPerformance,
 } from '../../data/repositories';
 import { newId } from '../../db/id';
-import { REST_PRESETS, formatRestLabel, buildWarmupPreview, type WarmupPreviewRow } from '../../lib/exerciseMenu';
+import { REST_PRESETS, formatRestLabel } from '../../lib/exerciseMenu';
 import { displayName } from '../../kb/taxonomy';
 import { ActionIcon, type ActionIconName } from '../icons';
 import { BottomSheet } from '../ui/BottomSheet';
@@ -54,6 +54,12 @@ export interface ExerciseActionsSheetProps {
   onAddWarmupRows?: (rows: Array<{ reps: string; weightKg: number | null; isWarmup: true }>) => void;
   /** The first working set's weight on the card (if user has typed one), in canonical kg. */
   firstWorkingWeightKg?: number | null;
+  /** Previous-performance weight for this exercise (from history), in canonical kg. */
+  previousPerformanceWeightKg?: number | null;
+  /** Routine/planned target weight for this exercise, in canonical kg. */
+  routineTargetWeightKg?: number | null;
+  /** True when the card already has unlogged warm-up rows (they get replaced). */
+  hasUnloggedWarmups?: boolean;
   /** Global display unit (fallback when no per-exercise override). */
   globalUnit?: 'kg' | 'lb';
 }
@@ -220,7 +226,12 @@ export function ExerciseActionsSheet({
   defaultRestSeconds = 90,
   onClose,
   onChanged,
-  onAddWarmup,
+  onAddWarmupRows,
+  firstWorkingWeightKg = null,
+  previousPerformanceWeightKg = null,
+  routineTargetWeightKg = null,
+  hasUnloggedWarmups = false,
+  globalUnit = 'kg',
 }: ExerciseActionsSheetProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -232,6 +243,7 @@ export function ExerciseActionsSheet({
   const [showAutoPicker, setShowAutoPicker] = useState(false);
   const [showSupersetPicker, setShowSupersetPicker] = useState(false);
   const [reorderVisible, setReorderVisible] = useState(false);
+  const [warmupVisible, setWarmupVisible] = useState(false);
   const [autoAvailable, setAutoAvailable] = useState<boolean | null>(null);
 
   // Reset any expanded sub-list when the sheet opens/close.
@@ -263,8 +275,10 @@ export function ExerciseActionsSheet({
     }
   };
 
+  // "Add Warmup Sets" leaves this sheet and opens the warm-up sheet; the
+  // card inserts the confirmed rows when the warm-up sheet reports back.
   const handleAddWarmup = (): void => {
-    onAddWarmup?.();
+    setWarmupVisible(true);
     onClose();
   };
 
@@ -527,6 +541,19 @@ export function ExerciseActionsSheet({
             Alert.alert('Error', e instanceof Error ? e.message : 'Could not reorder exercises');
           }
         }}
+      />
+
+      <WarmupSheet
+        visible={warmupVisible}
+        exercise={exercise}
+        workoutExercise={workoutExercise}
+        firstWorkingWeightKg={firstWorkingWeightKg}
+        previousPerformanceWeightKg={previousPerformanceWeightKg}
+        routineTargetWeightKg={routineTargetWeightKg}
+        hasExistingUnloggedWarmups={hasUnloggedWarmups}
+        globalUnit={globalUnit}
+        onAdd={(rows) => onAddWarmupRows?.(rows)}
+        onClose={() => setWarmupVisible(false)}
       />
     </>
   );

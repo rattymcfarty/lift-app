@@ -20,7 +20,7 @@
  */
 import React, { useEffect, useState, type JSX } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useTheme } from '../../theme';
+import { useTheme, withAlpha } from '../../theme';
 import { decodeStringArray } from '../../db/schema';
 import { buildWarmupPreview, type WarmupPreviewRow } from '../../lib/exerciseMenu';
 import { formatWeight, parseWeightInput } from '../../lib/units';
@@ -52,6 +52,8 @@ export interface WarmupSheetProps {
   globalUnit: 'kg' | 'lb';
   /** Called when the user confirms adding the warmup rows. */
   onAdd: (rows: Array<{ reps: string; weightKg: number | null; isWarmup: true }>) => void;
+  /** True when the card already has unlogged warm-up rows (they get replaced). */
+  hasExistingUnloggedWarmups?: boolean;
   onClose: () => void;
   testID?: string;
 }
@@ -153,6 +155,7 @@ export function WarmupSheet({
   routineTargetWeightKg,
   globalUnit,
   onAdd,
+  hasExistingUnloggedWarmups = false,
   onClose,
   testID = 'warmup-sheet',
 }: WarmupSheetProps): JSX.Element {
@@ -165,7 +168,6 @@ export function WarmupSheet({
   const [forceBodyweight, setForceBodyweight] = useState(false);
   const [workingWeightInput, setWorkingWeightInput] = useState('');
   const [previewRows, setPreviewRows] = useState<WarmupPreviewRow[]>([]);
-  const [hasExistingWarmups, setHasExistingWarmups] = useState(false);
 
   // Rebuild preview when inputs change
   const rebuildPreview = () => {
@@ -248,7 +250,7 @@ export function WarmupSheet({
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
               <TextInput
-                testID="warmup-working-weight"
+                testID="warmup-weight-input"
                 value={workingWeightInput}
                 onChangeText={handleWeightChange}
                 placeholder={isBodyweightExercise ? 'Bodyweight \u2014 no weight needed' : 'e.g., 100'}
@@ -272,7 +274,7 @@ export function WarmupSheet({
 
           {/* No weight toggle */}
           <Pressable
-            testID="warmup-no-weight-toggle"
+            testID="warmup-no-weight"
             onPress={() => {
               setForceBodyweight((v) => !v);
               void Haptics.selectionAsync().catch(() => undefined);
@@ -302,10 +304,10 @@ export function WarmupSheet({
           </Pressable>
 
           {/* Existing warmups notice */}
-          {hasExistingWarmups && (
+          {hasExistingUnloggedWarmups && (
             <View
               style={{
-                backgroundColor: theme.colors.warningMuted,
+                backgroundColor: withAlpha(theme.colors.warning, 0.12),
                 borderRadius: theme.radius.md,
                 padding: theme.spacing.sm,
                 flexDirection: 'row',
@@ -325,32 +327,33 @@ export function WarmupSheet({
             Preview ({previewRows.length} set{previewRows.length === 1 ? '' : 's'})
           </Text>
           {previewRows.map((row, idx) => (
-            <PreviewRow
-              key={idx}
-              row={row}
-              index={idx}
-              unit={unit}
-              isBodyweight={forceBodyweight || isBodyweightExercise}
-              onRepsChange={(i, reps) => {
-                setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, reps } : r)));
-              }}
-              onWeightChange={(i, weightKg) => {
-                setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, weightKg } : r)));
-              }}
-              theme={theme}
-            />
+            <View key={idx} testID={`warmup-row-${idx}`}>
+              <PreviewRow
+                row={row}
+                index={idx}
+                unit={unit}
+                isBodyweight={forceBodyweight || isBodyweightExercise}
+                onRepsChange={(i, reps) => {
+                  setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, reps } : r)));
+                }}
+                onWeightChange={(i, weightKg) => {
+                  setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, weightKg } : r)));
+                }}
+                theme={theme}
+              />
+            </View>
           ))}
 
           {/* Add button */}
           <Pressable
-            testID="warmup-add-button"
+            testID="warmup-add"
             onPress={handleAdd}
             disabled={!canAdd}
             accessibilityRole="button"
             accessibilityState={{ disabled: !canAdd }}
             style={({ pressed }) => ({
               marginTop: theme.spacing.md,
-              backgroundColor: canAdd ? (pressed ? theme.colors.accentPressed : theme.colors.accent) : theme.colors.muted,
+              backgroundColor: canAdd ? (pressed ? withAlpha(theme.colors.accent, 0.8) : theme.colors.accent) : theme.colors.muted,
               borderRadius: theme.radius.md,
               paddingVertical: theme.spacing.md,
               alignItems: 'center',

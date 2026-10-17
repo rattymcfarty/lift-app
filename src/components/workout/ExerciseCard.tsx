@@ -39,7 +39,6 @@ import { useTheme } from '../../theme';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import type { PlannedSetRow } from '../../data/plannedSets';
-import { warmupRamp } from '../../lib/exerciseMenu';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
@@ -468,26 +467,44 @@ export function ExerciseCard({
   };
 
   /**
-   * Add the warmup ramp ahead of the working sets: 50/70/85% of the first
-   * working set (reps 5/3/2), or two empty rows when no weight is known.
-   * Idempotent — a second tap does nothing while warmup rows are pending —
-   * and it never touches logged sets (pending rows are local until logged).
+   * The previous-performance weight for the warm-up sheet's prefill: the last
+   * working (non-warm-up) set from the previous performance, canonical kg.
    */
-  const handleAddWarmup = (): void => {
-    if (pendingsRef.current.some((p) => p.isWarmup)) return;
-    const rows = warmupRamp(firstWorkingWeightKg(), displayUnit).map((r) => ({
-      key: `pending-${workoutExercise.id}-${++pendingKeyRef.current}`,
-      setNumber: reserveSetNumber(),
-      initial: {
-        reps: r.reps,
-        weightKg: r.weightKg == null ? '' : prefillWeight(r.weightKg),
-        rpe: '',
-      },
-      isWarmup: true,
-      error: null,
-      busy: false,
-    }));
-    const next = [...rows, ...pendingsRef.current];
+  const previousPerformanceWeightKg = (): number | null => {
+    if (!previous || previous.sets.length === 0) return null;
+    const working = previous.sets.filter(
+      (s) => s.isWarmup !== true && s.weightKg != null && s.weightKg > 0,
+    );
+    return working.length > 0 ? working[working.length - 1].weightKg : null;
+  };
+
+  /**
+   * Insert the warm-up sheet's confirmed rows as pending warm-up rows above
+   * the working rows. Still-unlogged warm-up rows from an earlier warm-up are
+   * replaced; logged sets are never touched (pending rows are local until
+   * logged). Weights arrive in canonical kg and are prefilled in the user's
+   * unit — never as 0 (an all-zero row reads as "no set"), and a row with
+   * neither reps nor weight is dropped entirely.
+   */
+  const handleAddWarmupRows = (
+    rows: Array<{ reps: string; weightKg: number | null; isWarmup: true }>,
+  ): void => {
+    const kept = pendingsRef.current.filter((p) => !p.isWarmup);
+    const warmupRows = rows
+      .map((r) => ({
+        key: `pending-${workoutExercise.id}-${++pendingKeyRef.current}`,
+        setNumber: reserveSetNumber(),
+        initial: {
+          reps: r.reps,
+          weightKg: r.weightKg != null && r.weightKg > 0 ? prefillWeight(r.weightKg) : '',
+          rpe: '',
+        },
+        isWarmup: true,
+        error: null,
+        busy: false,
+      }))
+      .filter((p) => p.initial.reps !== '' || p.initial.weightKg !== '');
+    const next = [...warmupRows, ...kept];
     pendingsRef.current = next;
     setPendings(next);
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -743,7 +760,12 @@ export function ExerciseCard({
         defaultRestSeconds={settings?.defaultRestSeconds}
         onClose={() => setSheetVisible(false)}
         onChanged={onChanged}
-        onAddWarmup={handleAddWarmup}
+        onAddWarmupRows={handleAddWarmupRows}
+        firstWorkingWeightKg={firstWorkingWeightKg()}
+        previousPerformanceWeightKg={previousPerformanceWeightKg()}
+        routineTargetWeightKg={plannedSets?.[0]?.weightKg ?? null}
+        hasUnloggedWarmups={pendings.some((p) => p.isWarmup)}
+        globalUnit={displayUnit}
       />
     </Card>
     </SwipeableRow>
