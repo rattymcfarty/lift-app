@@ -7,12 +7,15 @@
  *
  * Layout & touches
  * - The root is `absoluteFill` with `pointerEvents="box-none"`, so it never
- *   blocks the screen underneath; only the creature (the drag/tap target) and
- *   the bubble's own measured box are interactive.
- * - Safe-area aware. Default position: top-centre, just below the status bar.
- * - Dragging snaps to the nearest edge/corner; the corner is remembered in
+ *   blocks the screen underneath; only the creature (the drag/tap target) can
+ *   take a touch — the bubble, the shadow and the sparkles are all
+ *   `pointerEvents="none"`.
+ * - Safe-area aware. Default position: the RIGHT edge, about 38% down the
+ *   window (top-centre sat on top of screen titles); a drag snaps to the
+ *   nearest edge/corner as before, and that corner is remembered in
  *   AsyncStorage under a plain local key (deliberately NOT in the backup
  *   whitelist in `src/data/appData.ts` — a UI position is not user data).
+ * - Never rendered on the onboarding wizard or the PAR-Q+ questionnaire.
  * - Tap = a jump + a wiggle, and dismiss the visible message.
  *
  * Accessibility: the creature is a button with a label; new messages are
@@ -30,6 +33,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePathname, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COMPANION_NAME } from './messages';
 import { companionQueue } from './queue';
@@ -39,6 +43,17 @@ import { loadCompanionStyle, useCompanionStyle } from './style';
 import { Creature } from './Creature';
 import { ImageSkin, MOUSE_HOP_OVERSHOOT } from './ImageSkin';
 import { Bubble } from './Bubble';
+import {
+  COMPANION_CORNERS,
+  clampPosition,
+  cornerPosition,
+  defaultCompanionPosition,
+  isCompanionHiddenRoute,
+  nearestCorner,
+  placeBubble,
+  type CompanionBounds,
+  type CompanionCorner,
+} from './placement';
 
 /** On-screen size of the creature (dp) — shared by every skin, and the box the
  *  speech bubble is placed around. The mouse picture is drawn this wide. */
@@ -46,62 +61,23 @@ const SIZE = 80;
 /** Plain local key — intentionally outside the backup whitelist. */
 const POS_KEY = 'lift:companion-pos';
 const EDGE_MARGIN = 12;
+/** Gap kept between the creature and the status bar at the top bound. */
+const TOP_GAP = 8;
 /** Rough bottom-tab-bar height, so a snapped creature never covers the tabs. */
 const TAB_BAR_CLEARANCE = 56;
 const BUBBLE_MAX_WIDTH = 260;
 const BUBBLE_GAP = 8;
-
-type Corner = 'tc' | 'tl' | 'tr' | 'bl' | 'br';
-const CORNERS: readonly Corner[] = ['tc', 'tl', 'tr', 'bl', 'br'];
-
-interface Bounds {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(Math.max(value, min), max);
-
-function cornerPosition(corner: Corner, b: Bounds): { x: number; y: number } {
-  const centerX = (b.left + b.right) / 2;
-  switch (corner) {
-    case 'tl':
-      return { x: b.left, y: b.top };
-    case 'tr':
-      return { x: b.right, y: b.top };
-    case 'bl':
-      return { x: b.left, y: b.bottom };
-    case 'br':
-      return { x: b.right, y: b.bottom };
-    case 'tc':
-    default:
-      return { x: centerX, y: b.top };
-  }
-}
-
-function nearestCorner(x: number, y: number, b: Bounds): Corner {
-  const targets: Array<[Corner, { x: number; y: number }]> = CORNERS.map((c) => [c, cornerPosition(c, b)]);
-  let best: Corner = 'tc';
-  let bestDist = Number.POSITIVE_INFINITY;
-  for (const [corner, pos] of targets) {
-    const d = (pos.x - x) ** 2 + (pos.y - y) ** 2;
-    if (d < bestDist) {
-      bestDist = d;
-      best = corner;
-    }
-  }
-  return best;
-}
 
 export function Companion(): JSX.Element | null {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const enabled = useCompanionEnabled();
   const skinStyle = useCompanionStyle();
+  const pathname = usePathname();
+  const segments = useSegments();
 
-  const [corner, setCorner] = useState<Corner>('tc');
+  /** `null` = nothing usable stored: the default right-edge resting place. */
+  const [corner, setCorner] = useState<CompanionCorner | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [bubbleHeight, setBubbleHeight] = useState(56);
   const [storedLoaded, setStoredLoaded] = useState(false);
@@ -115,7 +91,7 @@ export function Companion(): JSX.Element | null {
   const draggedRef = useRef(false);
   const startRef = useRef({ x: 0, y: 0 });
   const posRef = useRef({ x: 0, y: 0 });
-  const boundsRef = useRef<Bounds>({ left: 0, right: 0, top: 0, bottom: 0 });
+  const boundsRef = useRef<CompanionBounds>({ left: 0, right: 0, top: 0, bottom: 0 });
   const reduceMotionRef = useRef(false);
   const onTapRef = useRef<() => void>(() => undefined);
 
@@ -123,16 +99,19 @@ export function Companion(): JSX.Element | null {
    *  headroom; the SVG creature stays inside. */
   const topOvershoot = skinStyle === 'mouse' ? SIZE * MOUSE_HOP_OVERSHOOT : 0;
 
-  const bounds = useMemo<Bounds>(() => {
+  const bounds = useMemo<CompanionBounds>(() => {
     const left = EDGE_MARGIN;
     const right = Math.max(left, width - SIZE - EDGE_MARGIN);
-    const top = insets.top + 8 + topOvershoot;
+    const top = insets.top + TOP_GAP + topOvershoot;
     const bottom = Math.max(top, height - SIZE - (insets.bottom + TAB_BAR_CLEARANCE) - EDGE_MARGIN);
     return { left, right, top, bottom };
   }, [width, height, insets.top, insets.bottom, topOvershoot]);
   boundsRef.current = bounds;
 
-  const pos = useMemo(() => cornerPosition(corner, bounds), [corner, bounds]);
+  const pos = useMemo(
+    () => (corner == null ? defaultCompanionPosition(height, bounds) : cornerPosition(corner, bounds)),
+    [corner, bounds, height],
+  );
 
   const handleTap = useCallback((): void => {
     companionQueue.dismiss();
@@ -168,8 +147,8 @@ export function Companion(): JSX.Element | null {
         if (Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4) draggedRef.current = true;
         const b = boundsRef.current;
         pan.setValue({
-          x: clamp(startRef.current.x + g.dx, b.left, b.right),
-          y: clamp(startRef.current.y + g.dy, b.top, b.bottom),
+          x: clampPosition(startRef.current.x + g.dx, b.left, b.right),
+          y: clampPosition(startRef.current.y + g.dy, b.top, b.bottom),
         });
       },
       onPanResponderRelease: (_e, g) => {
@@ -178,8 +157,8 @@ export function Companion(): JSX.Element | null {
           return;
         }
         const b = boundsRef.current;
-        const x = clamp(startRef.current.x + g.dx, b.left, b.right);
-        const y = clamp(startRef.current.y + g.dy, b.top, b.bottom);
+        const x = clampPosition(startRef.current.x + g.dx, b.left, b.right);
+        const y = clampPosition(startRef.current.y + g.dy, b.top, b.bottom);
         const nextCorner = nearestCorner(x, y, b);
         const target = cornerPosition(nextCorner, b);
         setCorner(nextCorner);
@@ -212,8 +191,8 @@ export function Companion(): JSX.Element | null {
       .then((raw) => {
         if (cancelled || !raw) return;
         try {
-          const parsed = JSON.parse(raw) as { corner?: Corner };
-          if (parsed.corner && CORNERS.includes(parsed.corner)) setCorner(parsed.corner);
+          const parsed = JSON.parse(raw) as { corner?: CompanionCorner };
+          if (parsed.corner && COMPANION_CORNERS.includes(parsed.corner)) setCorner(parsed.corner);
         } catch {
           // Corrupt value — keep the default position.
         }
@@ -263,23 +242,29 @@ export function Companion(): JSX.Element | null {
     AccessibilityInfo.announceForAccessibility(message.text);
   }, [message]);
 
-  if (!enabled) return null;
+  // The wizard and the PAR-Q+ screening own the whole screen: no overlay.
+  // `storedLoaded` also gates the render (not just an opacity), so the box can
+  // never be a touch target before it is actually visible.
+  if (!enabled || !storedLoaded || isCompanionHiddenRoute(pathname, segments)) return null;
 
   const bubbleWidth = Math.min(BUBBLE_MAX_WIDTH, Math.max(160, width - EDGE_MARGIN * 2));
-  const bubbleLeft = clamp(pos.x + SIZE / 2 - bubbleWidth / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, width - bubbleWidth - EDGE_MARGIN));
+  const bubble = placeBubble(pos.x, SIZE, width, bubbleWidth, EDGE_MARGIN, BUBBLE_GAP);
   const bubbleBelow = pos.y < (bounds.top + bounds.bottom) / 2;
   const bubbleTop = bubbleBelow ? pos.y + SIZE + BUBBLE_GAP : pos.y - BUBBLE_GAP - bubbleHeight;
 
   return (
+    // No backgroundColor / elevation / shadow* on this or any ancestor: a plate
+    // here is exactly the artefact the old skin produced on Android.
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
       {message ? (
         <View
           pointerEvents="none"
-          style={{ position: 'absolute', left: bubbleLeft, top: bubbleTop, width: bubbleWidth }}
+          style={{ position: 'absolute', left: bubble.left, top: bubbleTop, width: bubbleWidth }}
         >
           <Bubble
             text={message.text}
             side={bubbleBelow ? 'below' : 'above'}
+            tailAnchor={bubble.opensLeft ? 'end' : 'center'}
             width={bubbleWidth}
             reduceMotion={reduceMotion}
             onHeight={setBubbleHeight}
@@ -301,8 +286,6 @@ export function Companion(): JSX.Element | null {
           top: 0,
           width: SIZE,
           height: SIZE,
-          // Hide until the stored corner has been read, so it doesn't jump.
-          opacity: storedLoaded ? 1 : 0,
           transform: pan.getTranslateTransform(),
         }}
       >

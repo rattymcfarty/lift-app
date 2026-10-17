@@ -1,0 +1,14 @@
+# Debug helper: screenshots of key screens with the companion visible.
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+- takeScreenshot: /tmp/claude-1000/shot-home
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- takeScreenshot: /tmp/claude-1000/shot-workout

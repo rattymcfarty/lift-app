@@ -9,6 +9,7 @@ export * from './triggers';
 export * from './enabled';
 export * from './useCompanion';
 export * from './style';
+export * from './placement';
 export * from './Creature';
 export * from './ImageSkin';
 export * from './Bubble';

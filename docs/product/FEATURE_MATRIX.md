@@ -39,7 +39,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Progressive overload suggestions | ✅ | Progression engine |
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
 | Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
-| A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; `docs/product/COMPANION.md` |
+| A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; draggable, default right edge (never over a screen title), hidden on onboarding and PAR-Q; `docs/product/COMPANION.md` |
 
 ## 4. After the workout
 | Need | Status | Notes |

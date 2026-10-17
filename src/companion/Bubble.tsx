@@ -12,6 +12,12 @@ export interface BubbleProps {
   text: string;
   /** Which side of the creature the bubble sits on. */
   side: 'above' | 'below';
+  /**
+   * Where the tail sits on the bubble's bottom/top edge: 'center' points at the
+   * character's centre, 'end' at the bubble's far edge — used when the creature
+   * sits against a screen edge and the bubble opens away from it.
+   */
+  tailAnchor?: 'center' | 'end';
   /** Fixed box width in dp (the caller clamps it to the window). */
   width: number;
   reduceMotion?: boolean;
@@ -19,7 +25,14 @@ export interface BubbleProps {
   onHeight?: (height: number) => void;
 }
 
-export function Bubble({ text, side, width, reduceMotion = false, onHeight }: BubbleProps): JSX.Element {
+export function Bubble({
+  text,
+  side,
+  tailAnchor = 'center',
+  width,
+  reduceMotion = false,
+  onHeight,
+}: BubbleProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const appear = useRef(new Animated.Value(0)).current;
@@ -36,7 +49,18 @@ export function Bubble({ text, side, width, reduceMotion = false, onHeight }: Bu
 
   const tailSize = 12;
   const tailUp = side === 'below';
+  const tailAtEnd = tailAnchor === 'end';
   const tailPosition = tailUp ? { top: -tailSize / 2 } : { bottom: -tailSize / 2 };
+  const tailLeft = tailAtEnd ? width - tailSize / 2 : width / 2 - tailSize / 2;
+  // The wedge is a 45°-rotated square with only two edges outlined, and the
+  // corner where those two edges meet becomes the point: the square's top-left
+  // corner faces up, its top-right corner faces up-and-right (towards a creature
+  // on the right edge) and its bottom-right corner faces down.
+  const tailEdges = tailUp
+    ? tailAtEnd
+      ? { borderRightWidth: 1, borderTopWidth: 1 }
+      : { borderLeftWidth: 1, borderTopWidth: 1 }
+    : { borderRightWidth: 1, borderBottomWidth: 1 };
 
   return (
     <Animated.View
@@ -61,14 +85,11 @@ export function Bubble({ text, side, width, reduceMotion = false, onHeight }: Bu
         style={{
           position: 'absolute',
           ...tailPosition,
-          left: width / 2 - tailSize / 2,
+          left: tailLeft,
           width: tailSize,
           height: tailSize,
           backgroundColor: theme.colors.surface,
-          borderLeftWidth: tailUp ? 1 : 0,
-          borderTopWidth: tailUp ? 1 : 0,
-          borderRightWidth: tailUp ? 0 : 1,
-          borderBottomWidth: tailUp ? 0 : 1,
+          ...tailEdges,
           borderColor: theme.colors.border,
           transform: [{ rotate: '45deg' }],
         }}

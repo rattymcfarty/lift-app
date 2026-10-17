@@ -2,6 +2,25 @@
 
 ## Unreleased (addendum)
 
+- Companion: three device-test fixes on Android (release build, mouse skin).
+  - The mouse no longer draws on a lighter "plate" the size of its box — the
+    ~11 nested `Animated.View` transform wrappers collapse into ONE
+    `Animated.View` with a single `transform` list (same motion, same feet
+    anchoring), the ground shadow becomes a plain themed `View`, the sparkles
+    and the sleepy "z" become plain `Text` glyphs mounted only while active (no
+    SVG at all while idle), and the `Image` gets an explicit size,
+    `resizeMode="contain"`, `backgroundColor: 'transparent'`, `fadeDuration={0}`
+    and the 0.9 sleepy dim on its own style. No overlay ancestor paints a
+    background either. The SVG blob skin is unchanged.
+  - Default position moved from top-centre (which covered screen titles like
+    "Workout · 17 Oct") to the **right edge ~38 % down the window**, clamped into
+    the safe-area bounds; the bubble opens to the creature's left there. Drag
+    still snaps to the nearest of the five anchors, and saved positions — a
+    saved `tc` included — still win.
+  - The overlay is not rendered on the onboarding wizard or the PAR-Q+ screen
+    (`usePathname`/`useSegments`), so the first-launch "Skip for now" tap and the
+    Maestro flows that depend on it work again. Geometry moved to a pure, tested
+    `src/companion/placement.ts`; `docs/product/COMPANION.md` updated.
 - Companion skins: Pip now wears the owner's illustrated mouse by default —
   `src/companion/ImageSkin.tsx` animates the one flat PNG with transforms only
   (built-in `Animated`, native driver, no new dependency): idle float +

@@ -27,6 +27,7 @@ app/_layout.tsx            mounts <Companion/> ONCE, above the Stack + tabs
     style.ts               reactive skin-selection bridge + hook
     useCompanion.ts        useSyncExternalStore binding for the queue
     skin.ts                CompanionSkin interface + the style union/labels/guard (pure)
+    placement.ts           screen geometry: snap anchors, default spot, bubble, hidden routes (pure)
     ImageSkin.tsx          default skin: the mouse picture (transforms only)
     Creature.tsx           alternative skin: the SVG blob
     Bubble.tsx             themed speech bubble
@@ -43,20 +44,38 @@ something to say.
 ### Touches & layout
 
 - The root overlay is `StyleSheet.absoluteFill` with `pointerEvents="box-none"`,
-  so it never blocks touches — except on the creature (drag/tap target) and the
-  bubble, which is `pointerEvents="none"`.
-- Position is safe-area aware. Default: top-centre, just below the status bar.
-- The creature occupies one square box (`SIZE`, 80 dp). Every skin draws inside
-  that box and the bubble is placed around it: the tail sits at the box's
-  horizontal centre, which is the character's centre in both skins, so the
-  bubble points at whoever is drawn. The mouse skin draws *above* its box while
-  it hops (`MOUSE_HOP_OVERSHOOT`), so the overlay adds that headroom to the top
-  drag bound — the bottom bound and the tab-bar clearance are unchanged.
-- Drag to move; on release it snaps to the nearest edge/corner. The corner is
-  remembered in AsyncStorage under `lift:companion-pos` — a **plain local key**,
-  deliberately *not* in the backup whitelist (`src/data/appData.ts`): a UI
-  position is not user data.
+  so it never blocks touches. The creature box is the only interactive target
+  (tap/drag); the bubble, its tail, the ground shadow, the sparkles and the "z"
+  are all `pointerEvents="none"`, so taps pass straight through to the screen
+  underneath. The overlay also renders **nothing** until the saved position has
+  been read, so the box is never an invisible touch target on first paint.
+- **Default position: the RIGHT edge, about 38 % down the window** — clear of
+  screen headers, the tab bar and the bottom action rows. (It used to be
+  top-centre, which sat on top of titles like "Workout · 17 Oct".) The spot is
+  clamped into the safe-area bounds, so a short window can never push the
+  creature under the status bar or over the tabs.
+- Drag to move; on release it snaps to the nearest of five anchors
+  (`tc`/`tl`/`tr`/`bl`/`br`) exactly as before. The anchor is remembered in
+  AsyncStorage under `lift:companion-pos` — a **plain local key**, deliberately
+  *not* in the backup whitelist (`src/data/appData.ts`): a UI position is not
+  user data. Saved positions stay valid, including a saved `tc` from the old
+  default; only an install with nothing stored gets the new spot.
+- The speech bubble is centred on the creature when there is room, and pushed
+  to the creature's **left** when the creature is on the right half of the
+  screen, so it never lies on top of the art; the tail moves to the bubble's
+  far edge and points back at the character.
+- The overlay is **not rendered at all** on the onboarding / profile wizard
+  (`app/onboarding.tsx` — the route that owns the whole first launch, with its
+  "Skip for now" button and bottom action row) or on the PAR-Q+ screening
+  questionnaire (`app/programs/parq.tsx` — nothing floats over a safety
+  question). The route comes from expo-router's `usePathname`/`useSegments` and
+  is matched by the pure `isCompanionHiddenRoute` helper.
 - Tap = a quick jump + a wiggle, and dismiss the visible message.
+
+The geometry behind all of the above lives in the pure `placement.ts`
+(`cornerPosition`, `nearestCorner`, `defaultCompanionPosition`,
+`placeBubble`, `isCompanionHiddenRoute`) and is unit-tested in
+`scripts/test-companion.mjs`.
 
 ## The `say()` API
 
@@ -127,15 +146,43 @@ dependency, and the animations run on the UI thread.
 - **focused** — steady, with a slight forward lean (+3°).
 - **cheer / PR** — 3 (cheer) or 5 (PR) sparkle stars float up and fade, in the
   accent and highlight colours.
-- **ground shadow** — a soft theme-aware ellipse under the feet; it shrinks and
+- **ground shadow** — a soft theme-aware pill under the feet; it shrinks and
   fades while the character is airborne (driven by the same hop value).
 - **tap** — the overlay adds a jump + wiggle for every skin.
 
+#### One transformed view, one picture, no SVG
+
+An Android release build showed a lighter "plate" the size of the creature's box
+behind the mouse, with the screen faintly visible through it — an artefact of
+compositing, not of the artwork (the PNG is fully transparent outside the mouse).
+Every possible cause was removed rather than guessed at:
+
+- **One `Animated.View` with one `transform` list.** The old skin nested ~11
+  transform wrappers via a `nest()` helper. They are now the entries of a single
+  `style.transform` array, in the same order, so the motion is identical with
+  one view instead of eleven.
+- **No opacity above the picture.** The sleepy 0.9 dim moved from the wrapper
+  `View` onto the `Image` style itself.
+- **The `Image` is explicit**: fixed `width`/`height`, `resizeMode="contain"`,
+  `backgroundColor: 'transparent'`, `fadeDuration={0}`, and deliberately no
+  `renderToHardwareTextureAndroid`.
+- **No SVG while idle.** The ground shadow is a plain `View` (`borderRadius` =
+  height / 2, `backgroundColor: withAlpha(theme.colors.text, 0.18)`), and the
+  sparkles are plain `Text` star glyphs in the accent/highlight colours. Both —
+  and the sleepy "z" — are mounted only while their mood is active, so an idle
+  creature renders the picture and nothing else. (`Creature.tsx`, the SVG blob,
+  is unchanged.)
+- **No plate from the overlay.** The overlay root, the bubble wrapper and the
+  tail carry no `backgroundColor`, `elevation` or `shadow*` style that could
+  paint behind the character; only the bubble body itself is filled.
+
 Transform origin: scaling stays anchored at the feet by translating by
-`height × (1 − scale) / 2` in a layer *outside* the scale, and rotation is
-anchored at the feet by nesting `translateY(+h/2) → rotate → translateY(−h/2)`.
-The mouse box is 80 dp wide (drawing ~80×77 dp) — the same box the bubble is
-placed around.
+`height × (1 − scale) / 2` in an entry *before* the scale, and rotation is
+anchored at the feet with `translateY(+h/2) → rotate → translateY(−h/2)` — both
+as neighbouring entries of the same list. The mouse box is 80 dp wide (drawing
+~80×77 dp) — the same box the bubble is placed around, and the mouse draws
+*above* it while it hops (`MOUSE_HOP_OVERSHOOT`), which is why the overlay adds
+that headroom to the top drag bound.
 
 Reduce-motion: no loops and no hops. What remains is the mood's static pose (the
 droop, the lean, the 0.9 dim), fade-only sparkles and the static "z"; a tap only
@@ -143,7 +190,8 @@ dismisses the bubble.
 
 Cost: one `Animated.Value` per motion plus five for the sparkles, all on the
 native driver; nothing runs while reduce-motion is on, and every loop is stopped
-when the mood changes or the skin unmounts (switching style remounts it).
+when the mood changes or the skin unmounts (switching style remounts it). Idle
+costs one transformed view, one `Image` and one small shadow view.
 
 ## Adding a skin
 
@@ -170,6 +218,8 @@ runtime network call.
 - Reduce-motion (`AccessibilityInfo.isReduceMotionEnabled`) disables every
   looping animation; the bubble and tap reaction become simple fades/no-ops.
 - Text uses the app-wide scale cap (1.15×) and theme tokens only.
+- Nothing floats over the onboarding wizard or the PAR-Q+ questionnaire, so a
+  screen reader (or the user) always meets the screen's own content first.
 
 ## Turning it off
 

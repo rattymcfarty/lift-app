@@ -73,5 +73,6 @@ for f in "${FLOWS[@]}"; do
     fail=1
   fi
 done
+adb logcat -d -t 4000 > "$LOG/logcat.txt" 2>/dev/null
 echo "logs: $LOG"
 exit $fail

@@ -15,28 +15,27 @@
  * Every mood blinks now and then (a very quick squash + tiny head tilt) and a
  * cheer/PR mood emits 3–5 sparkle stars that float up and fade.
  *
+ * Rendering rules (learned from an Android release build): ONE `Animated.View`
+ * carries the whole motion, as a single `style.transform` list — a deep stack
+ * of transform wrappers, a parent `View` with an opacity over the picture, and
+ * SVG layers all produced a lighter "plate" the size of the creature's box.
+ * So: one transformed view, an `Image` with explicit size and no fade-in, a
+ * plain rounded `View` for the ground shadow, and plain `Text` glyphs for the
+ * sparkles and the "z" — mounted only while their mood is active, so nothing
+ * but the picture is on screen while idle.
+ *
  * Origin tricks: scaling is anchored at the feet by translating by
- * `height × (1 − scale) / 2` in a layer *outside* the scale, and rotation is
- * anchored at the feet by nesting `translateY(+h/2) → rotate → translateY(−h/2)`.
+ * `height × (1 − scale) / 2` in an entry *before* the scale, and rotation is
+ * anchored at the feet with `translateY(+h/2) → rotate → translateY(−h/2)`.
  * A soft theme-aware ground shadow sits under the feet; it shrinks while the
  * character is airborne.
  *
  * Reduce-motion: no loops and no hops — the mood's static pose (dim, lean or
  * droop) and fade-only sparkles remain.
  */
-import { useEffect, useRef, type JSX, type ReactElement } from 'react';
-import {
-  Animated,
-  Easing,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
-import Svg, { Ellipse, Path } from 'react-native-svg';
-import { useTheme } from '../theme';
+import { useEffect, useRef, type JSX } from 'react';
+import { Animated, Easing, Image, Text, View } from 'react-native';
+import { useTheme, withAlpha } from '../theme';
 import { COMPANION_NAME } from './messages';
 import type { CompanionMood } from './queue';
 import type { CompanionSkinProps } from './skin';
@@ -55,11 +54,17 @@ export const MOUSE_HOP_OVERSHOOT = 0.18;
 /** Ground shadow size, as a fraction of `size`. */
 const SHADOW_HEIGHT = 0.08;
 const SHADOW_WIDTH = 0.8;
+/** Ground shadow alpha over the theme text colour. */
+const SHADOW_ALPHA = 0.18;
 /** How far the feet sit above the bottom of the box, as a fraction of `size`. */
 const GROUND_LIFT = 0.02;
 /** One sparkle, as a fraction of `size`. */
 const SPARKLE_SIZE = 0.16;
 const MAX_SPARKLES = 5;
+/** Sleepy dimming, applied to the picture itself. */
+const SLEEPY_OPACITY = 0.9;
+/** Sparkle glyph — a plain star, so no SVG has to be mounted for a 13 dp dot. */
+const SPARKLE_GLYPH = '★';
 
 /** How many sparkles a mood emits (0 = none). cheer → 3, PR → 5. */
 const SPARKLE_COUNT: Record<CompanionMood, number> = {
@@ -79,9 +84,6 @@ const SPARKLE_SPOTS: ReadonlyArray<{ x: number; y: number }> = [
   { x: 0.0, y: 0.64 },
 ];
 
-/** Four-point sparkle, in a 24×24 viewBox. */
-const SPARKLE_PATH = 'M12 0.5 L14.4 9.6 L23.5 12 L14.4 14.4 L12 23.5 L9.6 14.4 L0.5 12 L9.6 9.6 Z';
-
 /** Breathing half-period per mood (ms). */
 const BREATHE_MS: Record<CompanionMood, number> = {
   idle: 2400,
@@ -99,19 +101,6 @@ const MOOD_TILT: Record<CompanionMood, number> = {
   excited: 0,
   sleepy: -6,
 };
-
-/** One Animated.View per layer (outermost first), so no two transforms share a
- *  view and their order can never surprise us. */
-function nest(layers: ReadonlyArray<StyleProp<ViewStyle>>, child: ReactElement): ReactElement {
-  return layers.reduceRight(
-    (acc, style) => <Animated.View style={[styles.layer, style]}>{acc}</Animated.View>,
-    child,
-  );
-}
-
-const styles = StyleSheet.create({
-  layer: { width: '100%', height: '100%' },
-});
 
 export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinProps): JSX.Element {
   const { theme } = useTheme();
@@ -285,37 +274,64 @@ export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinPro
   const zOpacity = z.interpolate({ inputRange: [0, 0.15, 0.8, 1], outputRange: [0, 0.9, 0.9, 0] });
   const zY = z.interpolate({ inputRange: [0, 1], outputRange: [0, -size * 0.3] });
 
-  const character = nest(
-    [
-      { transform: [{ translateY: floatY }] },
-      { transform: [{ translateY: hopY }] },
-      { transform: [{ translateY: landAnchor }] },
-      { transform: [{ scaleX: landX }, { scaleY: landY }] },
-      { transform: [{ translateY: breatheAnchor }] },
-      { transform: [{ scaleX: breatheX }, { scaleY: breatheY }] },
-      { transform: [{ translateY: blinkAnchor }] },
-      { transform: [{ scaleY: blinkY }] },
-      // Rotate about the feet: +pivot, the rotations, then −pivot.
-      { transform: [{ translateY: pivot }] },
-      { transform: [{ rotate: leanDeg }, { rotate: blinkDeg }, { rotate: wiggleDeg }] },
-      { transform: [{ translateY: -pivot }] },
-    ],
-    // The overlay wrapper owns the accessible name (it is the button the user
-    // taps and drags), so the picture itself is not a second focus stop.
-    <Image
-      source={MOUSE}
-      resizeMode="contain"
-      accessible={false}
-      accessibilityLabel={COMPANION_NAME}
-      style={styles.layer}
-    />,
+  const character = (
+    // The single transformed view: every motion in one list, outermost first,
+    // exactly as the old stack of wrappers applied it.
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: 0,
+        bottom: size * GROUND_LIFT,
+        width: size,
+        height: imageH,
+        transform: [
+          { translateY: floatY },
+          { translateY: hopY },
+          // Feet-anchored scaling: shift, scale, then shift back. scaleX and
+          // scaleY stay separate entries so every transform shares one type.
+          { translateY: landAnchor },
+          { scaleX: landX },
+          { scaleY: landY },
+          { translateY: breatheAnchor },
+          { scaleX: breatheX },
+          { scaleY: breatheY },
+          { translateY: blinkAnchor },
+          { scaleY: blinkY },
+          // Rotate about the feet: +pivot, the rotations, then −pivot.
+          { translateY: pivot },
+          { rotate: leanDeg },
+          { rotate: blinkDeg },
+          { rotate: wiggleDeg },
+          { translateY: -pivot },
+        ],
+      }}
+    >
+      {/* The overlay wrapper owns the accessible name (it is the button the user
+          taps and drags), so the picture itself is not a second focus stop.
+          Explicit size + no fade-in + no hardware-texture flag: an Image inside
+          a transformed, animated view must not composite a backdrop. */}
+      <Image
+        source={MOUSE}
+        fadeDuration={0}
+        resizeMode="contain"
+        accessible={false}
+        accessibilityLabel={COMPANION_NAME}
+        style={{
+          width: size,
+          height: imageH,
+          backgroundColor: 'transparent',
+          opacity: mood === 'sleepy' ? SLEEPY_OPACITY : 1,
+        }}
+      />
+    </Animated.View>
   );
 
   const sparkleCount = SPARKLE_COUNT[mood];
 
   return (
     <View style={{ width: size, height: size }}>
-      {/* Soft ground shadow — stays on the ground while the character hops. */}
+      {/* Soft ground shadow — a plain pill-shaped View (no SVG), themed off the
+          text colour; it stays on the ground while the character hops. */}
       <Animated.View
         pointerEvents="none"
         style={{
@@ -324,30 +340,17 @@ export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinPro
           bottom: 0,
           width: shadowW,
           height: shadowH,
+          borderRadius: shadowH / 2,
+          backgroundColor: withAlpha(c.text, SHADOW_ALPHA),
           opacity: shadowOpacity,
           transform: [{ scaleX: shadowScaleX }],
         }}
-      >
-        <Svg width={shadowW} height={shadowH} viewBox={`0 0 ${shadowW} ${shadowH}`}>
-          <Ellipse cx={shadowW / 2} cy={shadowH / 2} rx={shadowW / 2} ry={shadowH / 2} fill={c.text} opacity={0.18} />
-        </Svg>
-      </Animated.View>
+      />
 
       {/* The character, feet on the ground line, overflowing upwards as it moves. */}
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          bottom: size * GROUND_LIFT,
-          width: size,
-          height: imageH,
-          opacity: mood === 'sleepy' ? 0.9 : 1,
-        }}
-      >
-        {character}
-      </View>
+      {character}
 
-      {/* Sleepy: a drifting "z". */}
+      {/* Sleepy: a drifting "z", mounted only while the mood is sleepy. */}
       {mood === 'sleepy' ? (
         <Animated.View
           pointerEvents="none"
@@ -368,7 +371,7 @@ export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinPro
         </Animated.View>
       ) : null}
 
-      {/* Cheer / PR sparkles. */}
+      {/* Cheer / PR sparkles — plain glyphs, mounted only for those moods. */}
       {sparkleCount > 0
         ? SPARKLE_SPOTS.slice(0, sparkleCount).map((spot, i) => (
             <Animated.View
@@ -380,6 +383,8 @@ export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinPro
                 top: spot.y * size,
                 width: size * SPARKLE_SIZE,
                 height: size * SPARKLE_SIZE,
+                alignItems: 'center',
+                justifyContent: 'center',
                 opacity: sparkles[i].interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 1, 0] }),
                 transform: [
                   { translateY: sparkles[i].interpolate({ inputRange: [0, 1], outputRange: [0, reduceMotion ? 0 : -size * 0.4] }) },
@@ -387,9 +392,12 @@ export function ImageSkin({ mood, size, reduceMotion = false }: CompanionSkinPro
                 ],
               }}
             >
-              <Svg width={size * SPARKLE_SIZE} height={size * SPARKLE_SIZE} viewBox="0 0 24 24">
-                <Path d={SPARKLE_PATH} fill={i % 2 === 0 ? c.accent : c.highlight} />
-              </Svg>
+              <Text
+                maxFontSizeMultiplier={1.15}
+                style={{ color: i % 2 === 0 ? c.accent : c.highlight, fontSize: t.size.caption }}
+              >
+                {SPARKLE_GLYPH}
+              </Text>
             </Animated.View>
           ))
         : null}
