@@ -129,8 +129,10 @@ appId: app.lift.mobile
 - pressKey: back
 - pressKey: back
 
-# Finish → confirm the alert → summary screen shows the logged exercise
+# Finish → the finish/discard sheet → Finish workout → summary shows the
+# logged exercise
 - tapOn:
     id: "workout-finish"
-- tapOn: "Finish"
+- tapOn:
+    id: "finish-sheet-finish"
 - assertVisible: "Romanian Deadlift.*"

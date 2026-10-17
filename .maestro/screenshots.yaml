@@ -38,7 +38,8 @@ appId: app.lift.mobile
 - assertVisible: "10 × 20 kg"
 - tapOn:
     id: "workout-finish"
-- tapOn: "Finish"
+- tapOn:
+    id: "finish-sheet-finish"
 - assertVisible: "Goblet Squat"
 # Summary screen after finishing
 - takeScreenshot: 02-workout-summary

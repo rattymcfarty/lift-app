@@ -2,6 +2,23 @@
 
 ## Unreleased (addendum)
 
+- Workout logging: finishing is now an explicit choice. The header **Finish**
+  button and the footer **Finish workout** button both open one shared themed
+  bottom sheet (`src/components/ui/BottomSheet.tsx`) with **Finish workout**
+  (primary/accent, behaves as before and hands off to the summary),
+  **Discard workout** (destructive) and **Cancel**. Discarding asks once —
+  "Discard this workout?" with **Keep workout** / **Discard** — then
+  soft-deletes the workout and returns to Train. A discarded workout leaves no
+  trace: not in History, PRs, streaks, weekly counts, volume/analytics or the
+  **Prev** column, and a program session it was started from stays scheduled
+  with the enrollment pointer untouched. The discard path re-runs
+  `reconcileWorkouts()` so any idle notification for the workout is cancelled,
+  and it is deliberately silent — no companion cheer (that is triggered only on
+  the summary screen, which discard never opens). The copy and the three choices
+  live in the pure, tested module `src/workouts/exits.ts`
+  (`scripts/test-workout-discard.mjs`); new Maestro flow
+  `.maestro/workout-discard.yaml`.
+
 - Companion: three device-test fixes on Android (release build, mouse skin).
   - The mouse no longer draws on a lighter "plate" the size of its box — the
     ~11 nested `Animated.View` transform wrappers collapse into ONE

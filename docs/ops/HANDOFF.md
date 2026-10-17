@@ -20,6 +20,17 @@
   Preserve: free models ONLY; delegated runs go through the `opencode` CLI (raw API calls
   to free models return FreeTierError); one run at a time (parallel runs wedge the service).
 
+- [opencode-helper] **Finish-or-discard workout sheet**, branch `delegate/workout-discard`,
+  started 2026-10-17. Header/footer **Finish** opens one shared themed bottom sheet
+  (**Finish workout** · **Discard workout** · **Cancel**); discard confirms ("Discard this
+  workout?" / **Keep workout** · **Discard**), soft-deletes and returns to Train, leaving no
+  trace in history, PRs, streaks, weekly counts, analytics or **Prev**, and any idle nudge for
+  it is cancelled (reconcile re-run). Discard is deliberately silent — no companion cheer.
+  Copy/choices are a pure module (`src/workouts/exits.ts`). **Not committed by the helper**
+  (per delegation rules) — awaiting lead review/merge. Files: `app/workout/[id].tsx`,
+  `src/workouts/exits.ts`, `scripts/test-workout-discard.mjs`, `.maestro/workout-discard.yaml`;
+  `.maestro/workout-flow.yaml` + `screenshots.yaml` updated (they tapped the old Finish alert).
+
 _Nothing in flight._ Last completed: **workout lifecycle / idle handling** (2026-10-15):
 `src/workouts/{policy,lifecycle,WorkoutLifecycleWatcher}`, settings (check-in thresholds),
 Train resume/notice cards, workout-screen heartbeat, local nudges. Verified by

@@ -25,6 +25,9 @@ maestro test .maestro/workout-flow.yaml
 - `workout-flow.yaml` — happy path: launch (fresh state) → start blank
   workout → add "Goblet Squat" → log 1 set (10 reps @ 20 kg) → finish →
   verify the exercise appears on the summary screen.
+- `workout-discard.yaml` — discard path: log a set → header Finish → the
+  finish/discard sheet → Discard workout → confirm → back on Train with an
+  empty History (the workout left no trace).
 
 ## Writing new flows
 
@@ -40,7 +43,12 @@ changes. Key testIDs:
 | `add-exercise-row-<id>` | Add exercise → row per exercise id |
 | `set-reps-<n>`, `set-weight-<n>` | Set row inputs (n = set number) |
 | `log-set-<n>` | Set row → Log button |
-| `workout-finish` | Active workout → Finish workout |
+| `workout-finish` | Active workout → footer Finish workout |
+| `workout-finish-bar` | Active workout → header Finish |
+| `finish-sheet` | Finish/discard bottom sheet surface |
+| `finish-sheet-finish` | Sheet → Finish workout |
+| `finish-sheet-discard` | Sheet → Discard workout |
+| `finish-sheet-cancel` | Sheet → Cancel |
 
 Maestro taps use `tapOn: { id: "<testID>" }`. For alerts and system UI,
 fall back to `tapOn: "<visible text>"`.

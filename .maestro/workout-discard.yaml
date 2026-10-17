@@ -1,0 +1,60 @@
+# LIFT E2E: discard an in-progress workout and prove it left no trace.
+# Run: maestro test .maestro/workout-discard.yaml
+# Requires: debug APK installed (npm run build:android-debug on ai-rig1),
+#   emulator booted, fresh app state (the flow clears state itself).
+#
+# Path: start a blank workout, add an exercise, log a set, then
+#   header Finish → themed finish/discard sheet → Discard workout →
+#   "Discard this workout?" confirmation → Discard →
+#   back on Train, History is empty (the workout counted nowhere).
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+
+# Home → start a blank workout
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+
+# Add an exercise and log one real set, so there is data to discard.
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-reps-1"
+- inputText: "10"
+- tapOn:
+    id: "set-weight-1"
+- inputText: "20"
+- tapOn:
+    id: "log-set-1"
+
+# Header Finish → the themed sheet with the three choices.
+- tapOn:
+    id: "workout-finish-bar"
+- assertVisible:
+    id: "finish-sheet"
+- tapOn:
+    id: "finish-sheet-discard"
+
+# Destructive confirmation first; "Keep workout" would back out.
+- assertVisible: "Discard this workout?"
+- tapOn: "Discard"
+
+# Back on Train (no summary screen), then History shows nothing.
+- assertVisible:
+    id: "home-start-workout"
+- tapOn:
+    id: "train-segment-history"
+- assertVisible: "No workouts yet."

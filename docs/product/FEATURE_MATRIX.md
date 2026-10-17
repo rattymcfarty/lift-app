@@ -39,6 +39,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Progressive overload suggestions | ✅ | Progression engine |
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
 | Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
+| Finish or discard a workout | ✅ | Header/footer **Finish** opens a themed sheet — **Finish workout** (→ summary), **Discard workout** (confirm → soft-delete, back to Train), **Cancel**; a discarded workout leaves no history, PRs, stats or program progress behind |
 | A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; draggable, default right edge (never over a screen title), hidden on onboarding and PAR-Q; `docs/product/COMPANION.md` |
 
 ## 4. After the workout

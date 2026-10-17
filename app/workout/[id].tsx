@@ -43,6 +43,13 @@ import { getSupersetGroups } from '../../src/data/repositories';
 import { PlateCalculator } from '../../src/components/workout/PlateCalculator';
 import { AppState, useWindowDimensions } from 'react-native';
 import { recordHeartbeat, reconcileWorkouts } from '../../src/workouts/lifecycle';
+import {
+  DISCARD_CONFIRM,
+  FINISH_SHEET_CHOICES,
+  FINISH_SHEET_TITLE,
+  finishSheetSubtitle,
+} from '../../src/workouts/exits';
+import { BottomSheet } from '../../src/components/ui/BottomSheet';
 import { FONT_WEIGHT } from '../../src/theme/tokens';
 
 /**
@@ -87,6 +94,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
+  const [finishSheetVisible, setFinishSheetVisible] = useState(false);
   const [plateModalVisible, setPlateModalVisible] = useState(false);
   const [muscleSheetVisible, setMuscleSheetVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
@@ -223,65 +231,66 @@ export default function ActiveWorkoutScreen(): JSX.Element {
     // #4: hook cross-exercise rest UX here if needed.
   }, []);
 
-  const handleFinish = (): void => {
+  // Both Finish affordances (header bar + footer button) open the same sheet;
+  // the sheet is the one decision point, replacing the old two-button Alert.
+  const openFinishSheet = useCallback((): void => {
     if (!workoutId || finishing) return;
-    const setCount = detail?.items.reduce((n, i) => n + i.sets.length, 0) ?? 0;
-    Alert.alert(
-      'Finish workout?',
-      setCount === 0
-        ? 'No sets logged yet. Finish anyway?'
-        : `Finish with ${setCount} set${setCount === 1 ? '' : 's'} logged?`,
-      [
-        { text: 'Keep lifting', style: 'cancel' },
-        {
-          text: 'Finish',
-          onPress: () => {
-            setFinishing(true);
-            void (async () => {
-              try {
-                const w = await finishWorkout(workoutId);
-                if (!w) throw new Error('Workout no longer exists.');
-                // P4a: if this workout was started from a program session,
-                // advance the enrollment (idempotent; no-op otherwise).
-                // Invalidate the dashboard's refresh throttle so the new
-                // consistency score shows immediately.
-                try {
-                  await advanceEnrollmentForWorkout(workoutId);
-                } catch (e) {
-                  console.warn('[workout] program advancement failed', e);
-                } finally {
-                  invalidateConsistencyCache();
-                }
-                router.replace(`/workout/${workoutId}/summary`);
-              } catch (e) {
-                Alert.alert(
-                  'Could not finish',
-                  e instanceof Error ? e.message : 'Please try again.',
-                );
-                setFinishing(false);
-              }
-            })();
-          },
-        },
-      ],
-    );
-  };
+    setFinishSheetVisible(true);
+  }, [workoutId, finishing]);
 
-  const handleDiscard = (): void => {
+  const performFinish = useCallback((): void => {
+    if (!workoutId || finishing) return;
+    setFinishSheetVisible(false);
+    setFinishing(true);
+    void (async () => {
+      try {
+        const w = await finishWorkout(workoutId);
+        if (!w) throw new Error('Workout no longer exists.');
+        // P4a: if this workout was started from a program session,
+        // advance the enrollment (idempotent; no-op otherwise).
+        // Invalidate the dashboard's refresh throttle so the new
+        // consistency score shows immediately.
+        try {
+          await advanceEnrollmentForWorkout(workoutId);
+        } catch (e) {
+          console.warn('[workout] program advancement failed', e);
+        } finally {
+          invalidateConsistencyCache();
+        }
+        // Finishing is the only exit that keeps the workout — the summary
+        // screen is where the companion cheers.
+        router.replace(`/workout/${workoutId}/summary`);
+      } catch (e) {
+        Alert.alert(
+          'Could not finish',
+          e instanceof Error ? e.message : 'Please try again.',
+        );
+        setFinishing(false);
+      }
+    })();
+  }, [workoutId, finishing]);
+
+  const handleDiscard = useCallback((): void => {
     if (!workoutId) return;
     Alert.alert(
-      'Discard workout?',
-      'This deletes the workout and all logged sets. This cannot be undone.',
+      DISCARD_CONFIRM.title,
+      DISCARD_CONFIRM.message,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: DISCARD_CONFIRM.cancelLabel, style: 'cancel' },
         {
-          text: 'Discard',
+          text: DISCARD_CONFIRM.confirmLabel,
           style: 'destructive',
           onPress: () => {
             void (async () => {
               try {
                 await softDeleteWorkout(workoutId);
                 invalidateConsistencyCache();
+                // Re-derive the open set so any idle prompt/notification
+                // scheduled for this workout is cancelled — a discarded
+                // workout must not be resurrected or auto-finished.
+                await reconcileWorkouts().catch(() => undefined);
+                // Back to Train. No summary, and deliberately no companion
+                // cheer: discarding leaves nothing to celebrate.
                 router.replace('/');
               } catch (e) {
                 // Stay on the screen: nothing was deleted, so leaving
@@ -296,7 +305,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         },
       ],
     );
-  };
+  }, [workoutId]);
 
   const renderExercise = ({ item }: { item: WorkoutExerciseDetail }): JSX.Element => (
     <ExerciseCard
@@ -316,6 +325,9 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   const supersetGroups = detail
     ? getSupersetGroupsForRender(detail.items)
     : [];
+
+  // Sets logged in this workout, for the finish sheet's subtitle.
+  const setCount = detail?.items.reduce((n, i) => n + i.sets.length, 0) ?? 0;
 
   const renderGroup = ({ item }: { item: { label: string; items: WorkoutExerciseDetail[] } }): JSX.Element => (
     <View style={item.label ? [styles.supersetContainer, { borderColor: theme.colors.accent }] : undefined}>
@@ -361,7 +373,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
           onTimer={() => setTimerModalVisible(true)}
           onPlate={() => setPlateModalVisible(true)}
           onMuscle={() => setMuscleSheetVisible(true)}
-          onFinish={handleFinish}
+          onFinish={openFinishSheet}
           finishing={finishing}
         />
       )}
@@ -407,7 +419,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
                 testID="workout-finish"
                 variant="gold"
                 size="large"
-                onPress={handleFinish}
+                onPress={openFinishSheet}
                 busy={finishing}
               />
               <Button title="Discard workout" variant="danger" onPress={handleDiscard} />
@@ -415,6 +427,38 @@ export default function ActiveWorkoutScreen(): JSX.Element {
           }
         />
       )}
+
+      {/* Finish / discard sheet — opened by either Finish affordance. */}
+      <BottomSheet
+        visible={finishSheetVisible}
+        onClose={() => setFinishSheetVisible(false)}
+        title={FINISH_SHEET_TITLE}
+        subtitle={finishSheetSubtitle(setCount)}
+        testID="finish-sheet"
+      >
+        <View style={{ padding: theme.spacing.md, gap: theme.spacing.sm }}>
+          {FINISH_SHEET_CHOICES.map((choice) => (
+            <Button
+              key={choice.id}
+              title={choice.label}
+              testID={choice.testID}
+              variant={choice.variant}
+              size={choice.id === 'finish' ? 'large' : 'default'}
+              busy={choice.id === 'finish' && finishing}
+              onPress={() => {
+                if (choice.id === 'finish') {
+                  performFinish();
+                } else if (choice.id === 'discard') {
+                  setFinishSheetVisible(false);
+                  handleDiscard();
+                } else {
+                  setFinishSheetVisible(false);
+                }
+              }}
+            />
+          ))}
+        </View>
+      </BottomSheet>
 
       {/* Plate calculator modal */}
       <PlateCalculator

@@ -19,6 +19,9 @@ check "test:lifecycle" "npm run test:lifecycle"
 # Invoked directly: same package.json-edit sandbox constraint as planned-sets.
 check "test:companion" "node scripts/test-companion.mjs"
 # Invoked directly: this sandbox's policy blocks edits to package.json, so the
+# matching "test:workout-discard" npm script is pending.
+check "test:workout-discard" "node scripts/test-workout-discard.mjs"
+# Invoked directly: this sandbox's policy blocks edits to package.json, so the
 # matching "test:markdown" npm script is pending (one line next to
 # test:lifecycle in package.json).
 check "test:markdown" "node scripts/test-markdown.mjs"
