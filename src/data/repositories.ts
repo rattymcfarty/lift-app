@@ -47,6 +47,7 @@ import {
   type WorkoutExercise,
 } from '../db/schema';
 import { KB_MEDIA_URL_PREFIXES } from './backupFormat';
+import { planSupersetLink, type SupersetLayoutItem } from '../lib/exerciseMenu';
 
 export { decodePillars, encodePillars };
 export type { LongevityPillar };
@@ -497,13 +498,19 @@ export async function addExerciseToWorkout(input: {
   });
 }
 
-/** Soft-deletes the workout exercise and its sets. */
+/**
+ * Soft-deletes the workout exercise and its sets. If the row belonged to a
+ * superset group, the group loses a member — a group left with fewer than
+ * two live members dissolves automatically (its remaining members keep their
+ * positions, just the grouping).
+ */
 export async function removeWorkoutExercise(id: string): Promise<void> {
   const [row] = await db
-    .select({ workoutId: workoutExercises.workoutId })
+    .select({ workoutId: workoutExercises.workoutId, supersetId: workoutExercises.supersetId })
     .from(workoutExercises)
     .where(eq(workoutExercises.id, id));
   if (!row) return;
+  const removedSupersetId = row.supersetId ?? null;
   return withWriteLock(async () => {
     const now = new Date();
     await runInTransaction(async () => {
@@ -526,6 +533,18 @@ export async function removeWorkoutExercise(id: string): Promise<void> {
         .update(workoutExercises)
         .set({ deletedAt: now })
         .where(and(eq(workoutExercises.id, id), isNull(workoutExercises.deletedAt)));
+      if (removedSupersetId != null) {
+        const remaining = await db
+          .select({ id: workoutExercises.id })
+          .from(workoutExercises)
+          .where(and(eq(workoutExercises.supersetId, removedSupersetId), isNull(workoutExercises.deletedAt)));
+        if (remaining.length < 2) {
+          await db
+            .update(workoutExercises)
+            .set({ supersetId: null })
+            .where(and(eq(workoutExercises.supersetId, removedSupersetId), isNull(workoutExercises.deletedAt)));
+        }
+      }
     });
   });
 }

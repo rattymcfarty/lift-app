@@ -1,7 +1,7 @@
 /**
  * Pure logic for the in-workout exercise actions menu.
  *
- * Four small pieces, all IO-free so they can be unit-tested in
+ * Five small pieces, all IO-free so they can be unit-tested in
  * scripts/test-exercise-menu.mjs and reused by the sheets/cards:
  * - `moveItem`         the reorder sheet's move function (buttons + drag).
  * - `warmupRamp`       the warmup-set ramp (50/70/85% of the first working
@@ -9,12 +9,18 @@
  * - `buildWarmupPreview` builds the editable warmup preview for the sheet:
  *                        working weight → ramp rows with rounded weights, or
  *                        bodyweight/no-weight → reps-only rows.
+ * - `planSupersetLink` the superset layout: linking members makes them
+ *                      adjacent in workout order (partners keep their
+ *                      relative order); fewer than two members dissolves.
+ * - `buildSupersetRenderGroups` groups items by supersetId with the
+ *                        SUPERSET A/B/C… letters used for the tag.
  * - `REST_PRESETS`     the rest-timer choices shown in the actions sheet.
  *
  * Weights are canonical kilograms; `warmupRamp` and `buildWarmupPreview`
  * round for the *display* unit so a lb user sees clean lb numbers and a
  * kg user clean 0.5kg steps. Stored weights are always canonical kg.
  */
+import type { WorkoutExerciseDetail } from '../data/repositories';
 import { kgToLb, lbToKg } from './units';
 
 /** Rest-timer presets offered in the actions sheet, in seconds. */
@@ -230,4 +236,127 @@ export function getSupersetNextAction(
 
   // All counts equal but zero: no round completed yet, start at first member, no rest.
   return { nextMemberId: members[0], startRest: false };
+}
+
+/* ------------------------------------------------------------------ */
+/* superset layout + render grouping                                   */
+/* ------------------------------------------------------------------ */
+
+/** The minimal live-row shape the superset layout works on. */
+export interface SupersetLayoutItem {
+  id: string;
+  position: number;
+  supersetId: string | null;
+}
+
+export interface SupersetLinkPlan {
+  /** Every live workout-exercise id in its new order (positions are 0..n-1). */
+  orderedIds: string[];
+  /** The superset's members in their final relative order (empty when dissolving). */
+  memberIds: string[];
+  /** true when the group drops below two members and must be dissolved. */
+  dissolve: boolean;
+}
+
+/**
+ * Computes the new workout order after linking `memberIds` into one superset.
+ *
+ * The members become ONE contiguous block: every non-member keeps its place
+ * relative to the others, and the block is anchored at the reference point —
+ * the tapped exercise for a fresh group, or the first (lowest-position)
+ * existing member when adding to an existing group. Partners keep their
+ * relative order. Fewer than two members dissolves the group instead
+ * (orderedIds is then the current order, untouched).
+ *
+ * Precondition (guaranteed by the sheet): every member is either ungrouped
+ * or shares one supersetId. Callers re-plan from live rows, so no writes
+ * happen here.
+ *
+ * @throws RangeError if the anchor or any member is not a live row, or the
+ *         anchor is not among the members.
+ */
+export function planSupersetLink(
+  items: readonly SupersetLayoutItem[],
+  anchorId: string,
+  memberIds: readonly string[],
+): SupersetLinkPlan {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const anchor = byId.get(anchorId);
+  if (!anchor) throw new RangeError('anchor exercise is not in this workout');
+  const members = [...new Set(memberIds)];
+  if (!members.includes(anchorId)) {
+    throw new RangeError('the anchor exercise must be a member of the superset');
+  }
+  for (const id of members) {
+    if (!byId.has(id)) throw new RangeError('superset member is not in this workout');
+  }
+
+  const currentOrder = [...items].sort((a, b) => a.position - b.position).map((i) => i.id);
+
+  if (members.length < 2) {
+    return { orderedIds: currentOrder, memberIds: [], dissolve: true };
+  }
+
+  // Existing block anchor: the lowest-position member that already carries a
+  // supersetId keeps the current group in place (partners are appended after
+  // it); a fresh group anchors at the tapped exercise so the chosen partners
+  // move directly after it.
+  const reference =
+    members
+      .map((id) => byId.get(id)!)
+      .filter((i) => i.supersetId != null)
+      .sort((a, b) => a.position - b.position)[0]?.id ?? anchorId;
+
+  const memberSet = new Set(members);
+  const memberOrder = members
+    .map((id) => byId.get(id)!)
+    .sort((a, b) => a.position - b.position)
+    .map((i) => i.id);
+  const refIndex = currentOrder.indexOf(reference);
+  const others = currentOrder.filter((id) => !memberSet.has(id));
+  const orderedIds = [...others.slice(0, refIndex), ...memberOrder, ...others.slice(refIndex)];
+  return { orderedIds, memberIds: memberOrder, dissolve: false };
+}
+
+/** A render group: one superset (labelled) or a singleton (label ''). */
+export interface SupersetRenderGroup {
+  supersetId: string | null;
+  label: string;
+  items: WorkoutExerciseDetail[];
+}
+
+/**
+ * Groups workout items by supersetId, preserving position order, and assigns
+ * each group its letter (SUPERSET A, B, C… by position order). Singletons get
+ * an empty label. This is the pure behind-the-scene version of the list the
+ * workout screen renders (left accent bar + tag on the first card).
+ */
+export function buildSupersetRenderGroups(
+  items: readonly WorkoutExerciseDetail[],
+): SupersetRenderGroup[] {
+  const groups: SupersetRenderGroup[] = [];
+  let letter = 0;
+  for (const item of items) {
+    const sid = item.workoutExercise.supersetId;
+    if (sid == null) {
+      groups.push({ supersetId: null, label: '', items: [item] });
+      continue;
+    }
+    let group = groups.find((g) => g.supersetId === sid);
+    if (!group) {
+      const label = letter < 26
+        ? `SUPERSET ${String.fromCharCode(65 + letter)}`
+        : `SUPERSET ${letter + 1}`;
+      letter += 1;
+      group = { supersetId: sid, label, items: [] };
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+}
+
+/** The tag pill text for a superset group's first card, e.g. "SUPERSET A · 2". */
+export function supersetTagText(label: string, memberCount: number): string {
+  return `${label} · ${memberCount}`;
 }
