@@ -31,7 +31,7 @@ export interface CompanionBounds {
 }
 
 /** Where the default position sits vertically, as a fraction of the window. */
-export const DEFAULT_V_FRACTION = 0.38;
+export const DEFAULT_V_FRACTION = 0.72;
 
 /** Routes the overlay is never drawn on. */
 const HIDDEN_ROUTE_SEGMENTS: readonly string[] = ['onboarding', 'parq'];

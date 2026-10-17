@@ -49,7 +49,7 @@ something to say.
   are all `pointerEvents="none"`, so taps pass straight through to the screen
   underneath. The overlay also renders **nothing** until the saved position has
   been read, so the box is never an invisible touch target on first paint.
-- **Default position: the RIGHT edge, about 38 % down the window** — clear of
+- **Default position: the RIGHT edge, about 72 % down the window** — clear of
   screen headers, the tab bar and the bottom action rows. (It used to be
   top-centre, which sat on top of titles like "Workout · 17 Oct".) The spot is
   clamped into the safe-area bounds, so a short window can never push the

@@ -6,9 +6,9 @@ appId: app.lift.mobile
 - runFlow: _skip-onboarding.yaml
 - assertVisible:
     id: "home-start-workout"
-- takeScreenshot: /tmp/claude-1000/shot-home
+- takeScreenshot: shot-home
 - tapOn:
     id: "home-start-workout"
 - tapOn:
     id: "new-workout-start-blank"
-- takeScreenshot: /tmp/claude-1000/shot-workout
+- takeScreenshot: shot-workout

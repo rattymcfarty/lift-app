@@ -33,7 +33,7 @@ APK=android/app/build/outputs/apk/release/app-release.apk
 [ -f "$APK" ] || { echo "no APK at $APK — run with --build"; exit 1; }
 
 adb kill-server >/dev/null 2>&1; adb start-server >/dev/null 2>&1
-nohup setsid "$ANDROID_HOME/emulator/emulator" -avd lift-test -gpu ${EMU_GPU:-host} -no-window -no-audio \
+nohup setsid "$ANDROID_HOME/emulator/emulator" -avd lift-test -gpu ${EMU_GPU:-swiftshader_indirect} -no-window -no-audio \
   -no-boot-anim -no-snapshot -wipe-data > "$LOG/emulator.log" 2>&1 < /dev/null &
 adb wait-for-device
 for _ in $(seq 1 70); do

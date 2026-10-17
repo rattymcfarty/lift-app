@@ -8,3 +8,8 @@ appId: app.lift.mobile
     commands:
       - tapOn:
           id: "onb-skip"
+# Software-rendered emulators start slowly: wait for the home screen.
+- extendedWaitUntil:
+    visible:
+      id: "home-start-workout"
+    timeout: 90000
