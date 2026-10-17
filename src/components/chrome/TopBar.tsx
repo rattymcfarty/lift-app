@@ -30,8 +30,15 @@ export const TOP_BAR_HEIGHT = 60;
  * safe-area top + TOP_BAR_HEIGHT.
  */
 export function useTopBarInset(): number {
-  const insets = useSafeAreaInsets();
-  return insets.top + TOP_BAR_HEIGHT;
+  // Screens already pad for the safe area (SafeAreaView); only the bar is extra.
+  return TOP_BAR_HEIGHT;
+}
+
+/** True while the top bar is on screen (hidden on onboarding / PAR-Q). */
+export function useTopBarVisible(): boolean {
+  const pathname = usePathname();
+  const segments = useSegments();
+  return !isCompanionHiddenRoute(pathname, segments);
 }
 
 /**
@@ -72,7 +79,8 @@ export function TopBar(): JSX.Element | null {
 
   const topLevel = isTopLevelRoute(pathname, segments);
 
-  // Left button: panel (top-level) or back (stack screens)
+  // Left button: the panel opener on the four main screens. Inner screens keep
+  // their own back/close button in the header (it may close a modal or confirm).
   const leftButton = topLevel ? (
     <GlassButton
       testID="topbar-panel"
@@ -80,14 +88,7 @@ export function TopBar(): JSX.Element | null {
       accessibilityLabel="Open menu"
       onPress={() => openPanel('left')}
     />
-  ) : (
-    <GlassButton
-      testID="topbar-back"
-      icon={<BackIcon />}
-      accessibilityLabel="Back"
-      onPress={() => router.back()}
-    />
-  );
+  ) : null;
 
   // Right button: settings (top-level only)
   const rightButton = topLevel ? (
@@ -103,7 +104,7 @@ export function TopBar(): JSX.Element | null {
     <View
       style={[
         styles.container,
-        { top: insets.top, paddingTop: insets.top, width },
+        { top: insets.top, width },
       ]}
       pointerEvents="box-none"
     >

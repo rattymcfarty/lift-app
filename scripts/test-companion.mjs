@@ -260,6 +260,12 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   ok(narrow.left >= 12 && narrow.left + 220 <= 240, 'a narrow window still keeps the bubble inside');
 
   // Routes the overlay must stay off.
+  // Top-level (tab) routes show the panel/settings buttons; inner screens do not.
+  ok(P.isTopLevelRoute('/', ['(tabs)']), 'the Train tab (group index) is top level');
+  ok(P.isTopLevelRoute('/programs', ['(tabs)', 'programs']), 'Programs is top level');
+  ok(P.isTopLevelRoute('/exercises', ['(tabs)', 'exercises']), 'Exercises is top level');
+  ok(!P.isTopLevelRoute('/workout/abc', ['workout', '[id]']), 'a workout screen is not top level');
+  ok(!P.isTopLevelRoute('/settings', ['settings']), 'settings is not top level');
   ok(P.isCompanionHiddenRoute('/onboarding', ['onboarding']), 'onboarding is hidden');
   ok(P.isCompanionHiddenRoute('/onboarding', []), 'onboarding is hidden by pathname alone');
   ok(P.isCompanionHiddenRoute('/programs/parq', ['programs', 'parq']), 'PAR-Q is hidden');

@@ -27,6 +27,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useState } from 'react';
+import { TOP_BAR_HEIGHT, useTopBarVisible } from '../chrome/TopBar';
 import { useTheme } from '../../theme';
 
 type ButtonVariant =
@@ -182,6 +183,7 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
   // large phones all land on a sensible size; no abrupt breakpoint).
   const titleScale = Math.min(1.05, Math.max(0.86, width / 390));
   const narrow = false;
+  const topBarVisible = useTopBarVisible();
   return (
     <View
       style={[
@@ -189,6 +191,7 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
         {
           paddingHorizontal: theme.spacing.md,
           paddingVertical: theme.spacing.sm,
+          paddingTop: theme.spacing.sm + (topBarVisible ? TOP_BAR_HEIGHT : 0),
           gap: theme.spacing.sm,
         },
       ]}
