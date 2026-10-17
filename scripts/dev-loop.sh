@@ -17,6 +17,10 @@ check "test:ui" "npm run test:ui"
 check "test:plan" "npm run test:plan"
 check "test:lifecycle" "npm run test:lifecycle"
 # Invoked directly: this sandbox's policy blocks edits to package.json, so the
+# matching "test:markdown" npm script is pending (one line next to
+# test:lifecycle in package.json).
+check "test:markdown" "node scripts/test-markdown.mjs"
+# Invoked directly: this sandbox's policy blocks edits to package.json, so the
 # matching "test:planned-sets" npm script is pending (one line next to
 # test:lifecycle in package.json).
 check "test:planned-sets" "node scripts/test-planned-sets.mjs"

@@ -24,6 +24,7 @@ import { useTheme, type Theme } from '../../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { displayName, muscleLabel, equipmentLabel } from '../../src/kb/taxonomy';
 import { TaxonomyIcon } from '../../src/components/icons';
+import { Markdown } from '../../src/components/ui/Markdown';
 
 type TabId = 'guide' | 'history' | 'records' | 'charts';
 
@@ -251,13 +252,7 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
           <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
             Overview
           </Text>
-          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-            {instructions.split('\n').map((line: string, index: number) => (
-              <Text key={index} style={{ marginBottom: 2 }}>
-                {line.trim() ? line : <View style={{ height: 8 }} />}
-              </Text>
-            ))}
-          </Text>
+          <Markdown text={instructions} />
         </View>
       </Card>
     );
@@ -272,9 +267,7 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
           <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
             Why
           </Text>
-          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-            {longevityNotes}
-          </Text>
+          <Markdown text={longevityNotes} />
         </View>
       </Card>
     );
@@ -287,6 +280,11 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
 
     if (cues.length === 0 && commonMistakes.length === 0 && !safetyNotes) return null;
 
+    // Cues and mistakes render through the same Markdown component as bullet
+    // lists; safety notes render as prose.
+    const cuesMarkdown = cues.map((cue) => `- ${cue}`).join('\n');
+    const mistakesMarkdown = commonMistakes.map((mistake) => `- ${mistake}`).join('\n');
+
     return (
       <Card>
         <View style={{ gap: theme.spacing.sm }}>
@@ -294,37 +292,27 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
             How-to
           </Text>
           {cues.length > 0 && (
-            <>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body, marginBottom: theme.spacing.xs }}>
-                Cues:
+            <View style={{ gap: theme.spacing.xs }}>
+              <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}>
+                Cues
               </Text>
-              {cues.map((cue, index) => (
-                <Text key={index} style={{ color: theme.colors.text, fontSize: t.size.body }}>
-                  • {cue}
-                </Text>
-              ))}
-            </>
+              <Markdown text={cuesMarkdown} />
+            </View>
           )}
           {commonMistakes.length > 0 && (
-            <>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body, marginBottom: theme.spacing.xs }}>
-                Watch out for:
+            <View style={{ gap: theme.spacing.xs }}>
+              <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}>
+                Watch out for
               </Text>
-              {commonMistakes.map((mistake, index) => (
-                <Text key={index} style={{ color: theme.colors.text, fontSize: t.size.body }}>
-                  • {mistake}
-                </Text>
-              ))}
-            </>
+              <Markdown text={mistakesMarkdown} />
+            </View>
           )}
           {safetyNotes && (
-            <View style={{ marginVertical: theme.spacing.sm }}>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body, marginBottom: theme.spacing.xs }}>
-                Safety:
+            <View style={{ gap: theme.spacing.xs }}>
+              <Text style={{ color: theme.colors.warning, fontSize: t.size.body, fontWeight: t.weight.medium }}>
+                Safety
               </Text>
-              <Text style={{ color: theme.colors.warning, fontSize: t.size.body }}>
-                {safetyNotes}
-              </Text>
+              <Markdown text={safetyNotes} />
             </View>
           )}
         </View>
@@ -381,7 +369,10 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
   };
 
   return (
-    <View>
+    // Consistent gap between guide cards so their 1px borders never touch.
+    // The shared Card already draws the border + rounded corners; the gap is
+    // the missing piece here.
+    <View style={{ gap: theme.spacing.md }}>
       {renderMetadataCard()}
       {renderOverviewSection()}
       {renderWhySection()}
