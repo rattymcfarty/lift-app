@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, useSegments } from 'expo-router';
 import { GlassButton } from '../ui/Glass';
 import { usePanels } from '../../chrome/panels';
-import { isCompanionHiddenRoute } from '../../companion/placement';
+import { isCompanionHiddenRoute, isTopLevelRoute } from '../../companion/placement';
 
 /** Top bar height: 44dp content + 2*8dp vertical padding = 60dp. */
 export const TOP_BAR_HEIGHT = 60;
@@ -39,27 +39,6 @@ export function useTopBarVisible(): boolean {
   const pathname = usePathname();
   const segments = useSegments();
   return !isCompanionHiddenRoute(pathname, segments);
-}
-
-/**
- * Pure helper: true if the current route is a top-level tab route.
- * Top-level routes are the four tabs: index (train), programs, analytics, exercises.
- * This is used to decide whether to show back button vs panel button.
- */
-export function isTopLevelRoute(pathname: string, segments: readonly string[]): boolean {
-  // On the tabs, pathname is like '/', '/programs', '/analytics', '/exercises'
-  // Segments for tabs: ['(tabs)', 'index'] or ['(tabs)', 'programs'], etc.
-  const parts = pathname.split('/').filter((p) => p.length > 0);
-  const allSegments = [...segments, ...parts];
-
-  // Check if we're in the (tabs) group
-  const inTabs = allSegments.includes('(tabs)') || allSegments[0] === '(tabs)';
-
-  if (!inTabs) return false;
-
-  // The tab routes are: index, programs, analytics, exercises
-  const tabRoute = allSegments.find((s) => ['index', 'programs', 'analytics', 'exercises'].includes(s));
-  return tabRoute != null;
 }
 
 /**
