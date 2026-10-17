@@ -875,6 +875,80 @@ export async function setSupersetGroup(
 }
 
 /**
+ * Links exercises into a superset (or adds to an existing one) in a single transaction.
+ * Computes the new workout order using `planSupersetLink`, then persists the new
+ * positions and the shared superset_id atomically under the write lock.
+ *
+ * @param workoutId The workout containing the exercises.
+ * @param anchorId The workoutExerciseId of the exercise that triggered the action (the "reference" exercise).
+ * @param memberIds The workoutExerciseIds to include in the superset (must include anchorId).
+ * @throws RangeError if any ID is not live in this workout, or anchorId not in memberIds.
+ */
+export async function linkSuperset(
+  workoutId: string,
+  anchorId: string,
+  memberIds: readonly string[],
+): Promise<void> {
+  return withWriteLock(async () => {
+    // Fetch all live workout exercises for this workout
+    const items = await db
+      .select({
+        id: workoutExercises.id,
+        position: workoutExercises.position,
+        supersetId: workoutExercises.supersetId,
+      })
+      .from(workoutExercises)
+      .where(and(eq(workoutExercises.workoutId, workoutId), isNull(workoutExercises.deletedAt)))
+      .orderBy(asc(workoutExercises.position));
+
+    if (items.length === 0) {
+      throw new RangeError('workout has no live exercises');
+    }
+
+    // Plan the new order and group using the pure logic
+    const plan = planSupersetLink(items, anchorId, memberIds);
+
+    if (plan.dissolve) {
+      // Fewer than 2 members: dissolve any existing group for these exercises
+      const uniqueMemberIds = [...new Set(memberIds)];
+      await db
+        .update(workoutExercises)
+        .set({ supersetId: null })
+        .where(and(inArray(workoutExercises.id, uniqueMemberIds), isNull(workoutExercises.deletedAt)));
+      return;
+    }
+
+    // Generate a new supersetId for fresh groups, or reuse the existing one
+    const existingSupersetId = items
+      .filter((i) => memberIds.includes(i.id) && i.supersetId != null)
+      .map((i) => i.supersetId!)[0];
+    const supersetId = existingSupersetId ?? newId();
+
+    await runInTransaction(async () => {
+      // Phase 1: move all items to temporary negative positions (no collisions)
+      for (let i = 0; i < plan.orderedIds.length; i++) {
+        await db
+          .update(workoutExercises)
+          .set({ position: -(i + 1) })
+          .where(and(eq(workoutExercises.id, plan.orderedIds[i]), eq(workoutExercises.workoutId, workoutId)));
+      }
+      // Phase 2: move to final positions and set supersetId for members
+      for (let i = 0; i < plan.orderedIds.length; i++) {
+        const id = plan.orderedIds[i];
+        const isMember = plan.memberIds.includes(id);
+        await db
+          .update(workoutExercises)
+          .set({
+            position: i,
+            supersetId: isMember ? supersetId : null,
+          })
+          .where(and(eq(workoutExercises.id, id), eq(workoutExercises.workoutId, workoutId)));
+      }
+    });
+  });
+}
+
+/**
  * Returns superset groups for a workout, in position order.
  * Each group contains the workout_exercises rows sharing a supersetId.
  * Exercises without a supersetId are not included.

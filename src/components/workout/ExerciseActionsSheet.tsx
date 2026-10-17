@@ -15,7 +15,7 @@
  * auto-progression, superset, reorder, remove). Superset uses the existing
  * `workout_exercises.superset_id` column — no schema change.
  */
-import React, { useEffect, useState, type JSX } from 'react';
+import React, { useEffect, useState, useCallback, type JSX } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '../../theme';
@@ -25,6 +25,7 @@ import {
   setExerciseUnitPreference,
   reorderWorkoutExercises,
   setSupersetGroup,
+  linkSuperset,
   removeWorkoutExercise,
   isProgressionAvailable,
   setAutoProgressionOverride,
@@ -33,12 +34,13 @@ import {
   type PreviousPerformance,
 } from '../../data/repositories';
 import { newId } from '../../db/id';
-import { REST_PRESETS, formatRestLabel } from '../../lib/exerciseMenu';
+import { REST_PRESETS, formatRestLabel, planSupersetLink, type SupersetLayoutItem } from '../../lib/exerciseMenu';
 import { displayName } from '../../kb/taxonomy';
 import { ActionIcon, type ActionIconName } from '../icons';
 import { BottomSheet } from '../ui/BottomSheet';
 import { ReorderExercisesSheet } from './ReorderExercisesSheet';
 import { WarmupSheet } from './WarmupSheet';
+import * as Haptics from 'expo-haptics';
 
 export interface ExerciseActionsSheetProps {
   visible: boolean;
@@ -245,6 +247,10 @@ export function ExerciseActionsSheet({
   const [reorderVisible, setReorderVisible] = useState(false);
   const [warmupVisible, setWarmupVisible] = useState(false);
   const [autoAvailable, setAutoAvailable] = useState<boolean | null>(null);
+
+  // Superset creation sheet state
+  const [supersetSheetVisible, setSupersetSheetVisible] = useState(false);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
 
   // Reset any expanded sub-list when the sheet opens/close.
   useEffect(() => {
@@ -456,7 +462,10 @@ export function ExerciseActionsSheet({
               testID="action-create-superset"
               subtitle={supersetCandidates.length === 0 ? 'Add another exercise first' : undefined}
               disabled={supersetCandidates.length === 0}
-              onPress={() => setShowSupersetPicker((v) => !v)}
+              onPress={() => {
+                setSelectedMemberIds(new Set());
+                setSupersetSheetVisible(true);
+              }}
             />
           ) : (
             <ActionRow
@@ -523,6 +532,135 @@ export function ExerciseActionsSheet({
             }
           />
         </ScrollView>
+      </BottomSheet>
+
+      {/* Create Superset BottomSheet */}
+      <BottomSheet
+        visible={supersetSheetVisible}
+        onClose={() => setSupersetSheetVisible(false)}
+        title="Create superset"
+        subtitle={`${supersetCandidates.length} exercise${supersetCandidates.length === 1 ? '' : 's'} available`}
+        testID="superset-sheet"
+        maxHeightRatio={0.7}
+      >
+        <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled">
+          <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.md, gap: theme.spacing.xs }}>
+            <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+              Tap to select exercises to group with "{displayName(exercise)}". 2+ members required.
+            </Text>
+            {supersetCandidates.map((candidate) => {
+              const candidateId = candidate.workoutExercise.id;
+              const isSelected = selectedMemberIds.has(candidateId);
+              return (
+                <Pressable
+                  key={candidateId}
+                  testID={`superset-member-${candidateId}`}
+                  onPress={() => {
+                    void Haptics.selectionAsync().catch(() => undefined);
+                    setSelectedMemberIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(candidateId)) next.delete(candidateId);
+                      else next.add(candidateId);
+                      return next;
+                    });
+                  }}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isSelected }}
+                  accessibilityLabel={`${displayName(candidate.exercise)}${isSelected ? ', selected' : ', not selected'}`}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing.md,
+                    paddingVertical: theme.spacing.sm,
+                    paddingHorizontal: theme.spacing.md,
+                    backgroundColor: isSelected ? theme.colors.accent + '15' : pressed ? theme.colors.surfaceMuted : 'transparent',
+                    borderRadius: theme.radius.md,
+                    borderWidth: isSelected ? 2 : 1,
+                    borderColor: isSelected ? theme.colors.accent : theme.colors.border,
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 4,
+                      borderWidth: isSelected ? 0 : 2,
+                      borderColor: isSelected ? theme.colors.accent : theme.colors.muted,
+                      backgroundColor: isSelected ? theme.colors.accent : 'transparent',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {isSelected && <ActionIcon name="check" color={theme.colors.accentText} size={14} />}
+                  </View>
+                  <Text
+                    style={{
+                      color: isSelected ? theme.colors.accent : theme.colors.text,
+                      fontSize: t.size.body,
+                      fontWeight: isSelected ? t.weight.semibold : t.weight.regular,
+                      flex: 1,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {displayName(candidate.exercise)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {supersetCandidates.length === 0 && (
+              <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, textAlign: 'center', paddingVertical: theme.spacing.md }}>
+                No other exercises in this workout. Add an exercise first.
+              </Text>
+            )}
+          </View>
+        </ScrollView>
+        <View
+          style={{
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.sm,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+          }}
+        >
+          <Pressable
+            testID="superset-link"
+            onPress={
+              selectedMemberIds.size > 0
+                ? async () => {
+                    const memberIds = [workoutExercise.id, ...selectedMemberIds];
+                    try {
+                      await linkSuperset(workoutId, workoutExercise.id, memberIds);
+                      onChanged();
+                      setSupersetSheetVisible(false);
+                    } catch (e) {
+                      Alert.alert('Error', e instanceof Error ? e.message : 'Could not create superset');
+                    }
+                  }
+                : undefined
+            }
+            disabled={selectedMemberIds.size === 0}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: selectedMemberIds.size === 0 }}
+            style={({ pressed }) => ({
+              alignSelf: 'stretch',
+              backgroundColor: selectedMemberIds.size > 0 ? theme.colors.accent : theme.colors.muted,
+              borderRadius: theme.radius.md,
+              paddingVertical: theme.spacing.md,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Text
+              style={{
+                color: theme.colors.accentText,
+                fontSize: t.size.body,
+                fontWeight: t.weight.semibold,
+                textAlign: 'center',
+              }}
+            >
+              Link {1 + selectedMemberIds.size} exercise{selectedMemberIds.size === 0 ? '' : 's'}
+            </Text>
+          </Pressable>
+        </View>
       </BottomSheet>
 
       <ReorderExercisesSheet

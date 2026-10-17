@@ -360,3 +360,53 @@ export function buildSupersetRenderGroups(
 export function supersetTagText(label: string, memberCount: number): string {
   return `${label} · ${memberCount}`;
 }
+
+/**
+ * Given a superset group's members (in position order), their logged-set counts,
+ * and the ID of the member that was just logged, returns the next member to focus.
+ * Returns null if no member needs focus (e.g., single-member group).
+ *
+ * Members work in rounds: each member logs one set per round.
+ * After logging a set, focus moves to the next member that has logged fewer
+ * sets than the current round leader.
+ */
+export function nextSupersetMember(
+  members: readonly string[],
+  loggedCounts: ReadonlyMap<string, number>,
+  justLoggedId: string
+): string | null {
+  if (members.length < 2) return null;
+
+  const counts = members.map((id) => loggedCounts.get(id) ?? 0);
+  const maxCount = Math.max(...counts);
+
+  // Find the first member that hasn't caught up to the max count yet.
+  for (const id of members) {
+    if ((loggedCounts.get(id) ?? 0) < maxCount) {
+      return id;
+    }
+  }
+
+  // All counts equal: round complete, next round starts at first member.
+  return members[0];
+}
+
+/**
+ * Returns true if a rest timer should start after the given member logs a set.
+ * Rest starts ONLY after the LAST member of the group completes the current round
+ * (i.e., all members have the same logged count, and at least one set has been logged).
+ */
+export function shouldStartRest(
+  members: readonly string[],
+  loggedCounts: ReadonlyMap<string, number>,
+  justLoggedId: string
+): boolean {
+  if (members.length < 2) return false;
+
+  const counts = members.map((id) => loggedCounts.get(id) ?? 0);
+  const minCount = Math.min(...counts);
+  const maxCount = Math.max(...counts);
+
+  // Round complete: all members have the same count AND at least one set logged.
+  return minCount === maxCount && minCount > 0;
+}
