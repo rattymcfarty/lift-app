@@ -2,6 +2,12 @@
 
 ## Unreleased (addendum)
 
+- Exercises tab: a "Core & foundational" section now heads the library — the owner's
+  curated 46 movements, in the owner's order, then "All exercises". Search and the
+  muscle/equipment filters apply to both groups (a group with no matches hides its
+  header). Ids: `src/lib/foundational.ts` (per-id display-name comments; four of the
+  owner's 50 names have no live catalogue entry); sectioning: `src/lib/exerciseSections.ts`;
+  test: `scripts/test-foundational.mjs` (wired into `scripts/dev-loop.sh`).
 - Cross-agent foundation: `AGENTS.md` is the canonical guide for any harness
   (Claude Code, OpenCode, Codex/ChatGPT, Hermes, Gemini CLI, Cursor, Copilot); shared
   playbooks in `.agents/skills/`; `docs/ops/AGENT_COLLABORATION.md`; `npm run test:agents`.

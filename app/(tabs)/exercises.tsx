@@ -6,15 +6,19 @@
  *
  * Browse uses the same data path as the pickers: listExercises() unbounded
  * + searchExercises(q, 500), client-side taxonomy filter. SEARCH_LIMIT
- * covers the whole library (433 exercises); FlatList virtualizes.
+ * covers the whole library; SectionList virtualizes.
+ *
+ * The list is sectioned: "Core & foundational" (the owner's curated
+ * shortlist, src/lib/foundational.ts) first, then everything else. Search and
+ * the filters apply to both groups — see src/lib/exerciseSections.ts.
  */
 
-import { useEffect, useState, type JSX } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import {
   Alert,
   ActivityIndicator,
-  FlatList,
   Pressable,
+  SectionList,
   StyleSheet,
   Text,
   TextInput,
@@ -27,7 +31,7 @@ import { decodeStringArray, type Exercise } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../src/components/workout/TaxonomyFilterGrid';
-import { exerciseMatchesFilters } from '../../src/lib/filterExercises';
+import { buildExerciseSections, type ExerciseSection } from '../../src/lib/exerciseSections';
 import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
 import { deleteCustomExercise } from '../../src/data/customExercises';
@@ -73,6 +77,35 @@ function ExerciseRow({
         infoTestID={`browse-exercise-info-${exercise.id}`}
       />
     </SwipeableRow>
+  );
+}
+
+function SectionHeader({
+  title,
+  testID,
+}: {
+  title: string;
+  testID: string;
+}): JSX.Element {
+  const { theme } = useTheme();
+  const t = theme.typography;
+  return (
+    // Opaque background: the header sticks to the top while its section scrolls.
+    <View
+      testID={testID}
+      style={{
+        backgroundColor: theme.colors.background,
+        paddingTop: theme.spacing.md,
+        paddingBottom: theme.spacing.xs,
+      }}
+    >
+      <Text
+        accessibilityRole="header"
+        style={{ color: theme.colors.text, fontSize: t.size.section, fontWeight: t.weight.bold }}
+      >
+        {title}
+      </Text>
+    </View>
   );
 }
 
@@ -174,12 +207,11 @@ export default function BrowseExercisesScreen(): JSX.Element {
             ? await searchExercises(q, SEARCH_LIMIT)
             : await listExercises();
           if (!cancelled) {
-            // rows are unfiltered from the repo (filtering is
-            // client-side), so the unfiltered count is the library size.
+            // rows are unfiltered from the repo (filtering + sectioning is a
+            // pure client-side pass), so the unfiltered count is the library
+            // size. Store raw rows; sections are derived below.
             if (!q) setTotal(rows.length);
-            setResults(rows.filter((e) =>
-              exerciseMatchesFilters(e, selectedMuscles, selectedEquipment, q),
-            ));
+            setResults(rows);
           }
         } catch (e) {
           if (!cancelled) {
@@ -195,7 +227,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, selectedMuscles, selectedEquipment]);
+  }, [query]);
 
   const toggleMuscle = (id: string) => {
     setSelectedMuscles((prev) =>
@@ -212,6 +244,13 @@ export default function BrowseExercisesScreen(): JSX.Element {
   const clearMuscles = () => setSelectedMuscles([]);
   const clearEquipment = () => setSelectedEquipment([]);
 
+  // Filter + split into "Core & foundational" then "All exercises". Pure and
+  // memoised: the section list stays virtualized over the whole library.
+  const sections = useMemo(
+    () => buildExerciseSections(results, selectedMuscles, selectedEquipment, query),
+    [results, selectedMuscles, selectedEquipment, query],
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -225,7 +264,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
         }
       />
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
-        <FlatList
+        <SectionList
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
               <TextInput
@@ -286,11 +325,14 @@ export default function BrowseExercisesScreen(): JSX.Element {
               ) : null}
             </View>
           }
-          data={results}
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <ExerciseRow exercise={item} onDeleted={(id) => setResults((prev) => prev.filter((e) => e.id !== id))} />
+          )}
+          sections={sections}
+          renderSectionHeader={({ section }: { section: ExerciseSection<Exercise> }) => (
+            <SectionHeader title={section.title} testID={`browse-section-${section.key}`} />
           )}
           ListEmptyComponent={
             searching ? null : (
