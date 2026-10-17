@@ -1,7 +1,8 @@
-// Unit tests for the companion message queue (pure TS, bundled with esbuild).
-// Covers priority ordering, same-priority FIFO, de-dupe/cooldown, eviction,
-// expiry against an injected clock, dismiss/clear, subscribe and the enabled
-// gate.
+// Unit tests for the companion message queue and the (pure) skin-selection
+// logic (pure TS, bundled with esbuild). Covers priority ordering,
+// same-priority FIFO, de-dupe/cooldown, eviction, expiry against an injected
+// clock, dismiss/clear, subscribe and the enabled gate — plus the companion
+// style default, guard and fallbacks.
 import { build } from 'esbuild';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -13,6 +14,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(mkdtempSync(join(tmpdir(), 'companion-')), 'queue.mjs');
 await build({ entryPoints: [join(root, 'src/companion/queue.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'error' });
 const Q = await import(pathToFileURL(out).href);
+
+// The skin module is pure (types only) so it bundles standalone.
+const outSkin = join(mkdtempSync(join(tmpdir(), 'companion-skin-')), 'skin.mjs');
+await build({ entryPoints: [join(root, 'src/companion/skin.ts')], bundle: true, format: 'esm', platform: 'node', outfile: outSkin, logLevel: 'error' });
+const S = await import(pathToFileURL(outSkin).href);
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
@@ -176,4 +182,23 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   ok(q.say({ text: 'c', kind: 'tip' }) !== null, 'say works again when on');
 }
 
-console.log(`companion queue: ${n} assertions passed`);
+// --- skin selection (pure) ------------------------------------------------
+{
+  eq(S.DEFAULT_COMPANION_STYLE, 'mouse', 'the illustrated mouse is the default skin');
+  eq(S.normalizeCompanionStyle(undefined), 'mouse', 'missing value falls back to the default');
+  eq(S.normalizeCompanionStyle('mouse'), 'mouse', 'a stored mouse is kept');
+  eq(S.normalizeCompanionStyle('blob'), 'blob', 'a stored blob is kept');
+  eq(S.normalizeCompanionStyle('dragon'), 'mouse', 'an unknown name falls back to the default');
+  eq(S.normalizeCompanionStyle(42), 'mouse', 'a non-string falls back to the default');
+  eq(S.normalizeCompanionStyle(null), 'mouse', 'null falls back to the default');
+  ok(S.isCompanionStyle('blob') && S.isCompanionStyle('mouse'), 'both styles pass the guard');
+  ok(!S.isCompanionStyle('Blob') && !S.isCompanionStyle('') && !S.isCompanionStyle(1), 'nothing else passes the guard');
+  eq([...S.COMPANION_STYLES], ['mouse', 'blob'], 'the settings choice lists both styles, mouse first');
+  eq(S.COMPANION_STYLE_LABEL.mouse, 'Mouse', 'mouse label');
+  eq(S.COMPANION_STYLE_LABEL.blob, 'Blob', 'blob label');
+  for (const style of S.COMPANION_STYLES) {
+    ok(style in S.COMPANION_STYLE_LABEL, `${style} has a settings label`);
+  }
+}
+
+console.log(`companion queue + skins: ${n} assertions passed`);

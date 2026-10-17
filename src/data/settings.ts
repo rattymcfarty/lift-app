@@ -6,6 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { CompanionStyle } from '../companion/skin';
 
 /** Weight display unit. Storage is always canonical kg. */
 export type WeightUnit = 'kg' | 'lb';
@@ -22,6 +23,9 @@ export interface LiftSettings {
   /** Show the floating companion avatar. Off hides it completely and makes
    *  companion messages a no-op. */
   companionEnabled: boolean;
+  /** Which companion art to draw: the mouse picture (default) or the SVG
+   *  blob. See `src/companion/skin.ts`. */
+  companionStyle: CompanionStyle;
 }
 
 const SETTINGS_KEY = 'lift:settings';
@@ -34,6 +38,7 @@ const DEFAULTS: LiftSettings = {
   idlePromptMinutes: 45,
   autoFinishMinutes: 180,
   companionEnabled: true,
+  companionStyle: 'mouse',
 };
 
 /**
@@ -53,6 +58,7 @@ export async function getSettings(): Promise<LiftSettings> {
       idlePromptMinutes: parsed.idlePromptMinutes ?? DEFAULTS.idlePromptMinutes,
       autoFinishMinutes: parsed.autoFinishMinutes ?? DEFAULTS.autoFinishMinutes,
       companionEnabled: parsed.companionEnabled ?? DEFAULTS.companionEnabled,
+      companionStyle: parsed.companionStyle ?? DEFAULTS.companionStyle,
     };
   } catch {
     return DEFAULTS;
@@ -124,4 +130,13 @@ export async function setIdleThresholds(promptMin: number, autoFinishMin: number
 export async function setCompanionEnabledSetting(enabled: boolean): Promise<void> {
   const current = await getSettings();
   await writeSettings({ ...current, companionEnabled: enabled });
+}
+
+/**
+ * Picks which companion art is drawn. Persisted with the other settings (and
+ * carried in backups); the reactive companion store mirrors it for the live UI.
+ */
+export async function setCompanionStyleSetting(style: CompanionStyle): Promise<void> {
+  const current = await getSettings();
+  await writeSettings({ ...current, companionStyle: style });
 }

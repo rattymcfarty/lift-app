@@ -1,8 +1,9 @@
 /**
  * Floating companion overlay — mounted ONCE in `app/_layout.tsx`, above the
  * Stack and tabs. It renders the current queue message in a speech bubble and
- * the character itself, which the user can drag anywhere and tap for a
- * reaction.
+ * the character itself (whichever skin Settings has chosen — the mouse picture
+ * by default, the SVG creature as an alternative), which the user can drag
+ * anywhere and tap for a reaction.
  *
  * Layout & touches
  * - The root is `absoluteFill` with `pointerEvents="box-none"`, so it never
@@ -12,9 +13,11 @@
  * - Dragging snaps to the nearest edge/corner; the corner is remembered in
  *   AsyncStorage under a plain local key (deliberately NOT in the backup
  *   whitelist in `src/data/appData.ts` — a UI position is not user data).
+ * - Tap = a jump + a wiggle, and dismiss the visible message.
  *
  * Accessibility: the creature is a button with a label; new messages are
- * announced; all looping motion is skipped under reduce-motion.
+ * announced; all looping motion is skipped under reduce-motion (a tap then only
+ * dismisses the bubble).
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import {
@@ -32,11 +35,14 @@ import { COMPANION_NAME } from './messages';
 import { companionQueue } from './queue';
 import { useCompanionMessage } from './useCompanion';
 import { loadCompanionEnabled, useCompanionEnabled } from './enabled';
+import { loadCompanionStyle, useCompanionStyle } from './style';
 import { Creature } from './Creature';
+import { ImageSkin, MOUSE_HOP_OVERSHOOT } from './ImageSkin';
 import { Bubble } from './Bubble';
 
-/** On-screen size of the creature (dp). */
-const SIZE = 64;
+/** On-screen size of the creature (dp) — shared by every skin, and the box the
+ *  speech bubble is placed around. The mouse picture is drawn this wide. */
+const SIZE = 80;
 /** Plain local key — intentionally outside the backup whitelist. */
 const POS_KEY = 'lift:companion-pos';
 const EDGE_MARGIN = 12;
@@ -93,6 +99,7 @@ export function Companion(): JSX.Element | null {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const enabled = useCompanionEnabled();
+  const skinStyle = useCompanionStyle();
 
   const [corner, setCorner] = useState<Corner>('tc');
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -104,6 +111,7 @@ export function Companion(): JSX.Element | null {
 
   const pan = useRef(new Animated.ValueXY()).current;
   const react = useRef(new Animated.Value(0)).current;
+  const wiggle = useRef(new Animated.Value(0)).current;
   const draggedRef = useRef(false);
   const startRef = useRef({ x: 0, y: 0 });
   const posRef = useRef({ x: 0, y: 0 });
@@ -111,13 +119,17 @@ export function Companion(): JSX.Element | null {
   const reduceMotionRef = useRef(false);
   const onTapRef = useRef<() => void>(() => undefined);
 
+  /** The mouse skin draws outside its box as it hops, so its top bound needs
+   *  headroom; the SVG creature stays inside. */
+  const topOvershoot = skinStyle === 'mouse' ? SIZE * MOUSE_HOP_OVERSHOOT : 0;
+
   const bounds = useMemo<Bounds>(() => {
     const left = EDGE_MARGIN;
     const right = Math.max(left, width - SIZE - EDGE_MARGIN);
-    const top = insets.top + 8;
+    const top = insets.top + 8 + topOvershoot;
     const bottom = Math.max(top, height - SIZE - (insets.bottom + TAB_BAR_CLEARANCE) - EDGE_MARGIN);
     return { left, right, top, bottom };
-  }, [width, height, insets.top, insets.bottom]);
+  }, [width, height, insets.top, insets.bottom, topOvershoot]);
   boundsRef.current = bounds;
 
   const pos = useMemo(() => cornerPosition(corner, bounds), [corner, bounds]);
@@ -125,12 +137,21 @@ export function Companion(): JSX.Element | null {
   const handleTap = useCallback((): void => {
     companionQueue.dismiss();
     if (reduceMotionRef.current) return;
+    // A quick jump + a wiggle, on top of whatever the skin is already doing.
     react.setValue(0);
-    Animated.sequence([
-      Animated.timing(react, { toValue: 1, duration: 110, useNativeDriver: true }),
-      Animated.timing(react, { toValue: 0, duration: 170, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    wiggle.setValue(0);
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(react, { toValue: 1, duration: 110, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(react, { toValue: 0, duration: 190, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.timing(wiggle, { toValue: 1, duration: 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: -1, duration: 180, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: 0, duration: 120, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
     ]).start();
-  }, [react]);
+  }, [react, wiggle]);
   onTapRef.current = handleTap;
 
   // Create the responder once; all mutable inputs are read through refs.
@@ -182,9 +203,10 @@ export function Companion(): JSX.Element | null {
     pan.setValue(pos);
   }, [pos, pan]);
 
-  // Load the persisted corner + the persisted on/off setting once.
+  // Load the persisted corner, the on/off setting and the chosen skin once.
   useEffect(() => {
     void loadCompanionEnabled();
+    void loadCompanionStyle();
     let cancelled = false;
     void AsyncStorage.getItem(POS_KEY)
       .then((raw) => {
@@ -288,10 +310,18 @@ export function Companion(): JSX.Element | null {
           style={{
             width: SIZE,
             height: SIZE,
-            transform: [{ scale: react.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] }) }],
+            transform: [
+              { translateY: react.interpolate({ inputRange: [0, 1], outputRange: [0, -SIZE * 0.13] }) },
+              { rotate: wiggle.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-6deg', '0deg', '6deg'] }) },
+              { scale: react.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) },
+            ],
           }}
         >
-          <Creature mood={mood} size={SIZE} reduceMotion={reduceMotion} />
+          {skinStyle === 'mouse' ? (
+            <ImageSkin mood={mood} size={SIZE} reduceMotion={reduceMotion} />
+          ) : (
+            <Creature mood={mood} size={SIZE} reduceMotion={reduceMotion} />
+          )}
         </Animated.View>
       </Animated.View>
     </View>

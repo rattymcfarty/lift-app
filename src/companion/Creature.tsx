@@ -1,6 +1,7 @@
 /**
- * Default companion skin — a small, friendly blob creature drawn with
- * react-native-svg (no extra dependencies).
+ * Companion skin — a small, friendly blob creature drawn with
+ * react-native-svg (no extra dependencies). The alternative to the mouse
+ * picture (`ImageSkin`), chosen in Settings → Companion → Style.
  *
  * The body, ears, arms, cheeks and mouth are SVG; the eyes are two tiny
  * animated views layered on top so blinking is a native-driver `scaleY`

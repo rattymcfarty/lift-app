@@ -39,7 +39,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Progressive overload suggestions | ✅ | Progression engine |
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
 | Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
-| A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); placeholder SVG character, `docs/product/COMPANION.md` |
+| A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; `docs/product/COMPANION.md` |
 
 ## 4. After the workout
 | Need | Status | Notes |
@@ -58,6 +58,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Export / import everything | ✅ P9 | Profile & settings now included in the file |
 | Units kg/lb, dark/light | ✅ | |
 | Hide the companion completely | ✅ | Settings → Companion (default ON); position stays local, out of backups |
+| Choose the companion's look | ✅ | Settings → Companion → Style: Mouse (default) / Blob; persisted, rides in backups |
 | Works offline, no tracking | ✅ | |
 
 ## 6. Longevity layer

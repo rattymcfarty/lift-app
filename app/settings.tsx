@@ -20,6 +20,8 @@ import { getProfile, type Profile } from '../src/data/profile';
 import { GOAL_LABEL } from '../src/data/generatedPlan';
 import { dryRunImport, importBackup, pickBackupFile } from '../src/data/import';
 import { setCompanionEnabled, useCompanionEnabled } from '../src/companion/enabled';
+import { setCompanionStyle, useCompanionStyle } from '../src/companion/style';
+import { COMPANION_STYLES, COMPANION_STYLE_LABEL } from '../src/companion/skin';
 
 function SegmentedOption<T extends string>({
   label,
@@ -85,6 +87,7 @@ export default function SettingsScreen(): JSX.Element {
   const [reminders, setReminders] = useState<ReminderSettings | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const companionOn = useCompanionEnabled();
+  const companionStyle = useCompanionStyle();
 
   useEffect(() => {
     let cancelled = false;
@@ -424,6 +427,30 @@ export default function SettingsScreen(): JSX.Element {
           <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
             Hiding Pip stops every companion message too. Nothing is ever sent
             anywhere.
+          </Text>
+          <Text
+            style={{
+              color: theme.colors.muted,
+              fontSize: t.size.caption,
+              fontWeight: t.weight.medium,
+            }}
+          >
+            STYLE
+          </Text>
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+            {COMPANION_STYLES.map((style) => (
+              <SegmentedOption
+                key={style}
+                label={COMPANION_STYLE_LABEL[style]}
+                selected={companionStyle === style}
+                onPress={() => void setCompanionStyle(style)}
+                testID={`settings-companion-style-${style}`}
+              />
+            ))}
+          </View>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            Mouse is the illustrated Pip (default); Blob is the drawn SVG
+            character.
           </Text>
         </Card>
 

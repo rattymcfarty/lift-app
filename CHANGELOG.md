@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- Companion skins: Pip now wears the owner's illustrated mouse by default —
+  `src/companion/ImageSkin.tsx` animates the one flat PNG with transforms only
+  (built-in `Animated`, native driver, no new dependency): idle float +
+  breathing, a periodic blink, mood hop/wiggle/droop/drifting-"z", cheer/PR
+  sparkles and a ground shadow that shrinks as it hops. The procedural SVG
+  creature stays as the alternative skin; Settings → Companion → Style (Mouse
+  default / Blob) persists as `companionStyle` and rides in backups. The overlay
+  box grew 64 → 80 dp and the speech bubble still points at the character;
+  `docs/product/COMPANION.md`, `scripts/test-companion.mjs` (skin selection).
 - Exercises tab: a "Core & foundational" section now heads the library — the owner's
   curated 46 movements, in the owner's order, then "All exercises". Search and the
   muscle/equipment filters apply to both groups (a group with no matches hides its
