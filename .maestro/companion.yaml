@@ -1,0 +1,27 @@
+# Companion overlay: the creature is visible on the Train tab and does not
+# block the tab bar underneath it (box-none overlay).
+# Run: maestro test .maestro/companion.yaml
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "companion"
+- assertVisible:
+    id: "home-start-workout"
+# Tapping a tab underneath the overlay must still work.
+- tapOn:
+    id: "tab-programs"
+- assertVisible: "Explore"
+- tapOn:
+    id: "tab-train"
+- assertVisible:
+    id: "home-start-workout"
+# Tapping the creature itself reacts but does not navigate.
+- tapOn:
+    id: "companion"
+- assertVisible:
+    id: "home-start-workout"
+- assertVisible:
+    id: "companion"

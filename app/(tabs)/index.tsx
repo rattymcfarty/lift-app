@@ -9,7 +9,7 @@
  * about starting a workout fast.
  */
 
-import { useCallback, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,6 +41,7 @@ import {
 } from '../../src/workouts/lifecycle';
 import { softDeleteWorkout } from '../../src/data/repositories';
 import { createUserProgram } from '../../src/programs/userPrograms';
+import { companionSessionWaiting } from '../../src/companion/triggers';
 
 type Segment = 'train' | 'history';
 
@@ -219,6 +220,12 @@ export default function TrainScreen(): JSX.Element {
       void load();
     }, [load]),
   );
+
+  // Companion: greet when a program session is waiting. The queue's dedupeKey
+  // + cooldown keep a repeatedly-focused Train tab from repeating it.
+  useEffect(() => {
+    if (today) companionSessionWaiting(today.routineName);
+  }, [today?.routineName]);
 
   const latest = weights.length > 0 ? weights[weights.length - 1] : null;
   const shown = (kg: number): string => trimNumber(unit === 'lb' ? Math.round(kgToLb(kg) * 10) / 10 : kg);

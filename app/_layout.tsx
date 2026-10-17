@@ -13,6 +13,7 @@ import { importSnapshotOnFirstLaunch } from '../src/kb';
 import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary';
 import { ThemeProvider, useTheme } from '../src/theme';
 import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
+import { Companion } from '../src/companion/Companion';
 
 /**
  * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
@@ -87,7 +88,7 @@ function AppShell() {
   }
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -95,8 +96,10 @@ function AppShell() {
         }}
       />
       <WorkoutLifecycleWatcher />
+      {/* Floating companion: above the Stack and tabs, box-none overlay. */}
+      <Companion />
       {statusBar}
-    </>
+    </View>
   );
 }
 

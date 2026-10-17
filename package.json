@@ -60,6 +60,7 @@
     "secrets:scan": "bash scripts/secrets-scan.sh --tree",
     "secrets:history": "bash scripts/secrets-scan.sh --history",
     "test:lifecycle": "node scripts/test-lifecycle.mjs",
+    "test:companion": "node scripts/test-companion.mjs",
     "test:foundational": "node scripts/test-foundational.mjs",
     "test:markdown": "node scripts/test-markdown.mjs",
     "test:planned-sets": "node scripts/test-planned-sets.mjs",

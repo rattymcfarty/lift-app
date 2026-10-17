@@ -46,6 +46,7 @@ import { ExerciseActionsSheet } from './ExerciseActionsSheet';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { GRID_FLEX, GRID_MAX_FONT_SCALE, gridMetrics } from './setGrid';
 import { SwipeableRow } from '../ui/SwipeableRow';
+import { companionSetLogged } from '../../companion/triggers';
 
 interface PendingSetState {
   /**
@@ -343,6 +344,8 @@ export function ExerciseCard({
         completed: true,
         isWarmup,
       });
+      // Companion: a very occasional cheer (rate-limited in the trigger).
+      if (!isWarmup) companionSetLogged();
       // Determine if this is the last exercise in its superset group.
       // If so, start the rest timer once using the max of member rest defaults.
       const supersetId = workoutExercise.supersetId;

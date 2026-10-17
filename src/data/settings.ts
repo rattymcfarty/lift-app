@@ -19,6 +19,9 @@ export interface LiftSettings {
   idlePromptMinutes: number;
   /** Minutes without activity before LIFT finishes the workout itself (0 = never). */
   autoFinishMinutes: number;
+  /** Show the floating companion avatar. Off hides it completely and makes
+   *  companion messages a no-op. */
+  companionEnabled: boolean;
 }
 
 const SETTINGS_KEY = 'lift:settings';
@@ -30,6 +33,7 @@ const DEFAULTS: LiftSettings = {
   barWeightKg: 20,
   idlePromptMinutes: 45,
   autoFinishMinutes: 180,
+  companionEnabled: true,
 };
 
 /**
@@ -48,6 +52,7 @@ export async function getSettings(): Promise<LiftSettings> {
       barWeightKg: parsed.barWeightKg ?? DEFAULTS.barWeightKg,
       idlePromptMinutes: parsed.idlePromptMinutes ?? DEFAULTS.idlePromptMinutes,
       autoFinishMinutes: parsed.autoFinishMinutes ?? DEFAULTS.autoFinishMinutes,
+      companionEnabled: parsed.companionEnabled ?? DEFAULTS.companionEnabled,
     };
   } catch {
     return DEFAULTS;
@@ -109,4 +114,14 @@ export async function setIdleThresholds(promptMin: number, autoFinishMin: number
   }
   const current = await getSettings();
   await writeSettings({ ...current, idlePromptMinutes: promptMin, autoFinishMinutes: autoFinishMin });
+}
+
+/**
+ * Shows or hides the floating companion. Persisted like the other settings
+ * (and carried in backups); the reactive companion store mirrors it for the
+ * live UI.
+ */
+export async function setCompanionEnabledSetting(enabled: boolean): Promise<void> {
+  const current = await getSettings();
+  await writeSettings({ ...current, companionEnabled: enabled });
 }

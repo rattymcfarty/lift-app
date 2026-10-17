@@ -5,7 +5,7 @@
  * shows a live workout.
  */
 
-import { useCallback, useState, type JSX } from 'react';
+import { useCallback, useEffect, useState, type JSX } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,6 +26,7 @@ import { Button, Card, EmptyState, ScreenHeader } from '../../../src/components/
 import { Celebration, type CelebrationRecord } from '../../../src/components/workout/Celebration';
 import { listPRsWithExercises } from '../../../src/data/repositories';
 import { prKindLabel } from '../../../src/components/dashboard/prLabels';
+import { companionRecords, companionWorkoutFinished } from '../../../src/companion/triggers';
 
 function Stat({ label, value }: { label: string; value: string }): JSX.Element {
   const { theme } = useTheme();
@@ -110,6 +111,17 @@ export default function WorkoutSummaryScreen(): JSX.Element {
             new Date(detail.workout.startedAt).getTime(),
         )
       : '—';
+
+  // Companion: one cheer when the summary opens (a finished workout), and a
+  // record nudge when this session set PRs. Purely additive; the queue handles
+  // ordering/dedupe and is a no-op while the companion is off.
+  useEffect(() => {
+    if (detail && detail.workout.endedAt != null) companionWorkoutFinished();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detail?.workout.id]);
+  useEffect(() => {
+    if (records.length > 0) companionRecords(records.length);
+  }, [records.length]);
 
   return (
     <SafeAreaView

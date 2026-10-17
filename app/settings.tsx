@@ -19,6 +19,7 @@ import { applyReminders, getReminders, type ReminderSettings } from '../src/noti
 import { getProfile, type Profile } from '../src/data/profile';
 import { GOAL_LABEL } from '../src/data/generatedPlan';
 import { dryRunImport, importBackup, pickBackupFile } from '../src/data/import';
+import { setCompanionEnabled, useCompanionEnabled } from '../src/companion/enabled';
 
 function SegmentedOption<T extends string>({
   label,
@@ -83,6 +84,7 @@ export default function SettingsScreen(): JSX.Element {
   const [dataBusy, setDataBusy] = useState<'export' | 'import' | null>(null);
   const [reminders, setReminders] = useState<ReminderSettings | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const companionOn = useCompanionEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -388,6 +390,40 @@ export default function SettingsScreen(): JSX.Element {
           ) : null}
           <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
             Reminders are scheduled on this device only — no account, no server.
+          </Text>
+        </Card>
+
+        <Card>
+          <Text
+            style={{
+              color: theme.colors.muted,
+              fontSize: t.size.caption,
+              fontWeight: t.weight.medium,
+            }}
+          >
+            COMPANION
+          </Text>
+          <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
+            Pip is a small character that floats over every screen and passes on
+            the odd tip, cheer or reminder. It runs entirely on this device.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+            <SegmentedOption
+              label="Off"
+              selected={!companionOn}
+              onPress={() => void setCompanionEnabled(false)}
+              testID="settings-companion-off"
+            />
+            <SegmentedOption
+              label="On"
+              selected={companionOn}
+              onPress={() => void setCompanionEnabled(true)}
+              testID="settings-companion-on"
+            />
+          </View>
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
+            Hiding Pip stops every companion message too. Nothing is ever sent
+            anywhere.
           </Text>
         </Card>
 

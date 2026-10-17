@@ -8,6 +8,14 @@
   header). Ids: `src/lib/foundational.ts` (per-id display-name comments; four of the
   owner's 50 names have no live catalogue entry); sectioning: `src/lib/exerciseSections.ts`;
   test: `scripts/test-foundational.mjs` (wired into `scripts/dev-loop.sh`).
+- Companion foundation: a small floating avatar ("Pip") over every screen —
+  `src/companion/` (pure message queue with priority/dedupe/eviction/expiry,
+  `say()` API, SVG placeholder `Creature`, themed speech bubble, draggable
+  overlay that snaps to a corner and remembers its position). Settings →
+  Companion toggle (default ON) hides it completely; reduce-motion respected;
+  messages announced to screen readers. Wired to a few existing events only
+  (set logged, workout finished, PRs, session-ready). New: `npm run
+  test:companion` (`.maestro/companion.yaml`), `docs/product/COMPANION.md`.
 - Cross-agent foundation: `AGENTS.md` is the canonical guide for any harness
   (Claude Code, OpenCode, Codex/ChatGPT, Hermes, Gemini CLI, Cursor, Copilot); shared
   playbooks in `.agents/skills/`; `docs/ops/AGENT_COLLABORATION.md`; `npm run test:agents`.

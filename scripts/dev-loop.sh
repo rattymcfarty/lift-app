@@ -16,6 +16,8 @@ check "test:p7" "npm run test:p7"
 check "test:ui" "npm run test:ui"
 check "test:plan" "npm run test:plan"
 check "test:lifecycle" "npm run test:lifecycle"
+# Invoked directly: same package.json-edit sandbox constraint as planned-sets.
+check "test:companion" "node scripts/test-companion.mjs"
 # Invoked directly: this sandbox's policy blocks edits to package.json, so the
 # matching "test:markdown" npm script is pending (one line next to
 # test:lifecycle in package.json).
