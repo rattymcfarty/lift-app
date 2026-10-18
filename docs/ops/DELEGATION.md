@@ -146,6 +146,12 @@ Resulting ranks in `models.json`: code/analysis → DeepSeek, Space Bunny, Muse 
 wasn't benchmarked); vision → Nemotron Super VL. Re-run a bake-off when models
 change; failing models stay allowed but unranked.
 
+The fixture is committed and reproducible: `docs/ops/bakeoff/parseDuration/`
+(`spec.md` + `test.mjs`) with the protocol in `docs/ops/bakeoff/README.md`. Pass =
+`node docs/ops/bakeoff/parseDuration/test.mjs` prints `ALL PASS` **with the spec
+and the test untouched** (`git diff` in the worktree) and a real implementation,
+not a lookup table of the visible cases. One run per model, serially, 3-minute cap.
+
 > **Other repos:** set `DELEGATE_REPO=~/path/to/repo` (for `run`, `diff`, `clean`) to let the helper work in a different repository; the locked config still comes from this repo. Used for lift-kb.
 
 
