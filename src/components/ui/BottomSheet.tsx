@@ -71,7 +71,13 @@ export function BottomSheet({
         <Animated.View
           testID={ids.surface}
           accessibilityViewIsModal
-          style={[styles.shadow, { transform: [{ translateY }] }]}
+          style={[
+            styles.sheet,
+            {
+              maxHeight: `${Math.round(maxHeightRatio * 100)}%`,
+              transform: [{ translateY }],
+            },
+          ]}
         >
           <Glass
             shape={theme.radius.lg}
@@ -79,10 +85,7 @@ export function BottomSheet({
             style={[
               styles.glass,
               sheetCorners(theme.radius.lg),
-              {
-                paddingBottom: insets.bottom + theme.spacing.md,
-                maxHeight: `${Math.round(maxHeightRatio * 100)}%`,
-              },
+              { paddingBottom: insets.bottom + theme.spacing.md },
             ]}
           >
             <SheetHeader
@@ -90,6 +93,7 @@ export function BottomSheet({
               subtitle={subtitle}
               onClose={onClose}
               closeTestID={ids.close}
+              grabberTestID={ids.grabber}
               panHandlers={panHandlers}
             />
             {children}
@@ -103,7 +107,11 @@ export function BottomSheet({
 const styles = StyleSheet.create({
   fill: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)' },
-  shadow: {
+  // The cap lives here (a child of `fill`, which has a definite height) — a
+  // percentage maxHeight on a nested auto-height box resolves unpredictably and
+  // collapses the lists inside.
+  sheet: {
+    overflow: 'hidden',
     // Depth so the glass sheet reads as floating above the dimmed screen.
     shadowColor: '#000',
     shadowOpacity: 0.35,
@@ -111,5 +119,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 18,
   },
-  glass: { overflow: 'hidden' },
+  // Shrinks to the cap above so the ScrollView inside a sheet can scroll.
+  glass: { overflow: 'hidden', flexShrink: 1 },
 });

@@ -21,6 +21,8 @@ export interface SheetHeaderProps {
   onClose: () => void;
   /** testID of the close button (see `sheetIds`). */
   closeTestID: string;
+  /** testID of the grabber — the pull-down target (see `sheetIds`). */
+  grabberTestID: string;
   /** Drag handlers for the pull-down dismiss (header only). */
   panHandlers?: GestureResponderHandlers;
 }
@@ -30,13 +32,14 @@ export function SheetHeader({
   subtitle,
   onClose,
   closeTestID,
+  grabberTestID,
   panHandlers,
 }: SheetHeaderProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   return (
     <View {...panHandlers}>
-      <View style={[styles.grabber, { backgroundColor: theme.colors.border }]} />
+      <View testID={grabberTestID} style={[styles.grabber, { backgroundColor: theme.colors.border }]} />
       <View style={[styles.row, { paddingHorizontal: theme.spacing.md }]}>
         <View style={styles.text}>
           {title ? (

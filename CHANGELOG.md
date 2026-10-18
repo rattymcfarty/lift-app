@@ -2,6 +2,19 @@
 
 ## Unreleased (addendum)
 
+- Sheets (layout redesign C follow-up): three problems the emulator caught. The
+  **pull down to close was dead on Android**: inside a `Modal` the move-phase
+  responder negotiation is never dispatched to a view (measured — the header gets
+  the raw touches and the down-phase negotiation, but `onMoveShouldSetResponder`
+  and its capture twin are never called), so a move-only `PanResponder` could
+  never claim the gesture; the header now claims at touch-down and follows the
+  finger, and a tap still goes to the child first, so the close button keeps
+  working. A **tall sheet collapsed to its content** instead of capping at
+  `maxHeightRatio` — the cap moved to the wrapper `Animated.View` with
+  `flexShrink: 1` on the glass. The flow's pull-down now uses real screen
+  coordinates, because Maestro's "swipe from this element" only travels the
+  grabber's own 4 dp.
+
 - Sheets (layout redesign C): **every bottom sheet is now the same glass
   component**. `BottomSheet` (`src/components/ui/BottomSheet.tsx`) keeps its
   dimmed backdrop, slide-up spring and safe-area padding but draws its surface

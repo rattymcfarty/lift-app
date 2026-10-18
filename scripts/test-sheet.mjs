@@ -62,13 +62,18 @@ check('corners follow the radius token', () => {
 // --- test ids -------------------------------------------------------------
 
 check('the close id is the surface id plus -close', () => {
-  assert.deepEqual(model.sheetIds('action-sheet'), { surface: 'action-sheet', close: 'action-sheet-close' });
+  assert.deepEqual(model.sheetIds('action-sheet'), {
+    surface: 'action-sheet',
+    close: 'action-sheet-close',
+    grabber: 'action-sheet-grabber',
+  });
 });
 
 check('a sheet with no test id still has a close id', () => {
   const ids = model.sheetIds();
   assert.equal(ids.surface, undefined);
   assert.equal(ids.close, 'sheet-close');
+  assert.equal(ids.grabber, 'sheet-grabber');
 });
 
 // --- the pull-down gesture ------------------------------------------------
@@ -96,20 +101,20 @@ check('the dismiss threshold is overridable', () => {
 
 // --- the Maestro flows depend on these ids --------------------------------
 
-check('every sheet close id in .maestro is the id sheetIds would build', () => {
+check('every sheet id in .maestro is the id sheetIds would build', () => {
   const flows = readdirSync(join(root, '.maestro')).filter((f) => f.endsWith('.yaml'));
   let checked = 0;
   for (const file of flows) {
     const text = readFileSync(join(root, '.maestro', file), 'utf8');
-    for (const m of text.matchAll(/id:\s*"([^"]+)-close"/g)) {
-      const surface = m[1];
+    for (const m of text.matchAll(/id:\s*"([^"]+)-(close|grabber)"/g)) {
+      const [surface, part] = [m[1], m[2]];
       if (surface.startsWith('panel-')) continue; // the side panels, not sheets
       if (surface.startsWith('topbar-')) continue;
-      assert.equal(model.sheetIds(surface).close, `${surface}-close`, `${file}: ${surface}-close`);
+      assert.equal(model.sheetIds(surface)[part], `${surface}-${part}`, `${file}: ${surface}-${part}`);
       checked += 1;
     }
   }
-  assert.ok(checked > 0, 'at least one sheet close id is exercised');
+  assert.ok(checked > 0, 'at least one sheet id is exercised');
 });
 
 // --- one header for every sheet -------------------------------------------

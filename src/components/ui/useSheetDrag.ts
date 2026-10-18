@@ -26,6 +26,19 @@ export function useSheetDrag(
   return useMemo(
     () =>
       PanResponder.create({
+        // Claim the touch at touch-down, not on the first move.
+        //
+        // On Android the move-phase negotiation never reaches a view inside a
+        // Modal: measured on the emulator, the header receives the raw touches
+        // and the down-phase negotiation, but `onMoveShouldSetResponder` and
+        // its capture variant are never dispatched, which leaves a move-only
+        // pull-down dead. Claiming at down makes the header the responder, so
+        // the drag arrives as `onResponderMove`. Touches a child handles stay
+        // with the child (the responder system offers a touch to the deepest
+        // view first), so the header close button keeps working.
+        onStartShouldSetPanResponder: () => true,
+        // Still needed: with the header already the responder this only runs
+        // when a child claimed the touch and handed the move back.
         onMoveShouldSetPanResponder: (_e, g) => shouldStartDrag(g.dx, g.dy),
         onPanResponderMove: (_e, g) => {
           if (g.dy > 0) translateY.setValue(g.dy);

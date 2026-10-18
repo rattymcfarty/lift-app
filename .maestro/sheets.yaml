@@ -39,10 +39,12 @@ appId: app.lift.mobile
     id: "action-sheet-close"
 
 # --- a pull down on the header dismisses it --------------------------------
+# Start on the header (the sheet's top strip, ~19–26% of the height) and drag
+# well past the 90 dp dismiss threshold. Not `from: <grabber> + direction`: the
+# grabber is a 4 dp bar, so Maestro's element swipe only travels its own height.
 - swipe:
-    start: 50%, 20%
-    end: 50%, 70%
-    duration: 400
+    start: "50%,22%"
+    end: "50%,70%"
 - assertNotVisible:
     id: "action-sheet"
 
@@ -52,8 +54,9 @@ appId: app.lift.mobile
     index: 0
 - assertVisible:
     id: "action-sheet"
+# The strip above the sheet, below the status bar (the sheet top is ~19%).
 - tapOn:
-    point: "50%,5%"
+    point: "50%,12%"
 - assertNotVisible:
     id: "action-sheet"
 

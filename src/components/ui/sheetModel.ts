@@ -36,11 +36,14 @@ export interface SheetIds {
   surface: string | undefined;
   /** testID for the header close button. */
   close: string;
+  /** testID for the header grabber (the pull-down target, for Maestro). */
+  grabber: string;
 }
 
-/** The surface and header-close test ids for a sheet. */
+/** The surface and header test ids for a sheet. */
 export function sheetIds(testID?: string): SheetIds {
-  return { surface: testID, close: `${testID ?? 'sheet'}-close` };
+  const surface = testID ?? 'sheet';
+  return { surface: testID, close: `${surface}-close`, grabber: `${surface}-grabber` };
 }
 
 /** True when a downward pull is far enough to be a sheet drag, not a list scroll. */
