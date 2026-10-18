@@ -71,6 +71,16 @@ content passes, mechanical refactors, regex, log parsing, code search.
 **Keep with the lead:** design, migrations, data formats, security and privacy
 code, secrets, complex debugging, final review. Never trust helper output blindly.
 
+## Model pool (automatic failover)
+
+`delegate.sh run` rotates through the free models when one is throttled (429),
+overloaded (503/504) or gone, keeps the cooldowns in `~/lift/delegations/.model-state.json`,
+and hands any partial work to the next model to finish. `delegate.sh pool` = status,
+`delegate.sh pool probe` = test all models now. Order for coding: DeepSeek V4.1 Flash,
+Space Bunny, GLM-5.3-Flash, Big Pickle, LongCat, MiMo, Nemotron Super VL / Lightning / Ultra.
+Do not wait for a quota reset: switch model. Keep jobs under ~20 minutes (upstream
+drops long streams) and split big features into several small jobs.
+
 ## Hard-won facts (verified 2026-10-16, OpenCode v2.0.31)
 
 - **Free models only answer OpenCode itself.** Raw `POST /inference/openai/v1/chat/completions`

@@ -17,3 +17,5 @@ Owner set this up on 2026-10-16: Claude (lead) plans, reviews and merges; OpenCo
 - Router: Jev 1.13 Free (Console systemone endpoint, service-account key) classifies tasks; keyword fallback.
 
 Related: [[feedback-free-models-only]], [[feedback-keep-opencode-sessions]], [[reference-opencode-console]], [[project-cross-agent-foundation]].
+
+**Model pool:** `delegate.sh run` auto-rotates through the free models on 429/503/504 with cooldowns and passes partial work to the next model; `delegate.sh pool [probe]` shows/refreshes availability (see docs/ops/DELEGATION.md). When a model is throttled, switch, don't wait. Keep jobs under ~20 min and split big features.

@@ -110,6 +110,18 @@ $q" "$ev" "$LOGS/$id.stderr.log"; rc=$?
     git -C "$REPO" worktree remove --force "$wt" >/dev/null 2>&1; git -C "$REPO" worktree prune
     [ "$rc" -eq 0 ] ;;
 
+  pool)  # model pool: `pool` = status, `pool probe` = test every free model now (one at a time)
+    if [ "${1:-}" = probe ]; then
+      [ -x "$OC" ] || die "opencode v2 not found at $OC"
+      for m in $(allowed); do
+        out="$( cd /tmp && timeout 60 "$OC" run --model "$m" --format json 'Reply with the single word ok' 2>&1 )"; rc=$?
+        tmp="$(mktemp)"; printf '%s\n' "$out" > "$tmp"; read -r kind secs < <(node "$TOOLS/pool.mjs" classify "$tmp" "$rc"); rm -f "$tmp"
+        if echo "$out" | grep -q '"type":"text"'; then node "$TOOLS/pool.mjs" ok "$m"; echo "WORKS    $m"
+        else [ "${secs:-0}" -gt 0 ] && node "$TOOLS/pool.mjs" mark "$m" "$secs" "$kind"; echo "$kind    $m"; fi
+      done
+    fi
+    node "$TOOLS/pool.mjs" status ;;
+
   run)
     slug="${1:-}"; task="${2:-}"; shift 2 || true
     valid_slug "$slug"; [ -n "$task" ] || die 'usage: run <slug> "<task>" [-m opencode/<model>] [-t minutes]'
@@ -126,15 +138,29 @@ $q" "$ev" "$LOGS/$id.stderr.log"; rc=$?
     mkdir -p "$wt/.opencode"; node "$TOOLS/build-config.mjs" "$wt/.opencode/opencode.jsonc" 2>/dev/null || die "config build failed"
     [ -d "$REPO/node_modules" ] && ln -s "$REPO/node_modules" "$wt/node_modules"
 
-    events="$LOGS/$slug.events.jsonl"; start=$(date +%s); rc=1; used=""
-    for m in "${models[@]:0:2}"; do    # first choice + one fallback
-      git -C "$wt" checkout -q -- . 2>/dev/null; git -C "$wt" clean -qfd -e .opencode -e node_modules
-      used="$m"; oc_run "$wt" "$m" "$MINUTES" "delegate: $slug" "$BRIEF
+    events="$LOGS/$slug.events.jsonl"; start=$(date +%s); rc=1; used=""; attempts=0; resume=""
+    # Candidate pool: the forced/routed models first, then the rest of the free pool in
+    # coding-preference order; models on a cooldown (throttled, overloaded, gone) are skipped.
+    mapfile -t pool < <(node "$TOOLS/pool.mjs" order "${models[@]}" | node "$TOOLS/pool.mjs" filter)
+    [ ${#pool[@]} -gt 0 ] || { echo "delegate: every free model is on cooldown ($0 pool); retrying the full list" >&2; mapfile -t pool < <(node "$TOOLS/pool.mjs" order "${models[@]}"); }
+    for m in "${pool[@]:0:${DELEGATE_MAX_ATTEMPTS:-6}}"; do
+      attempts=$((attempts + 1)); used="$m"
+      oc_run "$wt" "$m" "$MINUTES" "delegate: $slug" "$BRIEF$resume
 
 TASK:
 $task" "$events" "$LOGS/$slug.stderr.log"; rc=$?
-      [ "$rc" -eq 0 ] && break
-      echo "attempt: $m failed (exit $rc) — trying next model" >&2
+      read -r kind secs < <(node "$TOOLS/pool.mjs" classify "$events" "$rc")
+      if [ "$rc" -eq 0 ] && [ "$kind" = "ok" ]; then node "$TOOLS/pool.mjs" ok "$m"; rc=0; break; fi
+      [ "$secs" -gt 0 ] && node "$TOOLS/pool.mjs" mark "$m" "$secs" "$kind"
+      echo "attempt $attempts: $m failed ($kind, exit $rc) — next model" >&2
+      # Keep partial work: the next model is told to inspect and finish it. Only a
+      # clean slate (no edits) needs nothing; never discard progress on a provider error.
+      if [ -n "$(git -C "$wt" status --porcelain --ignore-submodules 2>/dev/null | grep -v '^?? .opencode')" ]; then
+        resume="
+
+NOTE: a previous attempt (model $m) was cut off by a provider error ($kind) and left PARTIAL work in this worktree. Start with git status and git diff, review it carefully (files may be half-written or have syntax errors), fix anything broken or incomplete, then finish the task. Do not start over."
+      fi
+      [ "$kind" = "failed" ] && [ "$rc" -ne 124 ] && break   # a real task failure, not a provider problem
     done
     dur=$(( $(date +%s) - start ))
 

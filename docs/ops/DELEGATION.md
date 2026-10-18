@@ -147,3 +147,29 @@ wasn't benchmarked); vision → Nemotron Super VL. Re-run a bake-off when models
 change; failing models stay allowed but unranked.
 
 > **Other repos:** set `DELEGATE_REPO=~/path/to/repo` (for `run`, `diff`, `clean`) to let the helper work in a different repository; the locked config still comes from this repo. Used for lift-kb.
+
+
+## Model pool and automatic failover (2026-10-17)
+
+The free tier throttles per model and the upstream providers drop long streams
+(HTTP 429 `FreeUsageLimitError`, 503 "overloaded", 504 "idle timeout"). One model
+being out used to stall a whole job. `scripts/delegate.sh run` now keeps a **pool**:
+
+- Order: the routed or `-m` model first, then the rest of `pool_order` in
+  `scripts/opencode/models.json` (coding preference from the bake-off: DeepSeek,
+  Space Bunny, GLM, Big Pickle, LongCat, MiMo, Nemotron Super VL / Lightning / Ultra,
+  Muse Spark). Up to 6 attempts (`DELEGATE_MAX_ATTEMPTS`).
+- After a failed attempt `scripts/opencode/pool.mjs classify` reads the events:
+  `quota` (429) cools the model for 30 min, `transient` (503/504/overloaded) 10 min,
+  `gone` ("Model unavailable") 24 h, `stall` (timeout, no events) 15 min. Cooled
+  models are skipped, also by the next job (state: `~/lift/delegations/.model-state.json`).
+- **Partial work is kept.** If the cut-off attempt left edits in the worktree, the
+  next model is told to run `git status` / `git diff`, repair and finish; it does
+  not start over.
+- A real task failure (no provider error) stops the rotation.
+- `scripts/delegate.sh pool` shows availability; `pool probe` tests every free model
+  now (tiny prompt, one at a time) and refreshes the cooldowns.
+
+Observed 2026-10-17: the quota refreshes within hours; when one model hits its limit
+others usually answer, so rotate instead of waiting. Nemotron 3 Ultra is capable but
+its upstream (Nvidia) drops streams on jobs longer than ~20 min.

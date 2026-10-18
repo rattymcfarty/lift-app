@@ -30,3 +30,11 @@ orchestrator; OpenCode is the helper ("AI employee").
    (model quality, failures) in `docs/ops/DELEGATION.md` §6.
 
 Never loosen the sandbox config (`scripts/opencode/`) to make a task pass. Change the task instead.
+
+## Model pool (throttled or overloaded model? do not wait, rotate)
+
+`scripts/delegate.sh run` rotates through the free models automatically when one
+returns 429 / 503 / 504 / "model unavailable", remembers the cooldown, and passes any
+partial work to the next model to finish. `scripts/delegate.sh pool` shows what is
+available, `pool probe` tests every free model now. Keep jobs under ~20 minutes and
+split big features into several small jobs. Details: `docs/ops/DELEGATION.md`.
