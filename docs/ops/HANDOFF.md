@@ -209,3 +209,30 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ### Session addendum — deload + copy week
 Program builder gained deload control and Copy week (`copyWeek` in `src/programs/userPrograms.ts`); `dropRoutines` now releases `kb_id`. `.maestro/program-builder.yaml` covers both and passes on the release APK. Remaining ideas: multi-select in plan picker, thumbnails in backups, exercise-detail polish.
+
+### 2026-10-17 — back-facing muscle icons (opencode helper, branch delegate/icons-b)
+- Drew 9 original muscle-group SVGs in `assets/icons-src/muscle`: Rear Delts, Triceps,
+  Lats, Upper Back, Lower Back, Glutes, Hamstrings, Abductors, Calves. All back-facing
+  figures on the 48x48 grid, one shared back-figure geometry (torso, 4.2-stroke arms with
+  ellipse hands, thigh/knee/shin/foot), `#bfbfbf` LINE seams and `#ff7a1a`/`#b34700`
+  HI/HI_LINE highlights, square viewBox crops inside the grid so both mirrored sides stay
+  visible; file names equal the taxonomy ids exactly (`Upper Back.svg`, spaces included).
+  2.2-2.8 KB each.
+- Crop per icon: Rear Delts `11 10 26 26`, Triceps `10 11 28 28`, Lats `11 11 26 26`,
+  Upper Back `11 8 26 26`, Lower Back `11 19 26 26`, Glutes + Hamstrings `13 26 22 22`,
+  Abductors `13 20 22 22`, Calves `15.5 31 17 17`.
+- Regenerated `src/components/icons/iconArt.generated.ts` with `node scripts/build-icon-art.mjs`
+  (13 icons). Reviewed three rendered rounds of `.opencode/renders/sheet.png` and refined
+  every icon at least twice (crop, muscle silhouette, fibre direction).
+- Fixed `docs/design/ICON_STYLE.md`, which still described the pre-pilot rules (96x96
+  viewBox, `#4a4a50`/`#85858c` theme hexes, 6 KB, kebab-case ids) that
+  `scripts/build-icon-art.mjs` has never enforced; it now states the 48 grid, the four
+  authoring colors, the taxonomy file names and the shared body proportions.
+- `npm run verify` → ALL GREEN (secrets, typecheck, all unit tests incl. `test:icons`,
+  typography gate). Files are written but NOT committed (per task rules).
+- Known trade-offs, for whoever draws the front-facing batch (Front Delts, Biceps,
+  Forearms, Neck, Abs, Adductors, Olympic, Full-Body, Other): the back torso is wider at
+  the ribs/waist than Chest.svg's front torso (a back view is broader, and the lats and
+  glutes need the width) — keep or adjust deliberately. The calf highlight necessarily
+  sits low in its crop because the calf is just above the ankle and the grid ends at 48.
+

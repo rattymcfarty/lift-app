@@ -138,6 +138,13 @@
   every later write, including Leave program, then waited forever. Enrollment now
   uses a lock-free `insertSessionStates`. New Maestro flow
   `.maestro/program-leave.yaml` covers enroll then leave.
+- Icons: added original muscle-group art for the back-facing groups — Rear Delts,
+  Triceps, Lats, Upper Back, Lower Back, Glutes, Hamstrings, Abductors, Calves — in
+  `assets/icons-src/muscle`, drawn on the 48x48 grid on one shared back figure with
+  Chest.svg's LINE separation and HI/HI_LINE highlight style, and registered via
+  `scripts/build-icon-art.mjs` into `src/components/icons/iconArt.generated.ts`.
+  `docs/design/ICON_STYLE.md` now states the grid, palette and file-naming rules the
+  validator actually enforces (they were stale: 96x96 viewBox, theme hexes).
 
 ## 0.1.0 — unreleased (closed-test candidate)
 
