@@ -2,12 +2,33 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-14, after the P9 personalisation pass and the
-> disaster-recovery hardening. Repo HEAD at the time: see `git log -1`.
+> Last updated: 2026-10-18, after the side panels (layout redesign B). Repo HEAD
+> at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
+- [opencode] **Side panels (layout redesign B)**, branch main, worked 2026-10-18.
+  The two top-bar buttons now do something. **Left** (top-left button): a glass
+  menu — New workout, Search exercises (lands on Browse Exercises with the field
+  focused), the four **sections** (tap to jump; **long-press and drag** to reorder
+  the floating bar) and **More** (History, Records, Balance, Calculators, Body
+  weight). **Right** (sliders button): the Settings controls, embedded. Both
+  close on scrim tap, the close button, an item tap or Android back — **tap only,
+  no swipe-to-close**. Files: `src/components/chrome/{SidePanels,LeftPanel,RightPanel,TabOrderList}.tsx`;
+  pure `src/chrome/panelsModel.ts` (+ `scripts/test-panel.mjs`, wired into
+  `npm run verify`); `src/components/settings/SettingsBody.tsx` (shared with
+  `app/settings.tsx`); `src/nav/tabs.ts` (the section table the bar and the menu
+  share, so the old `test-tab-order` check moved there); `.maestro/panels.yaml`.
+  Done: `npm run verify` ALL GREEN; device flows `_warmup`, `panels`, `tabs`,
+  `workout-flow`, `exercise-menu`, `_shots` all PASS; the owner confirmed the
+  long-press drag on iOS (Expo Go). **Next in the queue:** stage C (glass
+  sheets/menus), then the icon refinements, then rich exercise pages — see
+  `HANDOFF_AGENT_TO_AGENT.md` §3.
+  Gotcha for the next flow author: the top bar shows the **panel button only on
+  the four section screens**; inner screens have no left button (each screen
+  keeps its own back/close), so don't tap `topbar-panel` after navigating in.
 
 - [claude-code] **Cross-agent foundation + OpenCode delegation**, branch main, started 2026-10-16.
   Done and committed: `AGENTS.md` canonical (CLAUDE.md/GEMINI.md import it; Copilot/Cursor

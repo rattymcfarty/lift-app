@@ -14,7 +14,9 @@ on from here. Read this file, then `AGENTS.md`, then `docs/ops/HANDOFF.md` and
 4. Never push `.github/workflows/*`. No PRs, releases, or tags unless the owner asks.
 5. Review `package.json` / `app.json` diffs by eye before committing (helpers cannot edit `package.json`).
 6. Run `npm run verify` (must print **ALL GREEN**) before every commit. Commit small, one topic each.
-7. Do **not push** until the "push gate" in §3 is met. Local `main` is **9 commits ahead** of `origin/main` (last pushed `f95684e`).
+7. Do **not push** unless the current work is done and `npm run verify` is green
+   and the device flows pass. `main` was last pushed on 2026-10-18 (stage B, side
+   panels); anything after that is local-only.
 8. Reference images in `~/lift/ref-icons/` are local-only: never commit them, never copy them into the repo.
 
 ## 1. How to work (delegate-first)
@@ -42,30 +44,30 @@ fixed glass circle at top centre, floating glass tab bar with reorderable tab or
 free-model pool, the icon pipeline, and **all 21 muscle-group icons + Barbell and Dumbbell**.
 Nothing is running. Working tree clean after commit `8135f1a`.
 
+**Added 2026-10-18 (opencode session, stage B):** the two top-bar buttons now open the
+**side panels** — left menu (New workout, Search, the four sections with long-press drag to
+reorder the bar, More links) and right Settings panel; both glass over a dim, tap-only
+dismissal. `npm run verify` green, device flows pass, owner confirmed the drag on iOS.
+Committed `b8a1685` (+ a flow fix and handoff docs). See `docs/ops/HANDOFF.md` §0.
+
 Already pushed and working: warmup sets sheet, supersets, finish/discard workout sheet,
 planned-set prefill, Markdown exercise guides, "top 50" foundational list, mouse companion,
 purple/blue theme, leave-program fix, Markdown as the only KB source (lift-kb).
 
 ## 3. The queue (do in this order)
 
-### A. Side panels (Stage B) — unlocks the push
-The top-bar buttons currently open nothing. Panel state exists in `src/chrome/panels.tsx`;
-glass primitive in `src/components/ui/Glass.tsx`; bar in `src/components/chrome/TopBar.tsx`.
-- **Left panel** (button at top-left): slide-in glass panel with TABS (reorder the bottom bar by
-  **long-press and drag**, persisted via `src/nav/tabOrder.ts`), MORE links (History, Records,
-  Balance, Calculators, Body weight), Search, and a new-workout button.
-- **Right panel** (sliders button): all Settings content, embedded.
-- **Tap only**: open by the button; close by scrim tap, close button, item tap, or Android back.
-  **No swipe gestures, no drag-to-close.**
-- Liquid-glass look for chrome/buttons/panels/sheets; cards stay solid.
-- Split into two helper jobs (left, right). Add pure-logic tests (`scripts/test-*.mjs`, wire a
-  `test:*` script into `package.json` yourself) and a Maestro flow `.maestro/panels.yaml`.
+### A. Side panels (Stage B) — unlocks the push ✅ DONE 2026-10-18
+The top-bar buttons now open the left menu (New workout, Search, the four
+sections with long-press drag to reorder the bar, More links) and the right
+Settings panel. Both are glass over a dim scrim and close on scrim tap, the
+close button, an item tap or Android back. Pure logic in
+`src/chrome/panelsModel.ts` (`npm run test:panel`), Maestro flow
+`.maestro/panels.yaml`. See `docs/ops/HANDOFF.md` §0 for the file list.
 
-### B. Verify layout on the emulator, then PUSH
-`scripts/e2e.sh --build` then the `_shots` flow and `workout-flow`, `exercise-menu`, `tabs`.
-Look at screenshots (one per question). Check: top bar not overlapping content, companion
-circle not covering controls, floating tab bar not hiding the last list row. Push gate: panels
-work + `npm run verify` green + e2e flows pass → `git push -u origin main`.
+### B. Verify layout on the emulator, then PUSH ✅ DONE 2026-10-18
+`_warmup`, `panels`, `tabs`, `workout-flow`, `exercise-menu`, `_shots` all pass
+on the emulator; `npm run verify` ALL GREEN; the owner confirmed the long-press
+drag on iOS (Expo Go). `main` pushed to `origin/main` (gate met).
 
 ### C. Glass sheets (Stage C)
 Restyle `BottomSheet`/menus in glass; consistent headers. Small jobs.
