@@ -1,0 +1,67 @@
+# Shared bottom-sheet chrome (Stage C of the layout redesign).
+#
+# Every sheet is the same glass component: grabber, title, close. This flow
+# checks the chrome opens, that a pull down on the header dismisses it, and that
+# a tap on the dimmed backdrop above it dismisses it too. The option pickers are
+# covered by program-builder.yaml; the finish sheet by workout-discard.yaml.
+#
+# Run: maestro test .maestro/sheets.yaml
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+
+# A blank workout, then one exercise so the actions button exists.
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+
+# --- the sheet opens with the shared header --------------------------------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- assertVisible:
+    id: "action-sheet"
+- assertVisible:
+    id: "action-sheet-close"
+
+# --- a pull down on the header dismisses it --------------------------------
+- swipe:
+    start: 50%, 20%
+    end: 50%, 70%
+    duration: 400
+- assertNotVisible:
+    id: "action-sheet"
+
+# --- a tap on the dimmed backdrop dismisses it -----------------------------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- assertVisible:
+    id: "action-sheet"
+- tapOn:
+    point: "50%,5%"
+- assertNotVisible:
+    id: "action-sheet"
+
+# --- the header close dismisses it ----------------------------------------
+- tapOn:
+    id: "exercise-actions"
+    index: 0
+- tapOn:
+    id: "action-sheet-close"
+- assertNotVisible:
+    id: "action-sheet"

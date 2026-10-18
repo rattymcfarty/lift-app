@@ -1,10 +1,12 @@
 /**
  * TextPromptModal — a small cross-platform "enter a name" dialog (Alert.prompt
- * is iOS-only). Used for renaming programs and days.
+ * is iOS-only), in the same glass chrome as the sheets. Used for renaming
+ * programs and days.
  */
 import { useEffect, useState, type JSX } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useTheme } from '../../theme';
+import { Glass } from './Glass';
 
 export function TextPromptModal({
   visible,
@@ -45,7 +47,11 @@ export function TextPromptModal({
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: theme.spacing.lg }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={{ backgroundColor: c.surface, borderRadius: theme.radius.lg, padding: theme.spacing.md, gap: theme.spacing.md }}>
+        <Glass
+          shape={theme.radius.lg}
+          strength="heavy"
+          style={{ padding: theme.spacing.md, gap: theme.spacing.md }}
+        >
           <Text style={{ color: c.text, fontSize: t.size.card, fontWeight: t.weight.bold }}>{title}</Text>
           <TextInput
             testID={testID}
@@ -83,7 +89,7 @@ export function TextPromptModal({
               <Text style={{ color: c.accent, fontSize: t.size.row, fontWeight: t.weight.bold }}>{confirmLabel}</Text>
             </Pressable>
           </View>
-        </View>
+        </Glass>
       </KeyboardAvoidingView>
     </Modal>
   );

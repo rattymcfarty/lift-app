@@ -40,6 +40,7 @@ check "test:exercise-menu" "node scripts/test-exercise-menu.mjs"
 # matching "test:tab-order" npm script is pending (one line next to test:companion).
 check "test:tab-order" "node scripts/test-tab-order.mjs"
 check "test:panel" "npm run test:panel"
+check "test:sheet" "npm run test:sheet"
 check "test:programs:user" "npm run test:programs:user"
 check "test:backup" "npm run test:backup"
 check "test:backup:roundtrip" "npm run test:backup:roundtrip"

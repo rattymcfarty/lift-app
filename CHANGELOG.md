@@ -2,6 +2,26 @@
 
 ## Unreleased (addendum)
 
+- Sheets (layout redesign C): **every bottom sheet is now the same glass
+  component**. `BottomSheet` (`src/components/ui/BottomSheet.tsx`) keeps its
+  dimmed backdrop, slide-up spring and safe-area padding but draws its surface
+  with the shared `Glass` (heavy), rounded at the top and square at the bottom,
+  with a soft shadow; its header — grabber, title/subtitle, close — moved to
+  `src/components/ui/SheetHeader.tsx` so no two sheets can drift apart. The
+  drag-to-dismiss maths (claim the pull, follow the finger, dismiss past 90 dp)
+  lives in the pure, unit-tested `src/components/ui/sheetModel.ts` and is shared
+  by `useSheetDrag`. `OptionSheet` is now a thin wrapper over `BottomSheet`
+  instead of a second hand-rolled modal: the program pickers (schedule, duration,
+  deload, copy week, day actions) get the same glass and header, their option
+  test ids (`schedule-sheet-custom`, `minutes-sheet-45`, …) are unchanged, and
+  the redundant bottom **Cancel** button is gone — the header close, a backdrop
+  tap, a pull down or Android back all dismiss. The plate calculator, the muscle
+  group sheet and the rest timer were three more copies of the same chrome; they
+  now render `BottomSheet` too (same ids plus a header close), and the rename
+  dialog (`TextPromptModal`) uses the glass surface. New `scripts/test-sheet.mjs`
+  (`npm run test:sheet`, 11 checks) and Maestro flow `.maestro/sheets.yaml`
+  (opens the sheet, dismisses it by pull-down and by backdrop tap).
+
 - Navigation (layout redesign B): the two top-bar buttons now open **side
   panels** (`src/components/chrome/SidePanels.tsx`, mounted once in
   `app/_layout.tsx` above the bar so an open panel covers the whole app).

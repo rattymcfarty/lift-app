@@ -28,6 +28,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Reminders on my training days | ✅ P9 | Local notifications, no server |
 | Move between sections with one thumb | ✅ A3 | Floating glass pill tab bar, icon only (Programs · Train · Analytics · Exercises), active item in an accent capsule; order persisted (`src/nav/tabOrder.ts`) and carried in backups; content pads around it (`useTabBarSpace`) |
 | Reach anything from one menu | ✅ B | Glass **side panels** from the top bar: left = New workout, Search, the four sections (tap to jump, long-press-drag to reorder the bar) and More (History, Records, Balance, Calculators, Body weight); right = Settings. Tap-only dismissal (scrim, close button, item tap, Android back) |
+| Sheets and dialogs that look like one app | ✅ C | Every bottom sheet is the same glass component (`BottomSheet` + shared `SheetHeader`: grabber, title, close); the option pickers, the plate calculator, the muscle sheet and the rest timer all render it, and the rename dialog is glass. Dismiss by the header close, a backdrop tap, a pull down on the header, or Android back |
 
 ## 3. During the workout
 | Need | Status | Notes |

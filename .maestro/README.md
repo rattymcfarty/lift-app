@@ -32,6 +32,9 @@ maestro test .maestro/workout-flow.yaml
   New workout, Search, More), tapping a section jumps to it, a More item
   navigates and dismisses, the close button and a scrim tap dismiss, and the
   sliders button opens the Settings panel.
+- `sheets.yaml` — shared sheet chrome: the actions sheet opens glass with its
+  header, a pull down on the header dismisses it, and so do a backdrop tap and
+  the header close.
 
 ## Writing new flows
 
@@ -60,6 +63,17 @@ changes. Key testIDs:
 | `panel-new-workout`, `panel-search` | Left panel → quick actions |
 | `panel-more-<key>` | Left panel → More row (history, records, balance, calculators, body-weight) |
 | `settings-*` | Settings controls (also inside the right panel) |
+| `<sheet>`, `<sheet>-close` | Any bottom sheet surface and its header close (see below) |
+| `<sheet>-<value>` | Option picker (programs) → the choice with that value |
+
+Every bottom sheet is the same component — `src/components/ui/BottomSheet.tsx`,
+glass with rounded top corners, a grabber, a title and a close button; the option
+pickers (`OptionSheet`) are thin wrappers over it. A sheet is dismissed by its
+header close (`<testID>-close`), a tap on the dimmed backdrop, a pull down on the
+header, or Android back. Surfaces in use: `finish-sheet`, `action-sheet`,
+`warmup-sheet`, `reorder-sheet`, `superset-sheet`, `plate-sheet`, `muscle-sheet`,
+`rest-timer`, `schedule-sheet`, `weeks-sheet`, `deload-sheet`, `copy-week-sheet`,
+`day-sheet`.
 
 The side panels close on a scrim tap; because the panel covers most of the
 width, tap the bare strip on the far side (`tapOn: { point: "95%,50%" }` for the

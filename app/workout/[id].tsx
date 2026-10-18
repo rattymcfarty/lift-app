@@ -15,9 +15,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   finishWorkout,
   getPreviousPerformance,
@@ -613,27 +613,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderTopWidth: 1,
-    padding: 16,
-    maxHeight: '70%',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  scroll: {
-    maxHeight: 500,
-  },
 });
 
 /* ------------------------------------------------------------------ */
@@ -648,59 +627,39 @@ interface MuscleSheetProps {
 
 function MuscleSheet({ visible, items, onClose }: MuscleSheetProps): JSX.Element {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const aggregated = aggregateMuscles(items);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" presentationStyle="overFullScreen" onRequestClose={onClose}>
-      <Pressable style={[styles.overlay, { paddingTop: insets.top }]} onPress={onClose}>
-        <View
-          style={[
-            styles.sheet,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              paddingBottom: insets.bottom + 16,
-            },
-          ]}
-          onStartShouldSetResponder={() => true}
-        >
-          <View style={styles.headerRow}>
-            <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.card, fontWeight: theme.typography.weight.bold }}>Muscle Groups</Text>
-            <Pressable testID="muscle-sheet-close" onPress={onClose} hitSlop={12}>
-              <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.card }}>✕</Text>
-            </Pressable>
-          </View>
-          <ScrollView style={styles.scroll}>
-            {aggregated.length === 0 ? (
-              <Text style={{ color: theme.colors.faint, fontSize: theme.typography.size.body, textAlign: 'center', paddingVertical: 20 }}>
-                No working sets logged yet.
+    <BottomSheet visible={visible} onClose={onClose} title="Muscle Groups" testID="muscle-sheet">
+      <ScrollView style={{ flexShrink: 1 }}>
+        {aggregated.length === 0 ? (
+          <Text style={{ color: theme.colors.faint, fontSize: theme.typography.size.body, textAlign: 'center', paddingVertical: 20 }}>
+            No working sets logged yet.
+          </Text>
+        ) : (
+          aggregated.map((m) => (
+            <View
+              key={m.muscle}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.colors.border,
+              }}
+            >
+              <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.row, fontWeight: theme.typography.weight.medium }}>
+                {m.muscle}
               </Text>
-            ) : (
-              aggregated.map((m) => (
-                <View
-                  key={m.muscle}
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    paddingVertical: 10,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.border,
-                  }}
-                >
-                  <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.row, fontWeight: theme.typography.weight.medium }}>
-                    {m.muscle}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }}>
-                    {m.sets} set{m.sets === 1 ? '' : 's'}
-                  </Text>
-                </View>
-              ))
-            )}
-          </ScrollView>
-        </View>
-      </Pressable>
-    </Modal>
+              <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }}>
+                {m.sets} set{m.sets === 1 ? '' : 's'}
+              </Text>
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
@@ -716,69 +675,46 @@ interface RestTimerModalProps {
 
 function RestTimerModal({ visible, onClose, onDone }: RestTimerModalProps): JSX.Element {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const [seconds, setSeconds] = useState<number | null>(null);
 
-  if (!visible) return <></>;
-
   return (
-    <Modal visible={visible} transparent animationType="fade" presentationStyle="overFullScreen" onRequestClose={onClose}>
-      <Pressable style={[styles.overlay, { paddingTop: insets.top }]} onPress={onClose}>
-        <View
-          style={[
-            styles.sheet,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              paddingBottom: insets.bottom + 16,
-            },
-          ]}
-          onStartShouldSetResponder={() => true}
-        >
-          <View style={styles.headerRow}>
-            <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.card, fontWeight: theme.typography.weight.bold }}>Rest Timer</Text>
-            <Pressable testID="rest-timer-close" onPress={onClose} hitSlop={12}>
-              <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.card }}>✕</Text>
+    <BottomSheet visible={visible} onClose={onClose} title="Rest Timer" testID="rest-timer">
+      <View style={{ gap: 12, paddingVertical: 16, paddingHorizontal: theme.spacing.md }}>
+        <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body, textAlign: 'center' }}>
+          Choose a preset duration
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {[30, 60, 90, 120, 180, 300].map((sec) => (
+            <Pressable
+              key={sec}
+              testID={`rest-preset-${sec}`}
+              onPress={() => {
+                setSeconds(sec);
+              }}
+              style={{
+                backgroundColor: theme.colors.surfaceMuted,
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+              }}
+            >
+              <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.medium }}>
+                {sec}s
+              </Text>
             </Pressable>
-          </View>
-          <View style={{ gap: 12, paddingVertical: 16 }}>
-            <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body, textAlign: 'center' }}>
-              Choose a preset duration
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {[30, 60, 90, 120, 180, 300].map((sec) => (
-                <Pressable
-                  key={sec}
-                  testID={`rest-preset-${sec}`}
-                  onPress={() => {
-                    setSeconds(sec);
-                  }}
-                  style={{
-                    backgroundColor: theme.colors.surfaceMuted,
-                    borderRadius: 8,
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                  }}
-                >
-                  <Text style={{ color: theme.colors.text, fontSize: theme.typography.size.body, fontWeight: theme.typography.weight.medium }}>
-                    {sec}s
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {seconds != null && (
-              <RestTimer
-                key={`rest-${seconds}`}
-                seconds={seconds}
-                onDone={() => {
-                  setSeconds(null);
-                  onDone();
-                }}
-              />
-            )}
-          </View>
+          ))}
         </View>
-      </Pressable>
-    </Modal>
+        {seconds != null && (
+          <RestTimer
+            key={`rest-${seconds}`}
+            seconds={seconds}
+            onDone={() => {
+              setSeconds(null);
+              onDone();
+            }}
+          />
+        )}
+      </View>
+    </BottomSheet>
   );
 }

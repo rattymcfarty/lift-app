@@ -2,12 +2,31 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-18, after the side panels (layout redesign B). Repo HEAD
+> Last updated: 2026-10-18, after the glass sheets (layout redesign C). Repo HEAD
 > at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
+- [opencode] **Glass sheets (layout redesign C)**, branch main, worked 2026-10-18.
+  Every bottom sheet is now the same component. `BottomSheet` draws its surface
+  with `Glass` (heavy, top corners rounded, bottom square, soft shadow) and its
+  header — grabber, title/subtitle, close — comes from the new
+  `src/components/ui/SheetHeader.tsx`; the pull-down maths lives in the pure
+  `src/components/ui/sheetModel.ts` (`npm run test:sheet`, 11 checks) shared by
+  `useSheetDrag`. `OptionSheet` is a thin wrapper over `BottomSheet` now (the
+  hand-rolled modal is gone, as is its redundant **Cancel** footer — the header
+  close, backdrop tap, pull down and Android back all dismiss). The plate
+  calculator, the muscle sheet and the rest timer (the last two were local
+  components in `app/workout/[id].tsx`) are three more copies that now render
+  `BottomSheet`; `TextPromptModal` (rename dialogs) is glass. Ids keep their
+  names: a sheet's close is `<surface>-close`, option rows stay
+  `<surface>-<value>`. New Maestro flow `.maestro/sheets.yaml` (open, pull-down
+  dismiss, backdrop dismiss). Verified: `npm run verify` ALL GREEN; device flows
+  `sheets`, `exercise-menu`, `workout-flow`, `program-builder`.
+  **Next in the queue:** stage D (icon refinements, then the equipment icons),
+  then rich exercise pages in `lift-kb` — see `HANDOFF_AGENT_TO_AGENT.md` §3.
 
 - [opencode] **Side panels (layout redesign B)**, branch main, worked 2026-10-18.
   The two top-bar buttons now do something. **Left** (top-left button): a glass
