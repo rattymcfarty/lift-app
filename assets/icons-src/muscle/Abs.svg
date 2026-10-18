@@ -1,0 +1,32 @@
+<svg viewBox="8 12 32 32">
+  <!-- front mid torso: ribs, abs, hips -->
+  <path fill="#808080" d="M13.2 14.6 Q17.5 12 20.8 12.2 L27.2 12.2 Q30.5 12 34.8 14.6 L33.6 20.5 Q32.8 26 31.4 31.6 L28.6 32.6 Q24 33.4 19.4 32.6 L16.6 31.6 Q15.2 26 14.4 20.5 Z" />
+  <circle cx="12.4" cy="16.4" r="3.4" fill="#808080" />
+  <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <circle cx="12.4" cy="16.4" r="3.4" fill="#808080" />
+    <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
+  </g>
+
+  <!-- anatomy: sternum, collarbones, rib lower edge -->
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 30" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
+  </g>
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 21.2 Q24 23.4 30.6 21.2" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M19.2 27.8 Q21.6 28.8 23.8 27.9" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M19.8 31.2 Q21.8 32.2 23.8 31.3" />
+
+  <!-- abs (rectus abdominis, centre torso) -->
+  <rect x="19.6" y="18" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+  <rect x="19.6" y="21.8" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+  <rect x="19.6" y="25.6" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <rect x="19.6" y="18" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+    <rect x="19.6" y="21.8" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+    <rect x="19.6" y="25.6" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+  </g>
+  <path fill="#ff7a1a" d="M20.4 29.6 Q24 31.4 27.6 29.6 L27.2 31.2 Q24 32.4 20.8 31.2 Z" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M19.6 18 L23.4 18 L23.4 21 L19.6 21 Z M19.6 21.8 L23.4 21.8 L23.4 24.8 L19.6 24.8 Z M19.6 25.6 L23.4 25.6 L23.4 28.6 L19.6 28.6 Z M20.4 29.6 Q24 31.4 27.6 29.6 L27.2 31.2 Q24 32.4 20.8 31.2 Z M24 18.5 L24 28.5" />
+</svg>
