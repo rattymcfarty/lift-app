@@ -2,12 +2,38 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-18, after the icons pass (queue item D). Repo HEAD
+> Last updated: 2026-10-18, after the exercise-guide pass (queue item E). Repo HEAD
 > at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
+- [opencode] **Exercise guides (queue item E)**, branch main, worked 2026-10-18.
+  lift-kb bundle **0.6.0** (631 pages, 581 live, pushed as `d9f9e8e`): the four
+  movements the curated list was missing are written — `bird-dog`,
+  `cable-woodchops`, `rowing-machine`, `outdoor-cycling` — so all 50 foundational
+  names resolve; `src/lib/foundational.ts` has no placeholder comments left and
+  `scripts/test-foundational.mjs` asserts 50/50 (190 checks). Six pages are the
+  **rich-page pilot**: `barbell-squat`, `barbell-deadlift`, `push-up`,
+  `farmer-carry`, plus the two new pages `bird-dog` and `rowing-machine`. The
+  shape: `### ` subheadings in `longevityNotes` (*why this matters for a long
+  life · rhythm and tempo · keeping it for life*), the tempo written into the
+  instructions, a one-line motivation blockquote, and a safety note that says
+  when to stop and who should regress. The two imported pages also lose their
+  Free Exercise DB prose. **The owner has not approved this shape yet — do not
+  rewrite the other 600 pages until they have.**
+  App side: the snapshot is refreshed to 0.6.0, the detail screen's Overview card
+  now shows the KB steps alone (`kbDetailJson.instructions`, added in
+  `src/kb/transform.ts`; older rows fall back to the composite `instructions`
+  column), so the How-to card no longer repeats the cues, mistakes and safety
+  note, and the new `.maestro/exercise-detail.yaml` covers the screen.
+  Note for the next content pass: the lift-kb pre-commit hook and CI are the
+  gates (`validate-content.mjs`, `lint-content.mjs`, `test-md-content.mjs`), and
+  `scripts/test-md-content.mjs` carries the expected bundle sha256 — update it
+  with `kb-version.json` whenever the content changes.
+  **Next in the queue:** item F (Beam bake-off, `opencode/beam-free`), then G
+  (housekeeping) — see `HANDOFF_AGENT_TO_AGENT.md` §3.
 
 - [opencode] **Icons (queue item D)**, branch main, worked 2026-10-18, pushed as
   `a782d31`. Muscle art redrawn where the highlight was too thin or the crop

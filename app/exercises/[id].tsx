@@ -250,15 +250,20 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
   );
 
   const renderOverviewSection = () => {
-    const instructions = exercise.instructions || '';
-    if (!instructions) return null;
+    // The KB steps on their own. The stored `instructions` column is the
+    // composite (steps + cues + mistakes + safety) that older rows and the
+    // custom-exercise form still use, so the How-to card below does not repeat
+    // itself when the raw steps are available.
+    const steps: string[] = kbDetailJson.instructions || [];
+    const markdown = steps.length > 0 ? steps.map((step, i) => `${i + 1}. ${step}`).join('\n') : exercise.instructions || '';
+    if (!markdown) return null;
     return (
       <Card>
         <View style={{ gap: theme.spacing.sm }}>
           <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
             Overview
           </Text>
-          <Markdown text={instructions} />
+          <Markdown text={markdown} />
         </View>
       </Card>
     );

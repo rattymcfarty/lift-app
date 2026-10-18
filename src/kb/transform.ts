@@ -148,6 +148,7 @@ export function kbExerciseToUpsertInput(
     kbCategory,
     kbDetailJson: JSON.stringify({
       difficulty: ex.difficulty,
+      instructions: ex.instructions,
       cues: ex.cues ?? [],
       commonMistakes: ex.commonMistakes ?? [],
       safetyNotes: ex.safetyNotes ?? null,

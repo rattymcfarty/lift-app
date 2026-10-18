@@ -1,0 +1,39 @@
+# Exercise guide smoke test: a KB exercise opens its detail page and the guide
+# cards render from the imported knowledge base — Overview (the KB steps), Why
+# (longevity notes), How-to (cues, mistakes, safety) and Progression.
+# Run: maestro test .maestro/exercise-detail.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+
+# Browse Exercises: the first row is the top of the curated foundational list.
+- tapOn:
+    id: "tab-exercises"
+- assertVisible: "Browse Exercises"
+- tapOn:
+    id: "browse-exercise-row-.*"
+    index: 0
+
+# The detail page, with every guide card present.
+- assertVisible: ".*Barbell Squat.*"
+- assertVisible: "Overview"
+- assertVisible: "Why"
+- assertVisible: "How-to"
+- assertVisible: "Cues"
+- assertVisible: "Watch out for"
+- assertVisible: "Safety"
+- assertVisible: "Progression"
+
+# The guide is real prose, not an empty frame: a step, a cue and a safety line
+# from the KB page all reach the screen.
+- assertVisible: ".*Brace, then sit down between your feet.*"
+- assertVisible: ".*Knees track over toes.*"
+- assertVisible: ".*safety pins set just below your bottom position.*"
+
+# Back to the browser, and the same exercise opens again.
+- pressKey: back
+- assertVisible: "Browse Exercises"

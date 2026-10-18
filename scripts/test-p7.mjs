@@ -144,13 +144,13 @@ try {
   check('isKnownCategory("Squat") === true', taxonomy.isKnownCategory('Squat') === true);
   check('isKnownCategory("FakeCategory") === false', taxonomy.isKnownCategory('FakeCategory') === false);
 
-  // 7. KB validation: all 627 exercises validate against updated schema.
+  // 7. KB validation: all 631 exercises validate against updated schema.
   // Read the checked-in snapshot bundle (what the app actually ships) so this
   // test has no dependency on the sibling lift-kb repo or a locally built dist/.
   const exerciseSchema = JSON.parse(readFileSync(join(process.cwd(), 'src/kb/schemas/exercise.schema.json'), 'utf8'));
   const bundlePath = join(process.cwd(), 'assets', 'kb', 'snapshot', 'bundle.json');
   const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
-  check('627 exercises in KB snapshot', bundle.exercises.length === 627);
+  check('631 exercises in KB snapshot', bundle.exercises.length === 631);
 
   let allExercisesValid = true;
   for (const ex of bundle.exercises) {
@@ -160,7 +160,7 @@ try {
       allExercisesValid = false;
     }
   }
-  check('all 627 KB exercises pass schema validation', allExercisesValid);
+  check('all 631 KB exercises pass schema validation', allExercisesValid);
 
   // 8. Snapshot taxonomy check: every exercise in refreshed snapshot has valid taxonomy
   check('snapshot has a semver bundleVersion', /^\d+\.\d+\.\d+$/.test(bundle.bundleVersion));

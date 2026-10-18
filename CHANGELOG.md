@@ -2,6 +2,23 @@
 
 ## Unreleased (addendum)
 
+- Exercise guides (E): the knowledge base gained the four movements the curated
+  foundational list was missing — **Bird Dog**, **Cable Woodchops**, **Rowing
+  Machine** and **Outdoor Cycling** — so all 50 names now resolve to a live page
+  (`src/lib/foundational.ts` has no placeholder comments left), and the app ships
+  KB bundle **0.6.0** (631 pages, 581 live) in `assets/kb/snapshot`. Six pages are
+  the pilot for the rich-page rewrite: `longevityNotes` carries `### `
+  subheadings (*why this matters for a long life · rhythm and tempo · keeping it
+  for life*), the instructions spell out the tempo, every page has a one-line
+  motivation blockquote and a safety note that says when to stop and who should
+  regress. `barbell-squat` and `barbell-deadlift` also lose their imported Free
+  Exercise DB prose (it referred to a "foot stances section" that does not exist)
+  for clean steps, real common mistakes and a safety note. On the detail screen
+  the Overview card now shows the KB steps alone — the raw steps ride in
+  `kbDetailJson.instructions` — so the How-to card below it no longer repeats the
+  cues, mistakes and safety note (older rows fall back to the stored composite
+  text). New Maestro flow `.maestro/exercise-detail.yaml`.
+
 - Icons (D): muscle art redrawn where the highlight was too thin or the crop
   wrong, and the whole equipment set moved into the art pipeline. **Biceps** now
   has a real belly on each upper arm instead of a stripe; **Front Delts** and

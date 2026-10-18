@@ -49,9 +49,9 @@ export const FOUNDATIONAL_IDS: readonly string[] = [
   'plank', // 31 Plank
   'side-plank', // 32 Side Plank
   'dead-bug', // 33 Dead Bug
-  // 34 Bird Dog — no live match in the catalogue (untracked gap)
+  'bird-dog', // 34 Bird Dog
   'hanging-knee-raise', // 35 Hanging Knee Raises
-  // 36 Cable Woodchops — no live match in the catalogue (untracked gap)
+  'cable-woodchops', // 36 Cable Woodchops
   'pallof-press', // 37 Pallof Press
   'back-extension', // 38 Back Extensions
   'farmer-carry', // 39 Farmer's Carry
@@ -59,8 +59,8 @@ export const FOUNDATIONAL_IDS: readonly string[] = [
   'treadmill', // 41 Treadmill Walking
   'run', // 42 Running or Jogging
   'cycling', // 43 Stationary Cycling
-  // 44 Outdoor Cycling — the catalogue has a single `cycling` entry (used above)
-  // 45 Rowing Machine — no live match in the catalogue (untracked gap)
+  'outdoor-cycling', // 44 Outdoor Cycling
+  'rowing-machine', // 45 Rowing Machine
   'elliptical', // 46 Elliptical Trainer
   'stair-climber', // 47 Stair Climber
   'jump-rope', // 48 Jump Rope

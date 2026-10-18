@@ -57,10 +57,11 @@ for (const id of IDS) {
   ok(!!ex, `id exists in the snapshot: ${id}`);
   ok(ex && ex.deprecated !== true, `id is live (not deprecated): ${id}`);
 }
-// 46 of the owner's 50 names have a live match; the other four (Bird Dog,
-// Cable Woodchops, Outdoor Cycling, Rowing Machine) have no entry. Changing
-// this number is a deliberate product decision, not a refactor side effect.
-eq(IDS.length, 46, 'curated list length (46 of the owner\'s 50 names matched)');
+// All 50 of the owner's names now have a live match: the four gaps (Bird Dog,
+// Cable Woodchops, Outdoor Cycling, Rowing Machine) were written in lift-kb
+// 0.6.0. Changing this number is a deliberate product decision, not a refactor
+// side effect.
+eq(IDS.length, 50, 'curated list length (all 50 of the owner\'s names matched)');
 eq(FN.FOUNDATIONAL_COUNT, IDS.length, 'exposed count matches the array');
 
 /* ---- rank helper ------------------------------------------------------- */
