@@ -1,9 +1,9 @@
 // Unit tests for the companion message queue, the (pure) skin-selection logic
-// (pure TS, bundled with esbuild) and the (pure) screen-placement helpers.
-// Covers priority ordering, same-priority FIFO, de-dupe/cooldown, eviction,
-// expiry against an injected clock, dismiss/clear, subscribe and the enabled
-// gate — plus the companion style default, guard and fallbacks, and the
-// default/snap position, bubble placement and hidden-route rules.
+// (pure TS, bundled with esbuild) and the (pure) route helpers shared with the
+// TopBar. Covers priority ordering, same-priority FIFO, de-dupe/cooldown,
+// eviction, expiry against an injected clock, dismiss/clear, subscribe and the
+// enabled gate — plus the companion style default, guard and fallbacks, and the
+// hidden-route / top-level-route rules.
 import { build } from 'esbuild';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -21,7 +21,7 @@ const outSkin = join(mkdtempSync(join(tmpdir(), 'companion-skin-')), 'skin.mjs')
 await build({ entryPoints: [join(root, 'src/companion/skin.ts')], bundle: true, format: 'esm', platform: 'node', outfile: outSkin, logLevel: 'error' });
 const S = await import(pathToFileURL(outSkin).href);
 
-// Placement geometry is pure as well: no React, no native imports.
+// Route helpers shared with the TopBar are pure as well: no React, no native.
 const outPlace = join(mkdtempSync(join(tmpdir(), 'companion-placement-')), 'placement.mjs');
 await build({ entryPoints: [join(root, 'src/companion/placement.ts')], bundle: true, format: 'esm', platform: 'node', outfile: outPlace, logLevel: 'error' });
 const P = await import(pathToFileURL(outPlace).href);
@@ -207,65 +207,9 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   }
 }
 
-// --- screen placement (pure) ------------------------------------------------
+// --- route helpers (pure) ---------------------------------------------------
 {
-  // A 411×891 phone with insets: the bounds the overlay derives.
-  const B = { left: 12, right: 319, top: 46, bottom: 743 };
-
-  eq(P.clampPosition(5, 0, 10), 5, 'clamp keeps a value inside the range');
-  eq(P.clampPosition(-5, 0, 10), 0, 'clamp lifts a value under the minimum');
-  eq(P.clampPosition(50, 0, 10), 10, 'clamp drops a value over the maximum');
-
-  eq([...P.COMPANION_CORNERS], ['tc', 'tl', 'tr', 'bl', 'br'], 'the five snap anchors');
-  ok(P.COMPANION_CORNERS.includes(P.FALLBACK_CORNER), 'the fallback is a real anchor');
-
-  eq(P.cornerPosition('tc', B), { x: 165.5, y: 46 }, 'tc is top-centre');
-  eq(P.cornerPosition('tl', B), { x: 12, y: 46 }, 'tl is top-left');
-  eq(P.cornerPosition('tr', B), { x: 319, y: 46 }, 'tr is top-right');
-  eq(P.cornerPosition('bl', B), { x: 12, y: 743 }, 'bl is bottom-left');
-  eq(P.cornerPosition('br', B), { x: 319, y: 743 }, 'br is bottom-right');
-
-  eq(P.nearestCorner(317, 740, B), 'br', 'a release at the bottom-right snaps to br');
-  eq(P.nearestCorner(14, 48, B), 'tl', 'a release at the top-left snaps to tl');
-  eq(P.nearestCorner(160, 400, B), 'tc', 'centred up top is nearest to tc');
-  eq(P.nearestCorner(20, 700, B), 'bl', 'a release low-left snaps to bl');
-
-  // Default: RIGHT edge, ~38% down, inside the safe-area bounds.
-  eq(P.DEFAULT_V_FRACTION, 0.72, 'the default sits 72% down the window');
-  const def = P.defaultCompanionPosition(891, B);
-  eq(def.x, 12, 'the default hugs the left bound');
-  eq(def.y, 641.52, 'the default is 72% of the window height down');
-  ok(def.y > B.top && def.y < B.bottom, 'the default is inside the bounds');
-  ok(def.y > 420 && def.y < 700, 'the default is in the lower part of the screen, clear of the header and the tab bar');
-
-  // Tiny window: the raw 72% point is outside the bounds and gets clamped.
-  const tiny = { left: 12, right: 100, top: 30, bottom: 60 };
-  eq(P.defaultCompanionY(240, tiny), 60, 'a short window clamps the default down to the bottom bound');
-  const squat = { left: 12, right: 100, top: 60, bottom: 100 };
-  eq(P.defaultCompanionY(70, squat), 60, 'a very short window clamps it up to the top bound');
-  eq(P.defaultCompanionPosition(70, squat), { x: 12, y: 60 }, 'the tiny-window default is still the left edge');
-
-  // Bubble: opens to the left of a right-edge creature, centred otherwise.
-  const right = P.placeBubble(319, 80, 411, 260, 12, 8);
-  ok(right.opensLeft, 'a right-edge creature pushes the bubble left');
-  eq(right.left, 51, 'the bubble ends 8dp before the creature');
-  ok(right.left + 260 <= 319, 'the bubble never overlaps the creature');
-  const left = P.placeBubble(12, 80, 411, 260, 12, 8);
-  ok(!left.opensLeft, 'a left-side creature keeps the centred bubble');
-  eq(left.left, 12, 'the centred bubble is clamped inside the margin');
-  const centre = P.placeBubble(165, 80, 411, 260, 12, 8);
-  ok(!centre.opensLeft, 'a centred creature keeps the centred bubble');
-  eq(centre.left, 75, 'the centred bubble is centred on the creature');
-  const narrow = P.placeBubble(200, 80, 240, 220, 12, 8);
-  ok(narrow.left >= 12 && narrow.left + 220 <= 240, 'a narrow window still keeps the bubble inside');
-
-  // Routes the overlay must stay off.
-  // Top-level (tab) routes show the panel/settings buttons; inner screens do not.
-  ok(P.isTopLevelRoute('/', ['(tabs)']), 'the Train tab (group index) is top level');
-  ok(P.isTopLevelRoute('/programs', ['(tabs)', 'programs']), 'Programs is top level');
-  ok(P.isTopLevelRoute('/exercises', ['(tabs)', 'exercises']), 'Exercises is top level');
-  ok(!P.isTopLevelRoute('/workout/abc', ['workout', '[id]']), 'a workout screen is not top level');
-  ok(!P.isTopLevelRoute('/settings', ['settings']), 'settings is not top level');
+  // Routes the chrome must stay off.
   ok(P.isCompanionHiddenRoute('/onboarding', ['onboarding']), 'onboarding is hidden');
   ok(P.isCompanionHiddenRoute('/onboarding', []), 'onboarding is hidden by pathname alone');
   ok(P.isCompanionHiddenRoute('/programs/parq', ['programs', 'parq']), 'PAR-Q is hidden');
@@ -274,6 +218,13 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   ok(!P.isCompanionHiddenRoute('/programs', ['programs']), 'program lists show the companion');
   ok(!P.isCompanionHiddenRoute('/workout/abc-123', ['workout', 'abc-123']), 'a workout shows the companion');
   ok(!P.isCompanionHiddenRoute('/settings', ['settings']), 'settings show the companion');
+
+  // Top-level (tab) routes show the panel/settings buttons; inner screens do not.
+  ok(P.isTopLevelRoute('/', ['(tabs)']), 'the Train tab (group index) is top level');
+  ok(P.isTopLevelRoute('/programs', ['(tabs)', 'programs']), 'Programs is top level');
+  ok(P.isTopLevelRoute('/exercises', ['(tabs)', 'exercises']), 'Exercises is top level');
+  ok(!P.isTopLevelRoute('/workout/abc', ['workout', '[id]']), 'a workout screen is not top level');
+  ok(!P.isTopLevelRoute('/settings', ['settings']), 'settings is not top level');
 }
 
-console.log(`companion queue + skins + placement: ${n} assertions passed`);
+console.log(`companion queue + skins + routes: ${n} assertions passed`);

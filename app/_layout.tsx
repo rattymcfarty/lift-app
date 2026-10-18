@@ -13,7 +13,6 @@ import { importSnapshotOnFirstLaunch } from '../src/kb';
 import { MigrationErrorBoundary } from '../src/components/MigrationErrorBoundary';
 import { ThemeProvider, useTheme } from '../src/theme';
 import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
-import { Companion } from '../src/companion/Companion';
 import { PanelsProvider } from '../src/chrome/panels';
 import { TopBar } from '../src/components/chrome/TopBar';
 
@@ -99,10 +98,9 @@ function AppShell() {
           }}
         />
         <WorkoutLifecycleWatcher />
-        {/* Top bar: absolute overlay above the Stack, pointerEvents='box-none'. */}
+        {/* Top bar: absolute overlay above the Stack, pointerEvents='box-none'.
+            It renders the companion circle in its centre slot. */}
         <TopBar />
-        {/* Floating companion: above the Stack and tabs, box-none overlay. */}
-        <Companion />
         {statusBar}
       </View>
     </PanelsProvider>

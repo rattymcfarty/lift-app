@@ -1,5 +1,5 @@
-# Companion overlay: the creature is visible on the Train tab and does not
-# block the tab bar underneath it (box-none overlay).
+# Companion: the creature sits fixed in the TopBar centre (circular glass ring)
+# and still does not block the screen underneath.
 # Run: maestro test .maestro/companion.yaml
 appId: app.lift.mobile
 ---

@@ -8,7 +8,7 @@
  * Layout:
  * - LEFT: GlassButton with 'panel' icon (testID: topbar-panel) → opens left panel
  *         On non-top-level routes: back button (chevron, testID: topbar-back)
- * - CENTER: Empty 56dp slot reserved for companion circle (stage A2)
+ * - CENTER: the companion circle (<Companion />) — stage A2
  * - RIGHT: GlassButton with 'sliders' icon (testID: topbar-settings) → opens right panel
  *          Hidden on non-top-level routes
  *
@@ -19,6 +19,7 @@ import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, useSegments } from 'expo-router';
 import { GlassButton } from '../ui/Glass';
+import { Companion } from '../../companion/Companion';
 import { usePanels } from '../../chrome/panels';
 import { isCompanionHiddenRoute, isTopLevelRoute } from '../../companion/placement';
 
@@ -89,7 +90,9 @@ export function TopBar(): JSX.Element | null {
     >
       <View style={styles.row}>
         <View style={styles.leftSlot}>{leftButton}</View>
-        <View style={styles.centerSlot} />
+        <View style={styles.centerSlot}>
+          <Companion />
+        </View>
         <View style={styles.rightSlot}>{rightButton}</View>
       </View>
     </View>
@@ -179,7 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   centerSlot: {
-    width: 56, // Reserved for companion circle (stage A2)
+    width: 56, // The companion circle (48 dp) sits centred here
     flex: 1,
     alignItems: 'center',
   },

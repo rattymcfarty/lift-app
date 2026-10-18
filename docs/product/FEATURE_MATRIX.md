@@ -40,7 +40,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
 | Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
 | Finish or discard a workout | ✅ | Header/footer **Finish** opens a themed sheet — **Finish workout** (→ summary), **Discard workout** (confirm → soft-delete, back to Train), **Cancel**; a discarded workout leaves no history, PRs, stats or program progress behind |
-| A companion that encourages without hype | 🟡 foundation | Floating avatar + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; draggable, default right edge (never over a screen title), hidden on onboarding and PAR-Q; `docs/product/COMPANION.md` |
+| A companion that encourages without hype | 🟡 foundation | Fixed avatar in the TopBar centre (circular glass ring) + message queue (`src/companion/`); two skins — the illustrated mouse by default, the SVG creature as an alternative; hidden on onboarding and PAR-Q; `docs/product/COMPANION.md` |
 
 ## 4. After the workout
 | Need | Status | Notes |
@@ -58,7 +58,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Duplicate a plan to customise | ✅ | |
 | Export / import everything | ✅ P9 | Profile & settings now included in the file |
 | Units kg/lb, dark/light | ✅ | |
-| Hide the companion completely | ✅ | Settings → Companion (default ON); position stays local, out of backups |
+| Hide the companion completely | ✅ | Settings → Companion (default ON); the circle is fixed in the top bar centre |
 | Choose the companion's look | ✅ | Settings → Companion → Style: Mouse (default) / Blob; persisted, rides in backups |
 | Works offline, no tracking | ✅ | |
 

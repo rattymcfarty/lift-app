@@ -1,122 +1,87 @@
 /**
- * Floating companion overlay — mounted ONCE in `app/_layout.tsx`, above the
- * Stack and tabs. It renders the current queue message in a speech bubble and
- * the character itself (whichever skin Settings has chosen — the mouse picture
- * by default, the SVG creature as an alternative), which the user can drag
- * anywhere and tap for a reaction.
+ * Companion — Pip, the app's little companion.
  *
- * Layout & touches
- * - The root is `absoluteFill` with `pointerEvents="box-none"`, so it never
- *   blocks the screen underneath; only the creature (the drag/tap target) can
- *   take a touch — the bubble, the shadow and the sparkles are all
- *   `pointerEvents="none"`.
- * - Safe-area aware. Default position: the RIGHT edge, about 38% down the
- *   window (top-centre sat on top of screen titles); a drag snaps to the
- *   nearest edge/corner as before, and that corner is remembered in
- *   AsyncStorage under a plain local key (deliberately NOT in the backup
- *   whitelist in `src/data/appData.ts` — a UI position is not user data).
- * - Never rendered on the onboarding wizard or the PAR-Q+ questionnaire.
- * - Tap = a jump + a wiggle, and dismiss the visible message.
+ * Since stage A2 of the layout redesign the creature is no longer a
+ * free-floating, draggable overlay: it sits FIXED in the centre of the TopBar,
+ * inside a ~48 dp circular glass ring (`src/components/ui/Glass.tsx`). The
+ * artwork is drawn larger than the ring and clipped to the circle
+ * (`overflow: hidden` + `borderRadius`), framed so the face and upper body fill
+ * it. The skin still floats / breathes / blinks / hops / sparkles, and every
+ * motion is clipped inside the ring.
  *
- * Accessibility: the creature is a button with a label; new messages are
- * announced; all looping motion is skipped under reduce-motion (a tap then only
- * dismisses the bubble).
+ * The speech bubble is centred BELOW the ring (just below the top bar) with a
+ * small tail pointing up at the creature; it is at most ~80 % of the window
+ * wide. Tapping the circle plays the jump + wiggle reaction and dismisses the
+ * visible message — the bubble itself stays `pointerEvents="none"` so it never
+ * steals touches from the screen underneath.
+ *
+ * The TopBar renders this inside its centre slot; the root layout no longer
+ * mounts it separately. It is never drawn on the onboarding wizard or the
+ * PAR-Q+ questionnaire (the TopBar checks `isCompanionHiddenRoute`). Settings
+ * still chooses the skin (Mouse / Blob) and can hide Pip entirely.
+ *
+ * Accessibility: the ring is a button with a label; new messages are
+ * announced; all looping motion is skipped under reduce-motion (a tap then
+ * only dismisses the bubble).
  */
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  PanResponder,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePathname, useSegments } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { COMPANION_NAME } from './messages';
 import { companionQueue } from './queue';
 import { useCompanionMessage } from './useCompanion';
 import { loadCompanionEnabled, useCompanionEnabled } from './enabled';
 import { loadCompanionStyle, useCompanionStyle } from './style';
 import { Creature } from './Creature';
-import { ImageSkin, MOUSE_HOP_OVERSHOOT } from './ImageSkin';
+import { ImageSkin } from './ImageSkin';
 import { Bubble } from './Bubble';
-import {
-  COMPANION_CORNERS,
-  clampPosition,
-  cornerPosition,
-  defaultCompanionPosition,
-  isCompanionHiddenRoute,
-  nearestCorner,
-  placeBubble,
-  type CompanionBounds,
-  type CompanionCorner,
-} from './placement';
+import { Glass } from '../components/ui/Glass';
 
-/** On-screen size of the creature (dp) — shared by every skin, and the box the
- *  speech bubble is placed around. The mouse picture is drawn this wide. */
-const SIZE = 80;
-/** Plain local key — intentionally outside the backup whitelist. */
-const POS_KEY = 'lift:companion-pos';
-const EDGE_MARGIN = 12;
-/** Gap kept between the creature and the status bar at the top bound. */
-const TOP_GAP = 8;
-/** Rough bottom-tab-bar height, so a snapped creature never covers the tabs. */
-const TAB_BAR_CLEARANCE = 56;
-const BUBBLE_MAX_WIDTH = 260;
-const BUBBLE_GAP = 8;
+/** Diameter of the glass ring the creature lives in (dp). */
+const CIRCLE = 48;
+/** Gap between the bottom of the ring and the top of the speech bubble. */
+const BUBBLE_GAP = 6;
+/** The bubble spans at most this fraction of the window width. */
+const BUBBLE_W_FRACTION = 0.8;
+/** Upper / lower bounds for the bubble width on very wide or very narrow screens. */
+const BUBBLE_MAX_WIDTH = 340;
+const BUBBLE_MIN_WIDTH = 160;
+
+/** How a skin is drawn inside the ring. */
+interface SkinFrame {
+  /** Box the skin is laid out in (dp). */
+  size: number;
+  /** Horizontal offset of that box inside the ring. */
+  left: number;
+  /** Vertical offset of that box inside the ring. */
+  top: number;
+}
+
+/**
+ * Mouse: draw the 512×492 PNG at 64 dp and shift it up and slightly left so the
+ * face (which sits in the upper half of the art) and the upper body fill the
+ * ring; the rest is clipped by the circle.
+ */
+const MOUSE_FRAME: SkinFrame = { size: 64, left: -7, top: -2 };
+/** Blob: the SVG creature is already centred in its box, so it fits as drawn. */
+const BLOB_FRAME: SkinFrame = { size: CIRCLE, left: 0, top: 0 };
 
 export function Companion(): JSX.Element | null {
-  const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const enabled = useCompanionEnabled();
   const skinStyle = useCompanionStyle();
-  const pathname = usePathname();
-  const segments = useSegments();
-
-  /** `null` = nothing usable stored: the default right-edge resting place. */
-  const [corner, setCorner] = useState<CompanionCorner | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [bubbleHeight, setBubbleHeight] = useState(56);
-  const [storedLoaded, setStoredLoaded] = useState(false);
 
   const message = useCompanionMessage();
   const mood = message?.mood ?? 'idle';
 
-  const pan = useRef(new Animated.ValueXY()).current;
   const react = useRef(new Animated.Value(0)).current;
   const wiggle = useRef(new Animated.Value(0)).current;
-  const draggedRef = useRef(false);
-  const startRef = useRef({ x: 0, y: 0 });
-  const posRef = useRef({ x: 0, y: 0 });
-  const boundsRef = useRef<CompanionBounds>({ left: 0, right: 0, top: 0, bottom: 0 });
   const reduceMotionRef = useRef(false);
-  const onTapRef = useRef<() => void>(() => undefined);
-
-  /** The mouse skin draws outside its box as it hops, so its top bound needs
-   *  headroom; the SVG creature stays inside. */
-  const topOvershoot = skinStyle === 'mouse' ? SIZE * MOUSE_HOP_OVERSHOOT : 0;
-
-  const bounds = useMemo<CompanionBounds>(() => {
-    const left = EDGE_MARGIN;
-    const right = Math.max(left, width - SIZE - EDGE_MARGIN);
-    const top = insets.top + TOP_GAP + topOvershoot;
-    const bottom = Math.max(top, height - SIZE - (insets.bottom + TAB_BAR_CLEARANCE) - EDGE_MARGIN);
-    return { left, right, top, bottom };
-  }, [width, height, insets.top, insets.bottom, topOvershoot]);
-  boundsRef.current = bounds;
-
-  const pos = useMemo(
-    () => (corner == null ? defaultCompanionPosition(height, bounds) : cornerPosition(corner, bounds)),
-    [corner, bounds, height],
-  );
 
   const handleTap = useCallback((): void => {
     companionQueue.dismiss();
     if (reduceMotionRef.current) return;
-    // A quick jump + a wiggle, on top of whatever the skin is already doing.
+    // A quick jump + a wiggle, clipped inside the ring.
     react.setValue(0);
     wiggle.setValue(0);
     Animated.parallel([
@@ -131,79 +96,11 @@ export function Companion(): JSX.Element | null {
       ]),
     ]).start();
   }, [react, wiggle]);
-  onTapRef.current = handleTap;
 
-  // Create the responder once; all mutable inputs are read through refs.
-  const responderRef = useRef<ReturnType<typeof PanResponder.create> | null>(null);
-  if (responderRef.current == null) {
-    responderRef.current = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
-      onPanResponderGrant: () => {
-        draggedRef.current = false;
-        startRef.current = posRef.current;
-      },
-      onPanResponderMove: (_e, g) => {
-        if (Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4) draggedRef.current = true;
-        const b = boundsRef.current;
-        pan.setValue({
-          x: clampPosition(startRef.current.x + g.dx, b.left, b.right),
-          y: clampPosition(startRef.current.y + g.dy, b.top, b.bottom),
-        });
-      },
-      onPanResponderRelease: (_e, g) => {
-        if (!draggedRef.current) {
-          onTapRef.current();
-          return;
-        }
-        const b = boundsRef.current;
-        const x = clampPosition(startRef.current.x + g.dx, b.left, b.right);
-        const y = clampPosition(startRef.current.y + g.dy, b.top, b.bottom);
-        const nextCorner = nearestCorner(x, y, b);
-        const target = cornerPosition(nextCorner, b);
-        setCorner(nextCorner);
-        const persist = (): void => {
-          void AsyncStorage.setItem(POS_KEY, JSON.stringify({ corner: nextCorner })).catch(() => undefined);
-        };
-        if (reduceMotionRef.current) {
-          pan.setValue(target);
-          persist();
-          return;
-        }
-        Animated.spring(pan, { toValue: target, useNativeDriver: true, friction: 7, tension: 60 }).start(persist);
-      },
-    });
-  }
-  const responder = responderRef.current;
-
-  // Keep the animated position in step with the derived one.
-  useEffect(() => {
-    posRef.current = pos;
-    pan.setValue(pos);
-  }, [pos, pan]);
-
-  // Load the persisted corner, the on/off setting and the chosen skin once.
+  // Load the on/off setting and the chosen skin once.
   useEffect(() => {
     void loadCompanionEnabled();
     void loadCompanionStyle();
-    let cancelled = false;
-    void AsyncStorage.getItem(POS_KEY)
-      .then((raw) => {
-        if (cancelled || !raw) return;
-        try {
-          const parsed = JSON.parse(raw) as { corner?: CompanionCorner };
-          if (parsed.corner && COMPANION_CORNERS.includes(parsed.corner)) setCorner(parsed.corner);
-        } catch {
-          // Corrupt value — keep the default position.
-        }
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setStoredLoaded(true);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   // Reduce-motion preference (reacts to the OS setting).
@@ -242,71 +139,96 @@ export function Companion(): JSX.Element | null {
     AccessibilityInfo.announceForAccessibility(message.text);
   }, [message]);
 
-  // The wizard and the PAR-Q+ screening own the whole screen: no overlay.
-  // `storedLoaded` also gates the render (not just an opacity), so the box can
-  // never be a touch target before it is actually visible.
-  if (!enabled || !storedLoaded || isCompanionHiddenRoute(pathname, segments)) return null;
+  if (!enabled) return null;
 
-  const bubbleWidth = Math.min(BUBBLE_MAX_WIDTH, Math.max(160, width - EDGE_MARGIN * 2));
-  const bubble = placeBubble(pos.x, SIZE, width, bubbleWidth, EDGE_MARGIN, BUBBLE_GAP);
-  const bubbleBelow = pos.y < (bounds.top + bounds.bottom) / 2;
-  const bubbleTop = bubbleBelow ? pos.y + SIZE + BUBBLE_GAP : pos.y - BUBBLE_GAP - bubbleHeight;
+  const frame = skinStyle === 'mouse' ? MOUSE_FRAME : BLOB_FRAME;
+  const bubbleWidth = Math.max(
+    BUBBLE_MIN_WIDTH,
+    Math.min(BUBBLE_MAX_WIDTH, width * BUBBLE_W_FRACTION),
+  );
+  // The ring is centred in the window, so centring the bubble on the ring
+  // centres it on the window.
+  const bubbleLeft = (CIRCLE - bubbleWidth) / 2;
+
+  const reactY = react.interpolate({ inputRange: [0, 1], outputRange: [0, -CIRCLE * 0.16] });
+  const wiggleDeg = wiggle.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-6deg', '0deg', '6deg'] });
+  const reactScale = react.interpolate({ inputRange: [0, 1], outputRange: [1, 1.05] });
 
   return (
-    // No backgroundColor / elevation / shadow* on this or any ancestor: a plate
-    // here is exactly the artefact the old skin produced on Android.
-    <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+    <View style={styles.root}>
+      <Glass shape="circle" style={styles.ring}>
+        <Pressable
+          testID="companion"
+          onPress={handleTap}
+          accessibilityRole="button"
+          accessibilityLabel={COMPANION_NAME}
+          accessibilityHint="Tap for a reaction."
+          hitSlop={8}
+          style={styles.press}
+        >
+          {/* The clip: everything the skin draws is cut to the circle. */}
+          <View style={styles.clip}>
+            <Animated.View
+              style={[
+                styles.skin,
+                {
+                  width: frame.size,
+                  height: frame.size,
+                  left: frame.left,
+                  top: frame.top,
+                  transform: [{ translateY: reactY }, { rotate: wiggleDeg }, { scale: reactScale }],
+                },
+              ]}
+            >
+              {skinStyle === 'mouse' ? (
+                <ImageSkin mood={mood} size={frame.size} reduceMotion={reduceMotion} />
+              ) : (
+                <Creature mood={mood} size={frame.size} reduceMotion={reduceMotion} />
+              )}
+            </Animated.View>
+          </View>
+        </Pressable>
+      </Glass>
+
       {message ? (
         <View
           pointerEvents="none"
-          style={{ position: 'absolute', left: bubble.left, top: bubbleTop, width: bubbleWidth }}
+          style={[styles.bubble, { left: bubbleLeft, width: bubbleWidth }]}
         >
-          <Bubble
-            text={message.text}
-            side={bubbleBelow ? 'below' : 'above'}
-            tailAnchor={bubble.opensLeft ? 'end' : 'center'}
-            width={bubbleWidth}
-            reduceMotion={reduceMotion}
-            onHeight={setBubbleHeight}
-          />
+          <Bubble text={message.text} side="below" width={bubbleWidth} reduceMotion={reduceMotion} />
         </View>
       ) : null}
-
-      <Animated.View
-        {...responder.panHandlers}
-        testID="companion"
-        accessible
-        accessibilityRole="button"
-        accessibilityLabel={COMPANION_NAME}
-        accessibilityHint="Tap for a reaction. Drag to move."
-        onAccessibilityTap={handleTap}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          width: SIZE,
-          height: SIZE,
-          transform: pan.getTranslateTransform(),
-        }}
-      >
-        <Animated.View
-          style={{
-            width: SIZE,
-            height: SIZE,
-            transform: [
-              { translateY: react.interpolate({ inputRange: [0, 1], outputRange: [0, -SIZE * 0.13] }) },
-              { rotate: wiggle.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-6deg', '0deg', '6deg'] }) },
-              { scale: react.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) },
-            ],
-          }}
-        >
-          {skinStyle === 'mouse' ? (
-            <ImageSkin mood={mood} size={SIZE} reduceMotion={reduceMotion} />
-          ) : (
-            <Creature mood={mood} size={SIZE} reduceMotion={reduceMotion} />
-          )}
-        </Animated.View>
-      </Animated.View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    width: CIRCLE,
+    height: CIRCLE,
+  },
+  ring: {
+    width: CIRCLE,
+    height: CIRCLE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  press: {
+    width: CIRCLE,
+    height: CIRCLE,
+  },
+  clip: {
+    width: CIRCLE,
+    height: CIRCLE,
+    borderRadius: CIRCLE / 2,
+    overflow: 'hidden',
+  },
+  skin: {
+    position: 'absolute',
+  },
+  bubble: {
+    position: 'absolute',
+    top: CIRCLE + BUBBLE_GAP,
+  },
+});

@@ -44,12 +44,6 @@ const MOUSE = require('../../assets/companion/mouse.png');
 
 /** Artwork aspect ratio (492 / 512) — the drawn width is `size`. */
 const IMAGE_ASPECT = 492 / 512;
-/**
- * Room the hop and float need above the box, as a fraction of `size`. The
- * character is drawn overflowing upwards, so the overlay adds this to the
- * top drag bound to keep it clear of the screen edge.
- */
-export const MOUSE_HOP_OVERSHOOT = 0.18;
 
 /** Ground shadow size, as a fraction of `size`. */
 const SHADOW_HEIGHT = 0.08;

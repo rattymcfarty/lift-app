@@ -2,6 +2,23 @@
 
 ## Unreleased (addendum)
 
+- Companion (layout redesign A2): Pip is **no longer a draggable, floating
+  overlay**. It is fixed in the **centre of the TopBar**, inside a ~48 dp
+  circular glass ring (`Glass`), with the mouse artwork drawn larger and clipped
+  to the circle (`overflow: hidden` + `borderRadius`) so the face and upper body
+  fill it; the float/breathe/blink/hop/sparkle animations still run and are
+  clipped inside the ring. The speech bubble now renders **centred below the
+  ring** (below the top bar) with a tail pointing up at it, at most ~80 % of the
+  window wide. `TopBar` renders `<Companion/>` in its centre slot and
+  `app/_layout.tsx` no longer mounts it; the drag/snap and persisted-position
+  code paths (`lift:companion-pos`, the five snap anchors) and the unused
+  placement helpers are removed — `src/companion/placement.ts` keeps only
+  `isCompanionHiddenRoute` / `isTopLevelRoute`. Tapping the circle keeps the
+  jump + wiggle reaction and dismisses the message; Settings still chooses the
+  Mouse/Blob skin and On/Off. `docs/product/COMPANION.md`,
+  `docs/product/FEATURE_MATRIX.md`, `scripts/test-companion.mjs` and
+  `.maestro/companion.yaml` updated.
+
 - Workout logging: finishing is now an explicit choice. The header **Finish**
   button and the footer **Finish workout** button both open one shared themed
   bottom sheet (`src/components/ui/BottomSheet.tsx`) with **Finish workout**
