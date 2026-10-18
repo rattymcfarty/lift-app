@@ -1,0 +1,87 @@
+# Side panels smoke test (Stage B of the layout redesign).
+#
+# The two top-bar buttons open the left menu and the right settings panel;
+# tapping a section jumps to it; the close button and a tap on the scrim dismiss
+# the panel; a "More" item navigates and dismisses it.
+#
+# Note the order: the top bar shows the panel button only on the four section
+# screens (inner screens show a back button instead), so the "More" step — which
+# lands on History — comes last.
+#
+# Run: maestro test .maestro/panels.yaml
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: "home-start-workout"
+
+# --- left panel opens and lists the sections, the quick actions and the scrim ---
+- tapOn:
+    id: "topbar-panel"
+- assertVisible:
+    id: "panel-tab-programs"
+- assertVisible:
+    id: "panel-tab-train"
+- assertVisible:
+    id: "panel-tab-analytics"
+- assertVisible:
+    id: "panel-tab-exercises"
+- assertVisible:
+    id: "panel-new-workout"
+- assertVisible:
+    id: "panel-search"
+- assertVisible:
+    id: "panel-scrim"
+
+# --- a section row jumps to that tab, and the panel closes behind it ---
+- tapOn:
+    id: "panel-tab-programs"
+- assertVisible:
+    id: "programs-segment-explore"
+- assertNotVisible:
+    id: "panel-tab-programs"
+
+# --- the close button dismisses the panel ---
+- tapOn:
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-close"
+- assertNotVisible:
+    id: "panel-tab-programs"
+
+# --- the right panel shows settings; a tap on the bare strip dismisses it ---
+- tapOn:
+    id: "topbar-settings"
+- assertVisible:
+    id: "settings-profile"
+- assertNotVisible:
+    id: "panel-tab-programs"
+- tapOn:
+    point: "5%,50%"
+- assertNotVisible:
+    id: "settings-profile"
+
+# --- the left panel also closes on a tap outside it ---
+- tapOn:
+    id: "topbar-panel"
+- assertVisible:
+    id: "panel-tab-programs"
+- tapOn:
+    point: "95%,50%"
+- assertNotVisible:
+    id: "panel-tab-programs"
+
+# --- a More item navigates, and the panel is gone (last: it leaves the tabs) ---
+- tapOn:
+    id: "topbar-panel"
+- scrollUntilVisible:
+    element:
+      id: "panel-more-history"
+    direction: DOWN
+- tapOn:
+    id: "panel-more-history"
+- assertNotVisible:
+    id: "panel-new-workout"
+- assertVisible: "History"

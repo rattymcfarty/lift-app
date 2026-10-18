@@ -13,6 +13,7 @@ export type ActionIconName =
   | 'note'
   | 'progression'
   | 'reorder'
+  | 'search'
   | 'history'
   | 'scale'
   | 'link'
@@ -23,6 +24,7 @@ export type ActionIconName =
   | 'more'
   | 'chevron-down'
   | 'close'
+  | 'chevron-right'
   | 'arrow-up'
   | 'arrow-down'
   | 'grip'
@@ -63,6 +65,11 @@ export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; c
           <Line x1={12} y1={5} x2={12} y2={13} {...c} />
           <Polyline points="8 15 12 19 16 15" {...c} />
           <Line x1={12} y1={11} x2={12} y2={19} {...c} />
+        </>
+      ) : name === 'search' ? (
+        <>
+          <Circle cx={11} cy={11} r={6.2} {...c} />
+          <Line x1={15.6} y1={15.6} x2={20} y2={20} {...c} />
         </>
       ) : name === 'history' ? (
         <>
@@ -126,6 +133,8 @@ export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; c
           <Line x1={6.5} y1={6.5} x2={17.5} y2={17.5} {...c} />
           <Line x1={17.5} y1={6.5} x2={6.5} y2={17.5} {...c} />
         </>
+      ) : name === 'chevron-right' ? (
+        <Polyline points="9.5 6 15.5 12 9.5 18" {...c} />
       ) : name === 'arrow-up' ? (
         <>
           <Line x1={12} y1={19} x2={12} y2={5} {...c} />

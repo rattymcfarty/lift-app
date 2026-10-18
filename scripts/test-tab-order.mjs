@@ -111,13 +111,15 @@ const DEFAULT = ['programs', 'train', 'analytics', 'exercises'];
   eq(T.getTabOrderSnapshot(), DEFAULT, 'the order is back to the default');
 }
 
-// --- the layout's tab table still matches the store and the Maestro ids ----
+// --- the shared tab table still matches the store and the Maestro ids -------
 {
-  const layout = readFileSync(join(root, 'app/(tabs)/_layout.tsx'), 'utf8');
-  const keys = [...layout.matchAll(/key: '([a-z]+)'/g)].map((m) => m[1]);
-  eq(keys, DEFAULT, 'the layout declares the four tabs in the default order');
+  // The table moved to src/nav/tabs.ts so the left panel can list the same
+  // sections; it is the single source the navigator and the bar both read.
+  const table = readFileSync(join(root, 'src/nav/tabs.ts'), 'utf8');
+  const keys = [...table.matchAll(/key: '([a-z]+)'/g)].map((m) => m[1]);
+  eq(keys, DEFAULT, 'the tab table declares the four tabs in the default order');
   for (const testID of ['tab-programs', 'tab-train', 'tab-analytics', 'tab-exercises']) {
-    ok(layout.includes(`testID: '${testID}'`), `the ${testID} test id Maestro taps is still on the bar`);
+    ok(table.includes(`testID: '${testID}'`), `the ${testID} test id Maestro taps is still on the bar`);
   }
 }
 

@@ -63,6 +63,7 @@
     "secrets:history": "bash scripts/secrets-scan.sh --history",
     "test:lifecycle": "node scripts/test-lifecycle.mjs",
     "test:tab-order": "node scripts/test-tab-order.mjs",
+    "test:panel": "node scripts/test-panel.mjs",
     "test:workout-discard": "node scripts/test-workout-discard.mjs",
     "test:exercise-menu": "node scripts/test-exercise-menu.mjs",
     "test:companion": "node scripts/test-companion.mjs",

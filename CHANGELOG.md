@@ -2,6 +2,24 @@
 
 ## Unreleased (addendum)
 
+- Navigation (layout redesign B): the two top-bar buttons now open **side
+  panels** (`src/components/chrome/SidePanels.tsx`, mounted once in
+  `app/_layout.tsx` above the bar so an open panel covers the whole app).
+  **Left** (`LeftPanel.tsx`, top-left button): a quick **New workout**, a
+  **Search exercises** shortcut that lands on Browse Exercises with the field
+  focused, the four **sections** — tap to jump, or **long-press and drag** to
+  reorder the floating bar (persisted through `src/nav/tabOrder.ts`) — and a
+  **More** list (History, Records, Balance, Calculators, Body weight). **Right**
+  (`RightPanel.tsx`, sliders button): the Settings controls, embedded. Both are
+  glass, with a dimmed scrim behind. They close on scrim tap, the panel's close
+  button, any item tap or Android back — **tap only, no swipe-to-close**. The
+  panel state transitions (`panelsReducer`) and the drag maths
+  (`dragTargetIndex` / `shiftForIndex`) live in the pure, unit-tested
+  `src/chrome/panelsModel.ts` (`scripts/test-panel.mjs`); the tab table moved to
+  `src/nav/tabs.ts` so the bar and the panel read one list, and the Settings
+  body was extracted to `src/components/settings/SettingsBody.tsx` so the screen
+  and the panel can't drift. New Maestro flow `.maestro/panels.yaml`.
+
 - Navigation (layout redesign A3): the standard bottom bar is replaced by a
   **floating pill of glass** (`src/components/nav/TabBar.tsx`, used through the
   `Tabs` `tabBar` prop in `app/(tabs)/_layout.tsx`). It is inset 16 dp from both

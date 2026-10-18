@@ -28,6 +28,10 @@ maestro test .maestro/workout-flow.yaml
 - `workout-discard.yaml` — discard path: log a set → header Finish → the
   finish/discard sheet → Discard workout → confirm → back on Train with an
   empty History (the workout left no trace).
+- `panels.yaml` — side panels: the top-left button opens the left menu (sections,
+  New workout, Search, More), tapping a section jumps to it, a More item
+  navigates and dismisses, the close button and a scrim tap dismiss, and the
+  sliders button opens the Settings panel.
 
 ## Writing new flows
 
@@ -49,6 +53,17 @@ changes. Key testIDs:
 | `finish-sheet-finish` | Sheet → Finish workout |
 | `finish-sheet-discard` | Sheet → Discard workout |
 | `finish-sheet-cancel` | Sheet → Cancel |
+| `topbar-panel` / `topbar-settings` | Top bar → open the left menu / the settings panel |
+| `panel-close` | Open panel → close button |
+| `panel-scrim` | Open panel → dimmed backdrop (tap dismisses) |
+| `panel-tab-<key>` | Left panel → section row (programs, train, analytics, exercises) |
+| `panel-new-workout`, `panel-search` | Left panel → quick actions |
+| `panel-more-<key>` | Left panel → More row (history, records, balance, calculators, body-weight) |
+| `settings-*` | Settings controls (also inside the right panel) |
+
+The side panels close on a scrim tap; because the panel covers most of the
+width, tap the bare strip on the far side (`tapOn: { point: "95%,50%" }` for the
+left panel) rather than the scrim's centre.
 
 Maestro taps use `tapOn: { id: "<testID>" }`. For alerts and system UI,
 fall back to `tapOn: "<visible text>"`.

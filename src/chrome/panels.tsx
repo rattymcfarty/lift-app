@@ -1,26 +1,39 @@
 /**
- * Panel state context — manages which side panel is open.
+ * Panel state context — which side panel is open.
  *
- * Panels: 'left' | 'right' | null
- * - Left panel: navigation, program picker, etc. (stage B)
- * - Right panel: settings, filters, etc. (stage B)
- * - null: no panel open
+ * - Left panel: navigation (tabs, More links, search, new workout).
+ * - Right panel: settings, embedded.
+ * - null: nothing open.
  *
- * Pure React context, no native deps — unit-testable.
+ * The transitions themselves are pure and live in `panelsModel.ts` (unit
+ * tested); this file only wires them into React state. No native deps.
  */
-import { createContext, useContext, useState, useCallback, useMemo, type JSX, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useMemo,
+  useReducer,
+  type JSX,
+  type ReactNode,
+} from 'react';
+import {
+  panelsReducer,
+  type OpenPanelSide,
+  type PanelSide,
+} from './panelsModel';
 
-export type PanelSide = 'left' | 'right' | null;
+export type { PanelSide, OpenPanelSide } from './panelsModel';
 
 export interface PanelsContextValue {
   /** Currently open panel, or null. */
   current: PanelSide;
   /** Open a specific panel (closes any other). */
-  openPanel: (side: PanelSide) => void;
+  openPanel: (side: OpenPanelSide) => void;
   /** Close the currently open panel. */
   closePanel: () => void;
   /** Toggle a panel (open if closed, close if open). */
-  togglePanel: (side: PanelSide) => void;
+  togglePanel: (side: OpenPanelSide) => void;
 }
 
 const PanelsContext = createContext<PanelsContextValue | null>(null);
@@ -30,23 +43,15 @@ export interface PanelsProviderProps {
 }
 
 export function PanelsProvider({ children }: PanelsProviderProps): JSX.Element {
-  const [current, setOpenPanel] = useState<PanelSide>(null);
+  const [current, dispatch] = useReducer(panelsReducer, null);
 
-  const openPanelFn = useCallback((side: PanelSide) => {
-    setOpenPanel(side);
-  }, []);
-
-  const closePanel = useCallback(() => {
-    setOpenPanel(null);
-  }, []);
-
-  const togglePanel = useCallback((side: PanelSide) => {
-    setOpenPanel((current) => (current === side ? null : side));
-  }, []);
+  const openPanel = useCallback((side: OpenPanelSide) => dispatch({ type: 'open', side }), []);
+  const closePanel = useCallback(() => dispatch({ type: 'close' }), []);
+  const togglePanel = useCallback((side: OpenPanelSide) => dispatch({ type: 'toggle', side }), []);
 
   const value = useMemo(
-    () => ({ current, openPanel: openPanelFn, closePanel, togglePanel }),
-    [current, openPanelFn, closePanel, togglePanel],
+    () => ({ current, openPanel, closePanel, togglePanel }),
+    [current, openPanel, closePanel, togglePanel],
   );
 
   return <PanelsContext.Provider value={value}>{children}</PanelsContext.Provider>;

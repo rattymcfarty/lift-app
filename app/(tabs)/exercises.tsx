@@ -13,7 +13,7 @@
  * the filters apply to both groups — see src/lib/exerciseSections.ts.
  */
 
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -24,7 +24,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { listExercises, searchExercises } from '../../src/data/repositories';
 import { decodeStringArray, type Exercise } from '../../src/db/schema';
@@ -185,6 +185,8 @@ export default function BrowseExercisesScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const tabBarSpace = useTabBarSpace();
+  const params = useLocalSearchParams<{ focus?: string }>();
+  const searchRef = useRef<TextInput>(null);
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Exercise[]>([]);
@@ -197,6 +199,14 @@ export default function BrowseExercisesScreen(): JSX.Element {
   const [muscleExpanded, setMuscleExpanded] = useState(false);
   const [equipmentExpanded, setEquipmentExpanded] = useState(false);
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
+
+  // The left panel's "Search exercises" row lands here with ?focus=search:
+  // give the field a beat to mount, then open the keyboard.
+  useEffect(() => {
+    if (params.focus !== 'search') return;
+    const timer = setTimeout(() => searchRef.current?.focus(), 350);
+    return () => clearTimeout(timer);
+  }, [params.focus]);
 
   useEffect(() => {
     let cancelled = false;
@@ -274,6 +284,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
               <TextInput
                 value={query}
                 testID="browse-exercises-search"
+                ref={searchRef}
                 onChangeText={setQuery}
                 placeholder="Search exercises…"
                 placeholderTextColor={theme.colors.faint}

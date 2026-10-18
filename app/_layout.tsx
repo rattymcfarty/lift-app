@@ -15,6 +15,7 @@ import { ThemeProvider, useTheme } from '../src/theme';
 import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
 import { PanelsProvider } from '../src/chrome/panels';
 import { TopBar } from '../src/components/chrome/TopBar';
+import { SidePanels } from '../src/components/chrome/SidePanels';
 
 /**
  * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
@@ -101,6 +102,8 @@ function AppShell() {
         {/* Top bar: absolute overlay above the Stack, pointerEvents='box-none'.
             It renders the companion circle in its centre slot. */}
         <TopBar />
+        {/* Side panels: above the bar so an open panel covers the whole app. */}
+        <SidePanels />
         {statusBar}
       </View>
     </PanelsProvider>
