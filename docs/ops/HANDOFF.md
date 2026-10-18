@@ -7,6 +7,8 @@
 
 ## 0. In-flight work (update before every commit)
 
+- **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
 - [claude-code] **Cross-agent foundation + OpenCode delegation**, branch main, started 2026-10-16.
   Done and committed: `AGENTS.md` canonical (CLAUDE.md/GEMINI.md import it; Copilot/Cursor
   pointers), `.agents/skills/` (9 playbooks, `.claude/skills` symlink), `docs/ops/AGENT_COLLABORATION.md`,
