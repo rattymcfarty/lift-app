@@ -2,14 +2,43 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-18, after the glass sheets (layout redesign C). Repo HEAD
+> Last updated: 2026-10-18, after the icons pass (queue item D). Repo HEAD
 > at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
-- [opencode] **Glass sheets (layout redesign C)**, branch main, worked 2026-10-18.
+- [opencode] **Icons (queue item D)**, branch main, worked 2026-10-18, pushed as
+  `a782d31`. Muscle art redrawn where the highlight was too thin or the crop
+  wrong: **Biceps** (a belly on each upper arm, not a stripe), **Front/Middle
+  Delts** (a deltoid cap from the clavicle to the armpit, at the zoom `Rear Delts`
+  uses), **Neck** (sternocleidomastoid + upper traps, not a rectangle),
+  **Olympic** (clean traps/delts/glutes/quads), **Other** (three separated dots).
+  **Forearms and Calves are now one limb drawn larger** — a symmetric crop of the
+  shared figure cannot make those muscles fill the tile; `docs/design/ICON_STYLE.md`
+  records that as the only two exceptions to "every icon is a window onto the one
+  figure". All ten equipment ids now render from `assets/icons-src/equipment/*.svg`
+  instead of half of them silently falling back to the older hand-drawn React
+  scenes in `src/components/icons/equipmentIcons.tsx` (that file stays as the
+  fallback for unknown ids and for `All`). Art is authored in four placeholder
+  colours that the app swaps for the theme's muted/highlight, so the worked muscle
+  and the implement are the app's blue in both modes — the `#ff7a1a` in the sources
+  is never rendered.
+  Pipeline: `scripts/build-icon-art.mjs` now **fails when a taxonomy id has no art
+  file** (that is how the equipment set drifted out of the pipeline);
+  `scripts/render-icons.mjs` draws its contact sheet in the real light/dark theme
+  colours and takes `--only=muscle|equipment`; `scripts/test-icons.mjs` grew to 63
+  assertions (the sheet's palette is checked against `src/theme/tokens.ts` and
+  `src/lib/iconColors.ts` so it cannot drift back to orange).
+  Verified: `npm run verify` ALL GREEN. The art is static, so it was reviewed on
+  the contact sheet (dark + light tile, 96 px and 48 px) rather than in a device
+  run; `npm run test:icons` and the build's coverage check guard it.
+  **Next in the queue:** item E, rich exercise pages (repo `~/lift/lift-kb`), then
+  F (Beam bake-off) and G (housekeeping) — see `HANDOFF_AGENT_TO_AGENT.md` §3.
+
+- [opencode] **Glass sheets (layout redesign C)**, branch main, worked 2026-10-18,
+  pushed as `043a39d` + the follow-up `01c8f5f`.
   Every bottom sheet is now the same component. `BottomSheet` draws its surface
   with `Glass` (heavy, top corners rounded, bottom square, soft shadow) and its
   header — grabber, title/subtitle, close — comes from the new
@@ -23,10 +52,20 @@
   `BottomSheet`; `TextPromptModal` (rename dialogs) is glass. Ids keep their
   names: a sheet's close is `<surface>-close`, option rows stay
   `<surface>-<value>`. New Maestro flow `.maestro/sheets.yaml` (open, pull-down
-  dismiss, backdrop dismiss). Verified: `npm run verify` ALL GREEN; device flows
-  `sheets`, `exercise-menu`, `workout-flow`, `program-builder`.
-  **Next in the queue:** stage D (icon refinements, then the equipment icons),
-  then rich exercise pages in `lift-kb` — see `HANDOFF_AGENT_TO_AGENT.md` §3.
+  dismiss, backdrop dismiss).
+  **Follow-up fixes (`01c8f5f`)** — the emulator found three problems in the
+  refactor: (1) **the pull-down was dead on Android**: inside a `Modal` the
+  move-phase responder negotiation is never dispatched to any view, so a
+  move-only `PanResponder` can never claim the touch — the header now claims at
+  touch-down (`onStartShouldSetPanResponder`) and follows the finger, and a tap
+  still reaches the child first, so the close button keeps working; (2) a sheet
+  taller than `maxHeightRatio` collapsed to its content instead of capping — the
+  cap moved to the wrapper `Animated.View` with `flexShrink: 1` on the glass;
+  (3) the flow needed explicit screen coordinates for the pull-down, because
+  Maestro's "swipe from this element" only travels the grabber's own 4 dp.
+  Verified on the final build: `npm run verify` ALL GREEN; device flows `sheets`,
+  `exercise-menu`, `workout-flow`, `program-builder` all PASS; pushed
+  `7e03fec..01c8f5f`.
 
 - [opencode] **Side panels (layout redesign B)**, branch main, worked 2026-10-18.
   The two top-bar buttons now do something. **Left** (top-left button): a glass
