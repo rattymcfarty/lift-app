@@ -69,8 +69,12 @@ function HistoryRow({ row }: { row: WorkoutHistoryRow }): JSX.Element {
   );
 }
 
-/** Finished-workout archive list (no header/safe-area) — used by the Train tab's History segment and the standalone /history route. */
-export function HistoryList(): JSX.Element {
+/**
+ * Finished-workout archive list (no header/safe-area) — used by the Train tab's
+ * History segment and the standalone /history route. `bottomPadding` reserves
+ * room for the floating tab bar when it is drawn over this list (Train tab).
+ */
+export function HistoryList({ bottomPadding = 0 }: { bottomPadding?: number }): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const [rows, setRows] = useState<WorkoutHistoryRow[]>([]);
@@ -111,7 +115,7 @@ export function HistoryList(): JSX.Element {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background, paddingBottom: bottomPadding }]}>
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={theme.colors.muted} />

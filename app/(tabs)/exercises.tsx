@@ -36,6 +36,7 @@ import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
 import { deleteCustomExercise } from '../../src/data/customExercises';
 import { useTopBarInset } from '../../src/components/chrome/TopBar';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 const SEARCH_DEBOUNCE_MS = 250;
 const SEARCH_LIMIT = 500;
@@ -183,6 +184,7 @@ function FilterChip({
 export default function BrowseExercisesScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
+  const tabBarSpace = useTabBarSpace();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Exercise[]>([]);
@@ -266,6 +268,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
       />
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
         <SectionList
+          contentContainerStyle={{ paddingBottom: tabBarSpace }}
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
               <TextInput

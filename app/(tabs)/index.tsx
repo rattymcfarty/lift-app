@@ -43,6 +43,7 @@ import { softDeleteWorkout } from '../../src/data/repositories';
 import { createUserProgram } from '../../src/programs/userPrograms';
 import { companionSessionWaiting } from '../../src/companion/triggers';
 import { useTopBarInset } from '../../src/components/chrome/TopBar';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 type Segment = 'train' | 'history';
 
@@ -135,6 +136,7 @@ export default function TrainScreen(): JSX.Element {
   // Stale-response guard: every focus starts a new load; only the latest may write state.
   const loadIdRef = useRef(0);
   const topInset = useTopBarInset();
+  const tabBarSpace = useTabBarSpace();
 
   const load = useCallback(async () => {
     const loadId = ++loadIdRef.current;
@@ -245,13 +247,19 @@ export default function TrainScreen(): JSX.Element {
         onChange={setSegment}
       />
       {segment === 'history' ? (
-        <HistoryList />
+        <HistoryList bottomPadding={tabBarSpace} />
       ) : loading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color={c.muted} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}>
+        <ScrollView
+          contentContainerStyle={{
+            padding: theme.spacing.md,
+            paddingBottom: theme.spacing.md + tabBarSpace,
+            gap: theme.spacing.md,
+          }}
+        >
           {profile?.name ? (
             <Text style={{ color: c.muted, fontSize: t.size.body }}>
               {greeting()}, {profile.name}.

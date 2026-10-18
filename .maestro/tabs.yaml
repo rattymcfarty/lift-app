@@ -1,4 +1,7 @@
 # Bottom-tab navigation smoke test: every tab renders its screen.
+# The bar is the floating, icon-only glass pill (layout redesign A3): items are
+# selected by id — the test ids did not change with the redesign — and the
+# on-screen assertions look at each screen's content, not at a tab label.
 # Run: maestro test .maestro/tabs.yaml
 appId: app.lift.mobile
 ---
@@ -7,6 +10,15 @@ appId: app.lift.mobile
 - runFlow: _skip-onboarding.yaml
 - assertVisible:
     id: "home-start-workout"
+# All four sections are on screen at once, in the default order.
+- assertVisible:
+    id: "tab-programs"
+- assertVisible:
+    id: "tab-train"
+- assertVisible:
+    id: "tab-analytics"
+- assertVisible:
+    id: "tab-exercises"
 - tapOn:
     id: "tab-programs"
 - assertVisible: "Explore"

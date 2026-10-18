@@ -46,6 +46,7 @@ import { startOfWeekMonday } from '../../src/stats/volume';
 import { fetchStatWorkouts } from '../../src/stats/queries';
 import { listMeasurements } from '../../src/data/repositories';
 import { useTopBarInset } from '../../src/components/chrome/TopBar';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 /** "Oct 5" — short label for chart axes. */
 function shortDay(d: Date): string {
@@ -153,6 +154,7 @@ export default function ProgressScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const topInset = useTopBarInset();
+  const tabBarSpace = useTabBarSpace();
 
   const [weekly, setWeekly] = useState<WeeklyVolumePoint[] | null>(null);
   const [exerciseOptions, setExerciseOptions] = useState<ExerciseHistoryOption[] | null>(null);
@@ -290,7 +292,12 @@ export default function ProgressScreen(): JSX.Element {
           <ActivityIndicator color={theme.colors.muted} />
         </View>
       ) : !hasData && extraLoaded && (weightSeries == null || weightSeries.length <= 1) && (waistSeries == null || waistSeries.length <= 1) ? (
-        <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xl }}>
+        <ScrollView
+          contentContainerStyle={{
+            gap: theme.spacing.lg,
+            paddingBottom: theme.spacing.xl + tabBarSpace,
+          }}
+        >
           <AnalyticsOverview />
           <EmptyState
             message="No training data yet."
@@ -302,7 +309,10 @@ export default function ProgressScreen(): JSX.Element {
         </ScrollView>
       ) : (
         <ScrollView
-          contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: theme.spacing.xl }}
+          contentContainerStyle={{
+            gap: theme.spacing.lg,
+            paddingBottom: theme.spacing.xl + tabBarSpace,
+          }}
         >
           <AnalyticsOverview />
           {hasData ? (

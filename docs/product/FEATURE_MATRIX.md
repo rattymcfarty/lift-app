@@ -26,6 +26,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Week at a glance + weekly goal | ✅ P9 | Week strip + goal progress on Train |
 | Readiness check-in (energy / sleep / soreness) | ✅ P9 | 3 taps; advice adjusts effort, stored locally |
 | Reminders on my training days | ✅ P9 | Local notifications, no server |
+| Move between sections with one thumb | ✅ A3 | Floating glass pill tab bar, icon only (Programs · Train · Analytics · Exercises), active item in an accent capsule; order persisted (`src/nav/tabOrder.ts`) and carried in backups; content pads around it (`useTabBarSpace`) |
 
 ## 3. During the workout
 | Need | Status | Notes |

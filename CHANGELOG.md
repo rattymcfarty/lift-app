@@ -2,6 +2,23 @@
 
 ## Unreleased (addendum)
 
+- Navigation (layout redesign A3): the standard bottom bar is replaced by a
+  **floating pill of glass** (`src/components/nav/TabBar.tsx`, used through the
+  `Tabs` `tabBar` prop in `app/(tabs)/_layout.tsx`). It is inset 16 dp from both
+  sides, sits 8 dp above the safe-area bottom and is **icon only**: the active
+  tab gets a translucent accent capsule behind its icon with the icon in the
+  accent colour, inactive icons stay muted, a tap fires a selection haptic and
+  the bar slides away while the keyboard is up. Accessibility labels and roles
+  (`tab`) are on every item and the Maestro test ids (`tab-programs`,
+  `tab-train`, `tab-analytics`, `tab-exercises`) are unchanged. Because the bar
+  floats OVER the screens, the new `useTabBarSpace()` hook (bar + gap + safe-area
+  bottom) is added to the bottom padding of every scrollable on the four tab
+  screens and of the embedded History list, so nothing hides behind it. The
+  order of the items now lives in `src/nav/tabOrder.ts` — pure, unit-tested
+  `normalizeOrder` / `moveTab` plus an AsyncStorage-backed store under
+  `lift:tab-order`, whitelisted in `src/data/appData.ts` so it rides in backups;
+  the default order is unchanged (Programs · Train · Analytics · Exercises).
+
 - Companion (layout redesign A2): Pip is **no longer a draggable, floating
   overlay**. It is fixed in the **centre of the TopBar**, inside a ~48 dp
   circular glass ring (`Glass`), with the mouse artwork drawn larger and clipped

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Delegate work to the OpenCode helper agent ("AI employee"), sandboxed, free models only.
 #
-#   scripts/delegate.sh run   <slug> "<task>" [-m opencode/<model>] [-t minutes]
+#   scripts/delegate.sh run   <slug> "<task>" [-m opencode/<model>] [-t minutes] [-f attachment]...
 #                             code task on its own branch delegate/<slug> (worktree ~/lift/delegations/<slug>)
 #   scripts/delegate.sh ask   "<question>" [-m opencode/<model>] [-t minutes]
 #                             read-only question about the repo (no edits, no shell); prints the answer
@@ -32,7 +32,7 @@ check_model() { allowed | grep -qxF "$1" || die "model '$1' is not allowed (owne
 # shared service so the next attempt isn't blocked by a stuck server session.
 oc_run() { # dir model minutes title prompt events errlog
   local dir="$1" model="$2" min="$3" title="$4" prompt="$5" ev="$6" err="$7" rc
-  ( cd "$dir" && timeout --kill-after=15 "$((min * 60))" "$OC" run --model "$model" --title "$title" --format json "$prompt" > "$ev" 2> "$err" )
+  ( cd "$dir" && timeout --kill-after=15 "$((min * 60))" "$OC" run --model "$model" --title "$title" --format json ${FILEARGS[@]+"${FILEARGS[@]}"} "$prompt" > "$ev" 2> "$err" )
   rc=$?
   if [ "$rc" -ne 0 ] && [ ! -s "$ev" ]; then "$OC" service restart > /dev/null 2>&1; fi
   return $rc
@@ -43,8 +43,11 @@ pick_models() { # task [forced-model] → ranked model list, one per line
   node "$TOOLS/route.mjs" "$1" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s);console.error(`route:   ${r.category} via ${r.source} (${r.note})`);console.log(r.models.join("\n"))})'
 }
 
+FILEARGS=()   # -f <file>: attach a file (e.g. a reference image) to the run; repeatable
 parse_opts() { MODEL=""; MINUTES="${1:-20}"; shift; while [ $# -gt 0 ]; do case "$1" in
-  -m) MODEL="$2"; shift 2 ;; -t) MINUTES="$2"; shift 2 ;; *) die "unknown option $1" ;; esac; done
+  -m) MODEL="$2"; shift 2 ;; -t) MINUTES="$2"; shift 2 ;;
+  -f) [ -f "$2" ] || die "attachment not found: $2"; FILEARGS+=(-f "$2"); shift 2 ;;
+  *) die "unknown option $1" ;; esac; done
   [[ "$MINUTES" =~ ^[0-9]+$ ]] && [ "$MINUTES" -ge 1 ] && [ "$MINUTES" -le 60 ] || die "-t must be 1-60 minutes"; }
 
 with_lock() { mkdir -p "$TREES" "$LOGS"; chmod 700 "$TREES"; exec 9> "$TREES/.lock"

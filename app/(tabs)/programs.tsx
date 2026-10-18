@@ -45,6 +45,7 @@ import {
 import { daysPerWeekOf, isUserProgramRoutine, totalDays, type UserProgram } from '../../src/programs/userProgramDef';
 import type { Href } from 'expo-router';
 import { useTopBarInset } from '../../src/components/chrome/TopBar';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 type Segment = 'explore' | 'library';
 
@@ -110,6 +111,7 @@ export default function ProgramsScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const topInset = useTopBarInset();
+  const tabBarSpace = useTabBarSpace();
 
   const { programs, bundleVersion } = useMemo(() => {
     try {
@@ -201,7 +203,13 @@ export default function ProgramsScreen(): JSX.Element {
           <ActivityIndicator color={c.muted} />
         </View>
       ) : segment === 'explore' ? (
-        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}>
+        <ScrollView
+          contentContainerStyle={{
+            padding: theme.spacing.md,
+            paddingBottom: theme.spacing.md + tabBarSpace,
+            gap: theme.spacing.md,
+          }}
+        >
           {programs.length === 0 ? (
             <EmptyState message="No programs available." hint="Programs arrive with knowledge-base updates." />
           ) : null}
@@ -236,7 +244,11 @@ export default function ProgramsScreen(): JSX.Element {
         <FlatList
           data={plans}
           keyExtractor={(i) => i.routine.id}
-          contentContainerStyle={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.xl, gap: theme.spacing.sm }}
+          contentContainerStyle={{
+            paddingHorizontal: theme.spacing.md,
+            paddingBottom: theme.spacing.xl + tabBarSpace,
+            gap: theme.spacing.sm,
+          }}
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.md, paddingBottom: theme.spacing.sm }}>
               <Button

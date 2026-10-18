@@ -15,6 +15,7 @@ export const APP_DATA_KEYS = [
   'lift:reminders',
   'lift:theme-preference',
   'lift:user-programs',
+  'lift:tab-order',
 ] as const;
 
 export async function collectAppData(): Promise<Record<string, string>> {
