@@ -41,8 +41,8 @@ on from here. Read this file, then `AGENTS.md`, then `docs/ops/HANDOFF.md` and
 
 Committed locally (not pushed): glass top bar with panel/settings buttons, companion in a
 fixed glass circle at top centre, floating glass tab bar with reorderable tab order, the
-free-model pool, the icon pipeline, and **all 21 muscle-group icons + Barbell and Dumbbell**.
-Nothing is running. Working tree clean after commit `8135f1a`.
+free-model pool, the icon pipeline, and **all 21 muscle-group icons + all 10 equipment
+icons**. Nothing is running. Working tree clean after commit `5736bfd`.
 
 **Added 2026-10-18 (opencode session, stage B):** the two top-bar buttons now open the
 **side panels** — left menu (New workout, Search, the four sections with long-press drag to
@@ -69,19 +69,24 @@ close button, an item tap or Android back. Pure logic in
 on the emulator; `npm run verify` ALL GREEN; the owner confirmed the long-press
 drag on iOS (Expo Go). `main` pushed to `origin/main` (gate met).
 
-### C. Glass sheets (Stage C)
-Restyle `BottomSheet`/menus in glass; consistent headers. Small jobs.
+### C. Glass sheets (Stage C) ✅ DONE 2026-10-18
+Every bottom sheet is now one glass component with a shared header
+(`src/components/ui/BottomSheet.tsx` + `SheetHeader.tsx`, maths in
+`sheetModel.ts` / `npm run test:sheet`). Committed `043a39d`; the follow-up fixes
+the emulator found (Android pull-down claiming at touch-down, the `maxHeight`
+cap, the flow's swipe coordinates) are in `01c8f5f` — see `docs/ops/HANDOFF.md` §0.
 
-### D. Icons — refinement then equipment
-Batches A and B are merged (contact sheet: `node scripts/render-icons.mjs /tmp/x.png`, then view it).
-- Refine: **Biceps, Forearms, Front/Middle Delts** highlights are too small (zoom the crop on the
-  target muscle); **Neck** and **Olympic** look odd (simplify Olympic); Calves highlight sits low.
-- Equipment (with a person using it, same style as muscle icons): Kettlebell, Machine, Bodyweight,
-  Cardio, Smith Machine, Cable, Safety Bar, Other, All (+ redraw Barbell/Dumbbell with a figure).
-- Style rules: `docs/design/ICON_STYLE.md`; sources `assets/icons-src/{muscle,equipment}/*.svg`;
-  build `node scripts/build-icon-art.mjs`; tests `npm run test:icons`.
-  Vision-capable models: DeepSeek, Nemotron VL, GLM (attach reference images with `-f`).
-- After icons: wire the equipment icons where equipment names are shown (`equipmentIcons.tsx`).
+### D. Icons — refinement then equipment ✅ DONE 2026-10-18
+Muscle art redrawn where the highlight was thin or the crop wrong (Biceps,
+Front/Middle Delts, Neck, Olympic, Other); Forearms and Calves are now one limb
+drawn larger (documented exception in `docs/design/ICON_STYLE.md`). All ten
+equipment ids render from `assets/icons-src/equipment/*.svg` (barbell, dumbbell,
+kettlebell, machine, bodyweight, cardio, smith machine, cable, safety bar, other)
+and the exercise detail page shows the equipment icon next to the name. The build
+now fails when a taxonomy id has no art file, the contact sheet renders in the
+real theme colours (`--only=muscle|equipment`), and `test:icons` is 63 assertions.
+Pushed `a782d31`, `5736bfd`; contact sheet at `.opencode/renders/sheet.png`
+(`node scripts/render-icons.mjs`).
 
 ### E. Rich exercise pages + missing exercises (repo `~/lift/lift-kb`)
 - Pilot ~6 rich pages (why it matters for longevity, rhythm/tempo, motivation, safety) for the
