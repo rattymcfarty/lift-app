@@ -69,11 +69,13 @@ is the authority and rejects anything that breaks these rules:
   abductors (side/back hips), adductors (front, inner thighs), calves (back, lower legs),
   olympic (full figure, front, traps/shoulders/glutes/quads highlighted), full-body
   (whole figure small, everything highlighted), other (three round dots, LINE colored, no figure).
-- Two icons zoom onto **one limb drawn at a larger scale** instead of cropping the whole
-  figure, because a symmetric crop cannot make those muscles dominant: `Forearms.svg`
-  (one front arm, shoulder to hand) and `Calves.svg` (one lower leg, knee to heel). Keep
-  the limb's own proportions and its hand/foot/elbow/knee shapes consistent with the shared
-  figure above; only the scale changes. Everything else stays a window onto the one figure.
+- One icon zooms onto **one limb drawn at a larger scale** instead of cropping the whole
+  figure: `Forearms.svg` (one front arm, shoulder to hand, on a diagonal so the flexor mass
+  fills the tile). Keep the limb's own proportions and its hand/elbow shapes consistent with
+  the shared figure above; only the scale changes. `Calves.svg` is the other exception and
+  draws **both** lower legs close together, because the reference crop shows both calves and
+  the shared figure stands with the feet too far apart to crop. Everything else stays a
+  window onto the one figure.
 
 ## Equipment icons
 

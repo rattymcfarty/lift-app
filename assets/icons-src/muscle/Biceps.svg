@@ -23,12 +23,12 @@
   </g>
 
   <!-- biceps: the belly of the front upper arm, from the deltoid seam to the elbow -->
-  <path fill="#ff7a1a" d="M10.2 18.4 Q11.3 19 11.5 21 Q11.6 23.2 10.6 24.6 Q9.3 24.9 8.4 23.6 Q7.8 21.4 8.4 19.6 Q9 18.3 10.2 18.4 Z" />
+  <path fill="#ff7a1a" d="M10.4 17.3 Q12.3 18.6 12.2 21.4 Q12 24.8 10.8 26.7 Q9 27.1 7.8 25.8 Q7 23 7.3 20.2 Q7.7 17.9 10.4 17.3 Z" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#ff7a1a" d="M10.2 18.4 Q11.3 19 11.5 21 Q11.6 23.2 10.6 24.6 Q9.3 24.9 8.4 23.6 Q7.8 21.4 8.4 19.6 Q9 18.3 10.2 18.4 Z" />
+    <path fill="#ff7a1a" d="M10.4 17.3 Q12.3 18.6 12.2 21.4 Q12 24.8 10.8 26.7 Q9 27.1 7.8 25.8 Q7 23 7.3 20.2 Q7.7 17.9 10.4 17.3 Z" />
   </g>
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M10.2 18.4 Q11.3 19 11.5 21 Q11.6 23.2 10.6 24.6 Q9.3 24.9 8.4 23.6 Q7.8 21.4 8.4 19.6 Q9 18.3 10.2 18.4 Z M10 19.4 Q9.3 21.4 9.9 23.6 M10.9 20.2 Q10.6 21.8 10.9 23.2" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M10.4 17.3 Q12.3 18.6 12.2 21.4 Q12 24.8 10.8 26.7 Q9 27.1 7.8 25.8 Q7 23 7.3 20.2 Q7.7 17.9 10.4 17.3 Z M9.6 18.2 Q8.9 21 9.4 24.4 Q9.6 25.6 9.9 26.4 M11.4 18.6 Q11.6 21.4 11.2 24.4 M8.2 19.4 Q7.7 21.8 8 24.2" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M10.2 18.4 Q11.3 19 11.5 21 Q11.6 23.2 10.6 24.6 Q9.3 24.9 8.4 23.6 Q7.8 21.4 8.4 19.6 Q9 18.3 10.2 18.4 Z M10 19.4 Q9.3 21.4 9.9 23.6 M10.9 20.2 Q10.6 21.8 10.9 23.2" />
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M10.4 17.3 Q12.3 18.6 12.2 21.4 Q12 24.8 10.8 26.7 Q9 27.1 7.8 25.8 Q7 23 7.3 20.2 Q7.7 17.9 10.4 17.3 Z M9.6 18.2 Q8.9 21 9.4 24.4 Q9.6 25.6 9.9 26.4 M11.4 18.6 Q11.6 21.4 11.2 24.4 M8.2 19.4 Q7.7 21.8 8 24.2" />
   </g>
 </svg>

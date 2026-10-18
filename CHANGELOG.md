@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- Icons (fidelity pass): `Calves.svg` now shows **both** lower legs with the gastrocnemius
+  bellies highlighted (it was one leg, which the reference crop never was); `Forearms.svg`
+  is a single arm on a diagonal with an open hand, so the flexor mass fills the tile;
+  `Biceps.svg` gets a full belly from the deltoid seam to the elbow instead of a thin sliver;
+  `Neck.svg` drops the floating deltoid caps that read as bolts and widens the
+  sternocleidomastoid and upper-trap highlight. Original vector work throughout — the
+  reference screenshots set the genre, nothing is traced or copied from them. The contact
+  sheet renders in the real theme colours, so what you see is what the app draws.
+
 - Exercise guides (E): the knowledge base gained the four movements the curated
   foundational list was missing — **Bird Dog**, **Cable Woodchops**, **Rowing
   Machine** and **Outdoor Cycling** — so all 50 names now resolve to a live page
