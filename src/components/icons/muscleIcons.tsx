@@ -12,10 +12,17 @@
  * Colors come from props (theme muted = silhouette, theme highlight =
  * blue) so the icons work in both light and dark mode. Fine
  * definition lines use a translucent black stroke so they read on both.
+ *
+ * Ids that have a file in assets/icons-src/muscle are rendered from the
+ * generated art instead (iconArt.generated.ts, built by
+ * scripts/build-icon-art.mjs, style guide in docs/design/ICON_STYLE.md);
+ * everything else falls back to the hand-drawn paths below.
  */
 import type { JSX } from 'react';
-import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Line, Path, Rect, SvgXml } from 'react-native-svg';
+import { themedIconArt } from '../../lib/iconColors';
 import { AllGrid, OtherDots } from './iconPrimitives';
+import { MUSCLE_ART } from './iconArt.generated';
 
 export interface MuscleIconArtProps {
   /** Canonical muscle id from src/kb/taxonomy.ts (or 'All'). Unknown ids fall back to the 'Other' dots. */
@@ -269,6 +276,17 @@ function everyMuscle(c: string): JSX.Element {
 export function MuscleIconArt({ id, size, silhouette, highlight }: MuscleIconArtProps): JSX.Element {
   const sil = silhouette;
   const hl = highlight;
+
+  // Generated art from assets/icons-src wins; the rest is drawn here.
+  const generated = themedIconArt(MUSCLE_ART, id, sil, hl);
+  if (generated) {
+    // SvgXml returns Element | null, hence the fragment.
+    return (
+      <>
+        <SvgXml xml={generated} width={size} height={size} />
+      </>
+    );
+  }
 
   if (id === 'All') {
     return (

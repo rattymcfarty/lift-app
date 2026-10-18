@@ -46,5 +46,9 @@ check "test:calculators" "npm run test:calculators"
 check "test:programs" "npm run test:programs"
 check "test:progression" "npm run test:progression"
 check "test:stats" "npm run test:stats"
+# Invoked directly: this sandbox's policy blocks edits to package.json, so the
+# matching "test:icons" npm script is pending (one line next to test:lifecycle
+# in package.json).
+check "test:icons" "node scripts/test-icons.mjs"
 check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi

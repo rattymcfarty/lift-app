@@ -1,0 +1,35 @@
+<svg viewBox="11 22 26 26">
+  <!-- front lower body: hips, thighs, knees, shins, feet -->
+  <path fill="#808080" d="M18.8 21 L29.2 21 L30.4 26.6 L30.2 31.8 Q24 33.4 17.8 31.8 L17.6 26.6 Z" />
+  <path fill="#808080" d="M17.8 30.4 Q16.2 34.6 16.8 39.4 L23 39.8 Q23.4 35.2 23.8 31.6 Z" />
+  <circle fill="#808080" cx="20" cy="39.8" r="2.7" />
+  <path fill="#808080" d="M17.2 39.6 L22.8 40 Q22.4 43.2 21.8 46.4 L17.2 46.4 Q17.4 43.2 17.2 39.6 Z" />
+  <path fill="#808080" d="M17.2 46.4 L21.8 46.4 Q23 47.6 21.6 47.9 L16.2 47.9 Q15.6 47.2 17.2 46.4 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="#808080" d="M17.8 30.4 Q16.2 34.6 16.8 39.4 L23 39.8 Q23.4 35.2 23.8 31.6 Z" />
+    <circle fill="#808080" cx="20" cy="39.8" r="2.7" />
+    <path fill="#808080" d="M17.2 39.6 L22.8 40 Q22.4 43.2 21.8 46.4 L17.2 46.4 Q17.4 43.2 17.2 39.6 Z" />
+    <path fill="#808080" d="M17.2 46.4 L21.8 46.4 Q23 47.6 21.6 47.9 L16.2 47.9 Q15.6 47.2 17.2 46.4 Z" />
+  </g>
+
+  <!-- anatomy: centre line, thigh crease, knee crease, shin line -->
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 28.4 L24 32" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M23.4 32.4 Q22.8 35.8 22.2 39.2" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 40 Q20 41.4 22.8 40.4" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M20 41.4 Q19.6 43.8 19.3 46" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M23.4 32.4 Q22.8 35.8 22.2 39.2" />
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 40 Q20 41.4 22.8 40.4" />
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M20 41.4 Q19.6 43.8 19.3 46" />
+  </g>
+
+  <!-- quadriceps -->
+  <path fill="#ff7a1a" d="M18.4 32 Q17.2 35.4 17.6 39 Q19.8 40.3 22 39.4 Q22.6 35.6 23.1 31.8 Q20.6 32.8 18.4 32 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="#ff7a1a" d="M18.4 32 Q17.2 35.4 17.6 39 Q19.8 40.3 22 39.4 Q22.6 35.6 23.1 31.8 Q20.6 32.8 18.4 32 Z" />
+  </g>
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M18.4 32 Q17.2 35.4 17.6 39 Q19.8 40.3 22 39.4 Q22.6 35.6 23.1 31.8 Q20.6 32.8 18.4 32 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M18.4 32 Q17.2 35.4 17.6 39 Q19.8 40.3 22 39.4 Q22.6 35.6 23.1 31.8 Q20.6 32.8 18.4 32 Z" />
+  </g>
+</svg>
