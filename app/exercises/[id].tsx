@@ -218,9 +218,15 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs, marginVertical: theme.spacing.xs }}>
           {equipmentList.map((equip, index) => (
-            <Text key={equip} style={{ color: theme.colors.text, fontSize: t.size.body }}>
-              {equipmentLabel(equip)}
-            </Text>
+            <View
+              key={equip}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs }}
+            >
+              <TaxonomyIcon kind="equipment" id={equip} size={28} />
+              <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
+                {equipmentLabel(equip)}
+              </Text>
+            </View>
           ))}
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: theme.spacing.xs }}>

@@ -24,6 +24,8 @@
   `scripts/render-icons.mjs` draws its contact sheet in the real light/dark theme
   colours and takes `--only=muscle|equipment`; `npm run test:icons` (63
   assertions) guards the sheet's palette against drifting from the theme tokens.
+  The exercise detail page now draws each equipment entry with its icon, as the
+  muscle rows already did.
 
 - Sheets (layout redesign C follow-up): three problems the emulator caught. The
   **pull down to close was dead on Android**: inside a `Modal` the move-phase
