@@ -1,5 +1,5 @@
 <svg viewBox="0 0 48 48">
-  <!-- full front figure: traps, shoulders, glutes and quads highlighted -->
+  <!-- full front figure: traps, delts, glutes and quads highlighted -->
   <!-- body base (not highlighted): head, neck, torso mid, arms, calves -->
   <ellipse cx="24" cy="5.4" rx="3.3" ry="3.8" fill="#808080" />
   <path fill="#808080" d="M21.5 8.5 L26.5 8.5 L27.2 12.5 L20.8 12.5 Z" />
@@ -13,30 +13,34 @@
     <path fill="#808080" d="M16.8 41.4 Q16 44.6 17.4 46.8 L20.6 46.8 Q22 44.4 21.8 41.4 Z" />
   </g>
 
-  <!-- anatomy: sternum, collarbones -->
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 30" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-  <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-  </g>
-
-  <!-- traps + shoulders (delts) -->
+  <!-- delts: shoulder caps -->
   <circle cx="12.4" cy="16.4" r="3.4" fill="#ff7a1a" />
-  <path fill="#ff7a1a" d="M13.2 14.6 L15 14 Q17 13 19 14 L20.8 14.6 Q19 13 17 13 Q15 14 13.2 14.6 Z" />
   <g transform="translate(48 0) scale(-1 1)">
     <circle cx="12.4" cy="16.4" r="3.4" fill="#ff7a1a" />
-    <path fill="#ff7a1a" d="M13.2 14.6 L15 14 Q17 13 19 14 L20.8 14.6 Q19 13 17 13 Q15 14 13.2 14.6 Z" />
   </g>
 
-  <!-- glutes (hips) + quads (thighs) -->
-  <path fill="#ff7a1a" d="M16 31.6 Q20 30.5 24 30.5 Q28 30.5 32 31.6 L32 34 Q24 36 16 34 Z" />
+  <!-- traps: neck to acromion -->
+  <path fill="#ff7a1a" d="M21.6 12.6 Q18.2 12.4 15.2 14.6 Q16.4 16.2 18.6 15.4 Q20.6 14.4 21.9 13.4 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="#ff7a1a" d="M21.6 12.6 Q18.2 12.4 15.2 14.6 Q16.4 16.2 18.6 15.4 Q20.6 14.4 21.9 13.4 Z" />
+  </g>
+
+  <!-- glutes: the two hip lobes -->
+  <path fill="#ff7a1a" d="M16 31.2 Q18 30.4 20 30.6 Q22 31 22.6 32.8 Q22 34.4 19.8 34.2 Q17.4 34 16 32.6 Z" />
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="#ff7a1a" d="M16 31.2 Q18 30.4 20 30.6 Q22 31 22.6 32.8 Q22 34.4 19.8 34.2 Q17.4 34 16 32.6 Z" />
+  </g>
+
+  <!-- quads: the front thigh -->
   <path fill="#ff7a1a" d="M16.6 31 Q14.8 37 16.4 41.4 L22 41.4 Q23.6 36.6 23.4 31.4 Z" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="#ff7a1a" d="M16.6 31 Q14.8 37 16.4 41.4 L22 41.4 Q23.6 36.6 23.4 31.4 Z" />
   </g>
 
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M12.4 16.4 L12.4 16.4 M13.2 14.6 L15 14 Q17 13 19 14 L20.8 14.6 Q19 13 17 13 Q15 14 13.2 14.6 Z M16 31.6 Q20 30.5 24 30.5 Q28 30.5 32 31.6 L32 34 Q24 36 16 34 Z M16.6 31 Q14.8 37 16.4 41.4 L22 41.4 Q23.6 36.6 23.4 31.4 Z M17 32 L17.5 38" />
+  <!-- seams on the highlighted muscles only -->
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M14.8 15.4 Q16.4 17.4 16.4 19.6 M15.6 13.6 Q18 13.4 20 14.2 M19.4 31.2 Q19 35.6 18.6 40.4 M17.6 42.4 Q19.5 43.4 21.4 42.4" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M12.4 16.4 L12.4 16.4 M13.2 14.6 L15 14 Q17 13 19 14 L20.8 14.6 Q19 13 17 13 Q15 14 13.2 14.6 Z M16 31.6 Q20 30.5 24 30.5 Q28 30.5 32 31.6 L32 34 Q24 36 16 34 Z M16.6 31 Q14.8 37 16.4 41.4 L22 41.4 Q23.6 36.6 23.4 31.4 Z M17 32 L17.5 38" />
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M14.8 15.4 Q16.4 17.4 16.4 19.6 M15.6 13.6 Q18 13.4 20 14.2 M19.4 31.2 Q19 35.6 18.6 40.4 M17.6 42.4 Q19.5 43.4 21.4 42.4" />
   </g>
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M24 12.6 L24 30.4 M14.8 16.4 Q18.8 18.6 22.6 16.6 M17.4 21.2 Q24 23.4 30.6 21.2 M24 31.4 L24 33.8" />
 </svg>

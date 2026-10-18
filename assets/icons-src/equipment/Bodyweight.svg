@@ -1,0 +1,13 @@
+<svg viewBox="0 0 48 48">
+  <!-- push-up, side view: figure on a mat (the mat is the accent) -->
+  <rect fill="#ff7a1a" x="2.6" y="37" width="42.8" height="3.4" rx="1.7" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" d="M6 38.6 L42 38.6" />
+
+  <!-- figure: head, torso (shoulders high at the right), legs to the left -->
+  <circle fill="#808080" cx="38.4" cy="20.6" r="3.4" />
+  <path fill="#808080" d="M10 26.6 Q22 22 34 22.8 L34 28.6 Q22 28.8 10 31.2 Z" />
+  <path fill="none" stroke="#808080" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" d="M33 25.8 L34.4 31.6 L35.4 37" />
+  <path fill="none" stroke="#808080" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" d="M11.4 29.6 L8.6 33.4 L7 37" />
+  <path fill="none" stroke="#808080" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" d="M14 30.2 L11.6 33.8 L10.8 37" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.8" stroke-linecap="round" d="M18 28.4 Q24 26.6 30 27" />
+</svg>

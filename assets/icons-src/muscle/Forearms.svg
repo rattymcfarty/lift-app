@@ -1,30 +1,16 @@
-<svg viewBox="5 10 38 38">
-  <!-- front arms: elbows, forearms, wrists -->
-  <path fill="#808080" d="M21.5 8.5 L26.5 8.5 L27.2 12.5 L20.8 12.5 Z" />
-  <path fill="#808080" d="M13.2 14.6 Q17.5 12 20.8 12.2 L27.2 12.2 Q30.5 12 34.8 14.6 L33.6 20.5 Q32.8 26 31.4 31.6 L28.6 32.6 Q24 33.4 19.4 32.6 L16.6 31.6 Q15.2 26 14.4 20.5 Z" />
-  <circle cx="12.4" cy="16.4" r="3.4" fill="#808080" />
-  <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
-  <path fill="#808080" d="M6.6 27 L5.2 36 Q5 37.5 6.8 37.5 Q8.5 37.2 9.5 35.5 L10.8 27.4 Q8.6 28 6.6 27 Z" />
-  <g transform="translate(48 0) scale(-1 1)">
-    <circle cx="12.4" cy="16.4" r="3.4" fill="#808080" />
-    <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
-    <path fill="#808080" d="M6.6 27 L5.2 36 Q5 37.5 6.8 37.5 Q8.5 37.2 9.5 35.5 L10.8 27.4 Q8.6 28 6.6 27 Z" />
-  </g>
+<svg viewBox="11 16 26 26">
+  <!-- one front arm: upper arm above, elbow, forearm, wrist, hand -->
+  <path fill="#808080" d="M20 6 L28 6 Q27.4 11 26.8 15.6 L21.2 15.6 Q20.4 10.6 20 6 Z" />
+  <circle fill="#808080" cx="24" cy="17" r="3.2" />
+  <path fill="#808080" d="M21.9 35 L26.7 35 L26.3 38.4 L22.4 38.4 Z" />
+  <ellipse fill="#808080" cx="24.3" cy="42.2" rx="3.7" ry="4.4" />
 
-  <!-- anatomy: sternum, collarbones -->
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 26" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-  <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-  </g>
+  <!-- anatomy: elbow crease, wrist bones, knuckle line -->
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M21.4 18.4 Q24 19.6 26.6 18.6" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M22.6 37.6 Q24.3 38.2 26.1 37.6" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M22.4 40.4 Q24.3 41 26.3 40.4" />
 
-  <!-- forearms (lower arms) -->
-  <path fill="#ff7a1a" d="M6.8 28 L5.8 35 Q6 37.5 7.5 37.5 Q9 37 9.5 35 L9.5 28 Q8.5 28 6.8 28 Z" />
-  <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#ff7a1a" d="M6.8 28 L5.8 35 Q6 37.5 7.5 37.5 Q9 37 9.5 35 L9.5 28 Q8.5 28 6.8 28 Z" />
-  </g>
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M6.8 28 L5.8 35 Q6 37.5 7.5 37.5 Q9 37 9.5 35 L9.5 28 Q8.5 28 6.8 28 Z M7 30 L8 34" />
-  <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M6.8 28 L5.8 35 Q6 37.5 7.5 37.5 Q9 37 9.5 35 L9.5 28 Q8.5 28 6.8 28 Z M7 30 L8 34" />
-  </g>
+  <!-- forearm: flexor mass from the elbow to the wrist -->
+  <path fill="#ff7a1a" d="M20.8 18 Q19.8 23 20.3 28 Q20.8 32 21.9 34.4 Q23.7 35.4 25.7 35 Q26.7 31.4 26.9 26.6 Q27.1 21.6 26.9 18.2 Q24.9 17.4 23.7 17.4 Q22.1 17.4 20.8 18 Z" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M20.8 18 Q19.8 23 20.3 28 Q20.8 32 21.9 34.4 Q23.7 35.4 25.7 35 Q26.7 31.4 26.9 26.6 Q27.1 21.6 26.9 18.2 Q24.9 17.4 23.7 17.4 Q22.1 17.4 20.8 18 Z M21.2 19.8 Q20.7 24 21.1 28.2 Q21.4 31.4 22.2 33.6 M26.5 19 Q26.8 23.4 26.5 27.6 Q26.2 31 25.5 33.4 M22.2 19.6 Q22.6 24.2 22.9 29 M25.4 19.2 Q25.1 24 24.9 28.8" />
 </svg>

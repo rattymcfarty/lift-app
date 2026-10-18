@@ -2,6 +2,33 @@
 
 ## Unreleased (addendum)
 
+- Icons (D): muscle art redrawn where the highlight was too thin or the crop
+  wrong, and the whole equipment set moved into the art pipeline. **Biceps** now
+  has a real belly on each upper arm instead of a stripe; **Front Delts** and
+  **Middle Delts** are deltoid caps wrapped from the clavicle to the armpit at
+  the same zoom `Rear Delts` uses; **Neck** is a sternocleidomastoid plus upper
+  traps rather than a rectangle; **Olympic** is a grey figure with clean
+  traps/delts/glutes/quads instead of overlapping blobs; **Other** is three
+  separated dots; **Forearms** and **Calves** are drawn as **one limb at a larger
+  scale** (a symmetric crop of the whole figure cannot make those muscles fill the
+  tile) — the only two icons that are not a window onto the shared figure, and
+  `docs/design/ICON_STYLE.md` now says so. All ten equipment ids render from
+  `assets/icons-src/equipment/` instead of half of them silently falling back to
+  the older hand-drawn React scenes: barbell (bench press), dumbbell (standing
+  hold), kettlebell (held at the chest), machine (selectorised), bodyweight
+  (push-up on a mat), cardio (bike), smith machine, cable and safety bar — figure
+  in the theme's muted colour, implement in the theme highlight, so light and dark
+  both get the app's blue and the `#ff7a1a` in the sources stays an authoring
+  placeholder that never reaches a screen. `scripts/build-icon-art.mjs` now fails
+  when a taxonomy id has no art file (how the equipment set drifted), and
+  `scripts/render-icons.mjs` draws its contact sheet in the real light/dark theme
+  colours and takes `--only=muscle|equipment`; `npm run test:icons` (63
+  assertions) guards the sheet's palette against drifting from the theme tokens.
+
+- Sheets (layout redesign C follow-up): three problems the emulator caught. The
+  **pull down to close was dead on Android**: inside a `Modal` the move-phase
+  responder negotiation is never dispatched to a view (measured — the header gets
+
 - Sheets (layout redesign C follow-up): three problems the emulator caught. The
   **pull down to close was dead on Android**: inside a `Modal` the move-phase
   responder negotiation is never dispatched to a view (measured — the header gets

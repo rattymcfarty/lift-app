@@ -217,12 +217,58 @@ function render(records) {
   return `${header}\n\n${blocks.join('\n\n')}\n`;
 }
 
+/** Longest directory prefix match, for the "no art" message. */
+function targetPath(group) {
+  return group === 'EQUIPMENT' ? 'assets/icons-src/equipment' : 'assets/icons-src/muscle';
+}
+
+/**
+ * The ids a taxonomy list declares (`{ id: 'Chest', label: 'Chest' }`).
+ * Returns undefined if the shape changed, so a refactor of taxonomy.ts can
+ * never break the icon build — it just stops checking.
+ */
+function taxonomyIds(name) {
+  let src;
+  try {
+    src = readFileSync(join(ROOT, 'src/kb/taxonomy.ts'), 'utf8');
+  } catch {
+    return undefined;
+  }
+  const block = new RegExp(`export const ${name}\\b([\\s\\S]*?)as const`).exec(src);
+  if (!block) return undefined;
+  return [...block[1].matchAll(/\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
+}
+
 const records = [];
 const allProblems = [];
 for (const kind of KINDS) {
   const { entries, problems } = readKind(kind);
   records.push({ export: kind.export, kind: kind.label, entries });
   allProblems.push(...problems);
+}
+
+/**
+ * Every taxonomy id needs a source file: the id IS the file name and the whole
+ * set must come from this pipeline. Without this check a missing file falls
+ * back to the older React drawing in silence (how the equipment set ended up
+ * half in the art pipeline). Skipped when ICON_ART_SRC points elsewhere.
+ */
+if (!process.env.ICON_ART_SRC) {
+  const groups = [
+    { taxonomy: 'MUSCLE_GROUPS', record: records[0] },
+    { taxonomy: 'EQUIPMENT', record: records[1] },
+  ];
+  for (const { taxonomy, record } of groups) {
+    const ids = taxonomyIds(taxonomy);
+    if (!ids) continue;
+    const have = new Set(record.entries.map(([id]) => id));
+    const missing = ids.filter((id) => !have.has(id));
+    if (missing.length) {
+      allProblems.push(
+        `${taxonomy}: no art for ${missing.join(', ')} — add ${targetPath(taxonomy)}/<id>.svg`,
+      );
+    }
+  }
 }
 
 if (allProblems.length) {

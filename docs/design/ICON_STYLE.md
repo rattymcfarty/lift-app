@@ -15,7 +15,11 @@ conventions of good anatomy-chart icons (views, proportions, highlight scheme) b
 - `node scripts/build-icon-art.mjs` validates the SVGs and generates
   `src/components/icons/iconArt.generated.ts` (`--check` = fail if stale; part of `npm run verify`).
 - `node scripts/render-icons.mjs [out.png]` renders a contact sheet (every icon on a dark
-  and a light tile, labelled) with headless Chrome so you can look at the result.
+  and a light tile, labelled) with headless Chrome so you can look at the result. It uses the
+  **real app theme colors** (light/dark `muted` + `highlight` from `src/theme/tokens.ts`, with
+  `line`/`hiLine` derived exactly as `src/lib/iconColors.ts` derives them), so the sheet shows
+  what the app draws — the `#ff7a1a` authoring orange never reaches a screen. Add
+  `--only=muscle` or `--only=equipment` while redrawing one half of the set.
 - The components `MuscleIconArt` / `EquipmentIconArt` draw the generated SVG with the
   app's colors; icons without art yet fall back to the older drawing.
 
@@ -65,13 +69,21 @@ is the authority and rejects anything that breaks these rules:
   abductors (side/back hips), adductors (front, inner thighs), calves (back, lower legs),
   olympic (full figure, front, traps/shoulders/glutes/quads highlighted), full-body
   (whole figure small, everything highlighted), other (three round dots, LINE colored, no figure).
+- Two icons zoom onto **one limb drawn at a larger scale** instead of cropping the whole
+  figure, because a symmetric crop cannot make those muscles dominant: `Forearms.svg`
+  (one front arm, shoulder to hand) and `Calves.svg` (one lower leg, knee to heel). Keep
+  the limb's own proportions and its hand/foot/elbow/knee shapes consistent with the shared
+  figure above; only the scale changes. Everything else stays a window onto the one figure.
 
 ## Equipment icons
 
 - A small flat illustration: a simplified figure in BODY/LINE using the equipment, the
   equipment itself in HI with HI_LINE detail. Side or 3/4 view, centred, clear at 40 px.
-- ids: barbell (lifter on a bench with a loaded bar), dumbbell (standing curl), kettlebell
-  (swing/hold), machine (seated on a selectorised machine), bodyweight (push-up),
-  cardio (stationary bike), smith-machine (squat in a guided-bar rack), cable (cable
-  pulley station), safety-bar (back squat with a cambered bar), other (three dots),
-  plus `all` (a 2x2 grid of squares/diamond, LINE colored).
+- ids: barbell (lifter on a bench with a loaded bar), dumbbell (standing hold), kettlebell
+  (held at the chest), machine (seated on a selectorised machine), bodyweight (push-up on a
+  mat — the mat is the accent), cardio (stationary bike), smith-machine (squat in a guided-bar
+  rack), cable (cable pulley station), safety-bar (back squat under the cambered yoke bar),
+  other (three dots). All ten taxonomy ids in `src/kb/taxonomy.ts` have a source file, so the
+  whole equipment set renders from this pipeline; `all` (a 2x2 grid of squares) stays a shared
+  React primitive in `src/components/icons/iconPrimitives.tsx`, like the muscle set's `all` and
+  `other` fallbacks.

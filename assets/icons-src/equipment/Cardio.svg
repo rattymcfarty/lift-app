@@ -1,0 +1,21 @@
+<svg viewBox="0 0 48 48">
+  <!-- stationary bike, side view: blue flywheel and frame, gray rider -->
+  <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" d="M7 41 L37 41" />
+
+  <!-- flywheel -->
+  <circle fill="#ff7a1a" cx="14.6" cy="31" r="8" />
+  <circle fill="none" stroke="#b34700" stroke-width="0.9" cx="14.6" cy="31" r="4.6" />
+  <circle fill="none" stroke="#b34700" stroke-width="0.9" cx="14.6" cy="31" r="8" />
+
+  <!-- frame: down tube, seat post, handlebar -->
+  <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" d="M16.6 27.6 L24 15.4" />
+  <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" d="M24 15.4 L20.6 10.8" />
+  <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M24 15.4 L34 20.4 L36.4 14.8" />
+
+  <!-- rider: head, torso, arm to the bars, thigh and shin to the pedal -->
+  <circle fill="#808080" cx="30" cy="7.4" r="3.2" />
+  <path fill="#808080" d="M28.2 11.2 L22.4 11.2 L23.8 22.4 L28.8 14.2 Z" />
+  <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" d="M26.2 13.2 L34 20.4" />
+  <path fill="none" stroke="#808080" stroke-width="4" stroke-linecap="round" d="M23 21.4 L30 30.4" />
+  <path fill="none" stroke="#808080" stroke-width="3.6" stroke-linecap="round" d="M30 30.4 L25 38" />
+</svg>

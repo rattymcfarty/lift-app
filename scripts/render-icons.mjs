@@ -34,11 +34,43 @@ const SECTION_GAP = 20;
 const CELL_W = TILE_BIG * 2 + TILE_SMALL * 2 + GAP * 3 + PAD * 2;
 const CELL_H = TILE_BIG + LABEL_H + PAD * 2;
 
-/** Theme colors the app substitutes, on a dark and a light tile. */
-const THEMES = {
-  dark: { tile: '#1c1c1e', body: '#4a4a50', line: '#85858c', hi: '#ff7a1a', hiLine: '#b34700' },
-  light: { tile: '#f2f2f7', body: '#9a9aa3', line: '#c9c9d1', hi: '#ff7a1a', hiLine: '#b34700' },
+/**
+ * Theme colors the app substitutes, on a dark and a light tile.
+ *
+ * These are the REAL app values, so the sheet shows what the icons look like in
+ * the app: `body` is theme `muted`, `hi` is theme `highlight` (the blue set
+ * numbers and active borders use — never the #ff7a1a authoring placeholder),
+ * and `line`/`hiLine` are derived exactly as src/lib/iconColors.ts derives them
+ * (LINE_LIGHTEN / HI_LINE_DARKEN below, mirrored in `themeIconPalette`).
+ */
+const LINE_LIGHTEN = 0.35;
+const HI_LINE_DARKEN = 0.35;
+
+function mix(color, target, amount) {
+  const hex = color.replace('#', '');
+  const parts = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const out = parts.map((v) => Math.round(v + (target - v) * amount));
+  return `#${out.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** muted / highlight per theme, straight from src/theme/tokens.ts. */
+const THEME_TOKENS = {
+  dark: { tile: '#1c1c1e', muted: '#a1a1a6', highlight: '#4b98e8' },
+  light: { tile: '#f2f2f7', muted: '#5c5c60', highlight: '#1a69c8' },
 };
+
+const THEMES = Object.fromEntries(
+  Object.entries(THEME_TOKENS).map(([name, t]) => [
+    name,
+    {
+      tile: t.tile,
+      body: t.muted,
+      line: mix(t.muted, 255, LINE_LIGHTEN),
+      hi: t.highlight,
+      hiLine: mix(t.highlight, 0, HI_LINE_DARKEN),
+    },
+  ]),
+);
 
 /**
  * Swap the four authoring colors for theme colors in one pass, mirroring
@@ -95,6 +127,7 @@ function cell(id, markup) {
 }
 
 function section(title, items) {
+  if (!items.length) return { html: '', rows: 0 };
   const rows = Math.ceil(items.length / COLS) || 1;
   return { html: `<h2>${title} <span>${items.length}</span></h2><div class="grid">${items.map(([id, svg]) => cell(id, svg)).join('')}</div>`, rows };
 }
@@ -103,7 +136,12 @@ function buildHtml(records) {
   const muscle = section('Muscle groups', records.MUSCLE_ART);
   const equipment = section('Equipment', records.EQUIPMENT_ART);
   const width = PAGE_PAD * 2 + CELL_W * COLS;
-  const height = PAGE_PAD * 2 + TITLE_H + SECTION_H * 2 + SECTION_GAP + CELL_H * (muscle.rows + equipment.rows);
+  const height =
+    PAGE_PAD * 2 +
+    TITLE_H +
+    SECTION_H * (Number(muscle.rows > 0) + Number(equipment.rows > 0)) +
+    (muscle.rows && equipment.rows ? SECTION_GAP : 0) +
+    CELL_H * (muscle.rows + equipment.rows);
   const css = `
     * { box-sizing: border-box; }
     body { margin: 0; padding: ${PAGE_PAD}px; width: ${width}px; background: #0d0d0f;
@@ -137,8 +175,19 @@ function buildHtml(records) {
 }
 
 const records = readGenerated();
-const { width, height, html } = buildHtml(records);
-const out = process.argv[2] ? resolve(ROOT, process.argv[2]) : DEFAULT_OUT;
+// `--only=muscle|equipment` renders one half of the sheet — handy while
+// redrawing a single set, because the full sheet is too tall to see at once.
+const onlyArg = process.argv.slice(2).find((a) => a.startsWith('--only='))?.slice('--only='.length);
+if (onlyArg && !['muscle', 'equipment'].includes(onlyArg)) {
+  console.error(`render-icons: --only must be "muscle" or "equipment", got "${onlyArg}"`);
+  process.exit(2);
+}
+const shown = onlyArg
+  ? { MUSCLE_ART: onlyArg === 'muscle' ? records.MUSCLE_ART : {}, EQUIPMENT_ART: onlyArg === 'equipment' ? records.EQUIPMENT_ART : {} }
+  : records;
+const { width, height, html } = buildHtml(shown);
+const outArg = process.argv.slice(2).find((a) => !a.startsWith('--'));
+const out = outArg ? resolve(ROOT, outArg) : DEFAULT_OUT;
 mkdirSync(dirname(out), { recursive: true });
 const htmlFile = join(dirname(out), 'sheet.html');
 writeFileSync(htmlFile, html);

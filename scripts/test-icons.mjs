@@ -175,6 +175,40 @@ try {
     '<svg><path fill="#4a4a50" /><path fill="#ff7a1a" /></svg>',
   );
 
+  /* ---- 4. the contact sheet mirrors the app's real theme colors ---- */
+  // scripts/render-icons.mjs cannot import TS, so it re-declares the two theme
+  // tokens and the two mix amounts. These checks are what keeps that copy honest:
+  // the sheet must show the palette the app renders, not the authoring orange.
+  const sheetSrc = readFileSync('scripts/render-icons.mjs', 'utf8');
+  const tokenSrc = readFileSync('src/theme/tokens.ts', 'utf8');
+  const colorSrc = readFileSync('src/lib/iconColors.ts', 'utf8');
+  const numberIn = (src, name) => Number(new RegExp(`\\b${name}\\s*=\\s*([0-9.]+)`).exec(src)?.[1]);
+  for (const [theme, hexes] of [
+    ['light', ['#f2f2f7', '#5c5c60', '#1a69c8']],
+    ['dark', ['#1c1c1e', '#a1a1a6', '#4b98e8']],
+  ]) {
+    for (const hex of hexes) {
+      check(`render sheet ${theme}: uses ${hex}`, sheetSrc.includes(hex));
+    }
+    check(
+      `render sheet ${theme}: muted/highlight are real theme tokens`,
+      hexes.slice(1).every((hex) => tokenSrc.includes(`'${hex}'`)),
+    );
+  }
+  for (const name of ['LINE_LIGHTEN', 'HI_LINE_DARKEN']) {
+    eq(
+      `render sheet mirrors ${name}`,
+      numberIn(sheetSrc, name),
+      numberIn(colorSrc, name),
+    );
+    check(`${name} still has a numeric value`, Number.isFinite(numberIn(colorSrc, name)));
+  }
+  check(
+    'render sheet derives line and hiLine the same way as the app',
+    /mix\(t\.muted, 255, LINE_LIGHTEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
+      /mix\(t\.highlight, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
+  );
+
   console.log(`test:icons — ${passed} assertions passed`);
 } finally {
   rmSync(dir, { recursive: true, force: true });

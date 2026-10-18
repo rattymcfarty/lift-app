@@ -1,0 +1,18 @@
+<svg viewBox="0 0 48 48">
+  <!-- kettlebell hold: figure standing, bell held at the chest -->
+  <circle fill="#808080" cx="24" cy="7.6" r="3.6" />
+  <path fill="#808080" d="M18 12.6 Q24 10.6 30 12.6 L29.2 27.4 L18.8 27.4 Z" />
+  <path fill="none" stroke="#808080" stroke-width="4.2" stroke-linecap="round" d="M20.6 27 L20 42" />
+  <path fill="none" stroke="#808080" stroke-width="4.2" stroke-linecap="round" d="M27.4 27 L28 42" />
+
+  <!-- arms bent to the handle -->
+  <path fill="none" stroke="#808080" stroke-width="3.4" stroke-linecap="round" d="M18.4 14 Q17.4 18.2 20.6 20.6" />
+  <path fill="none" stroke="#808080" stroke-width="3.4" stroke-linecap="round" d="M29.6 14 Q30.6 18.2 27.4 20.6" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.8" stroke-linecap="round" d="M24 13.4 L24 18" />
+
+  <!-- kettlebell: arched handle, round bell -->
+  <path fill="none" stroke="#ff7a1a" stroke-width="2.6" stroke-linecap="round" d="M20.8 23.4 L20.8 20.6 Q24 17 27.2 20.6 L27.2 23.4" />
+  <circle fill="#ff7a1a" cx="24" cy="28.6" r="5.4" />
+  <circle fill="none" stroke="#b34700" stroke-width="0.9" cx="24" cy="28.6" r="5.4" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" d="M20.4 25.8 Q24 24.2 27.6 25.8 M24 24.2 L24 25.4" />
+</svg>

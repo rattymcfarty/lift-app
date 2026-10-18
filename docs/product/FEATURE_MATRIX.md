@@ -29,6 +29,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Move between sections with one thumb | ✅ A3 | Floating glass pill tab bar, icon only (Programs · Train · Analytics · Exercises), active item in an accent capsule; order persisted (`src/nav/tabOrder.ts`) and carried in backups; content pads around it (`useTabBarSpace`) |
 | Reach anything from one menu | ✅ B | Glass **side panels** from the top bar: left = New workout, Search, the four sections (tap to jump, long-press-drag to reorder the bar) and More (History, Records, Balance, Calculators, Body weight); right = Settings. Tap-only dismissal (scrim, close button, item tap, Android back) |
 | Sheets and dialogs that look like one app | ✅ C | Every bottom sheet is the same glass component (`BottomSheet` + shared `SheetHeader`: grabber, title, close); the option pickers, the plate calculator, the muscle sheet and the rest timer all render it, and the rename dialog is glass. Dismiss by the header close, a backdrop tap, a pull down on the header, or Android back |
+| Find exercises by muscle or equipment at a glance | ✅ D | 2-column tile + label grid (`TaxonomyFilterGrid`) with original LIFT artwork: 21 muscle-group and 10 equipment icons, figure in the theme's muted colour with the worked muscle or the implement in the theme highlight (light and dark), so the set follows the app theme rather than a fixed accent (`docs/design/ICON_STYLE.md`) |
 
 ## 3. During the workout
 | Need | Status | Notes |
