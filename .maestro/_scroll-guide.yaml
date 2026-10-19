@@ -1,0 +1,13 @@
+# Shared sub-flow: one controlled scroll step on a long guide page.
+#
+# `scrollUntilVisible` is not usable here: on this page a single attempt flings
+# about 1.5 screens, so the short card headers ("Why", "How-to") are jumped over
+# and the command times out even though they are on screen. A slow 25%-of-screen
+# swipe moves exactly one step with no momentum, so the flow can scroll by hand
+# and assert at known positions.
+appId: app.lift.mobile
+---
+- swipe:
+    start: "50%, 70%"
+    end: "50%, 45%"
+    duration: 1200

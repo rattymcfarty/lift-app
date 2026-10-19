@@ -1,6 +1,11 @@
 # Exercise guide smoke test: a KB exercise opens its detail page and the guide
 # cards render from the imported knowledge base — Overview (the KB steps), Why
 # (longevity notes), How-to (cues, mistakes, safety) and Progression.
+#
+# The cards are one long scroll. The stops below were measured on the emulator
+# (1080x2424): each `_scroll-guide.yaml` run moves 25% of the screen, and every
+# assert sits on a card that is on screen at that stop. Re-measure the counts if
+# the guide copy grows or shrinks.
 # Run: maestro test .maestro/exercise-detail.yaml   (fresh state)
 appId: app.lift.mobile
 ---
@@ -18,22 +23,45 @@ appId: app.lift.mobile
     id: "browse-exercise-row-.*"
     index: 0
 
-# The detail page, with every guide card present.
+# The top card, with a step from the KB 0.6.0 page (the Overview card shows the
+# raw steps alone, not the composite instructions column).
 - assertVisible: ".*Barbell Squat.*"
 - assertVisible: "Overview"
+- assertVisible: ".*safety pins just below where your hips.*"
+
+# Why card: the longevity notes and their subheadings.
+- runFlow: _scroll-guide.yaml
+- runFlow: _scroll-guide.yaml
+- runFlow: _scroll-guide.yaml
 - assertVisible: "Why"
+- assertVisible: ".*Why this matters for a long life.*"
+
+- runFlow: _scroll-guide.yaml
+- runFlow: _scroll-guide.yaml
+- assertVisible: ".*Rhythm and tempo.*"
+- assertVisible: ".*Keeping it for life.*"
+
+# How-to card: the cues from the KB.
+- runFlow: _scroll-guide.yaml
+- runFlow: _scroll-guide.yaml
 - assertVisible: "How-to"
 - assertVisible: "Cues"
-- assertVisible: "Watch out for"
-- assertVisible: "Safety"
-- assertVisible: "Progression"
-
-# The guide is real prose, not an empty frame: a step, a cue and a safety line
-# from the KB page all reach the screen.
-- assertVisible: ".*Brace, then sit down between your feet.*"
 - assertVisible: ".*Knees track over toes.*"
+
+# Common mistakes and the safety note.
+- runFlow: _scroll-guide.yaml
+- assertVisible: "Watch out for"
+
+- runFlow: _scroll-guide.yaml
+- assertVisible: "Safety"
 - assertVisible: ".*safety pins set just below your bottom position.*"
 
-# Back to the browser, and the same exercise opens again.
+# Progression card: loading guidance and the current exercise name.
+- runFlow: _scroll-guide.yaml
+- assertVisible: "Progression"
+- assertVisible: "Loading guidance:"
+- assertVisible: ".*Current: Barbell Squat.*"
+
+# Back to the browser.
 - pressKey: back
 - assertVisible: "Browse Exercises"
