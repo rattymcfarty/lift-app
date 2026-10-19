@@ -8,25 +8,21 @@
     <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
   </g>
 
-  <!-- anatomy: sternum, collarbones, rib lower edge -->
+  <!-- anatomy: sternum, collarbones, rib lower edge, hip crease -->
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 30" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
   </g>
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 21.2 Q24 23.4 30.6 21.2" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M19.2 27.8 Q21.6 28.8 23.8 27.9" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M19.8 31.2 Q21.8 32.2 23.8 31.3" />
-
-  <!-- abs (rectus abdominis, centre torso) -->
-  <rect x="19.6" y="18" width="3.8" height="3" rx="1" fill="#ff7a1a" />
-  <rect x="19.6" y="21.8" width="3.8" height="3" rx="1" fill="#ff7a1a" />
-  <rect x="19.6" y="25.6" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M18.4 30.2 Q21 31.6 23.8 31.4" />
   <g transform="translate(48 0) scale(-1 1)">
-    <rect x="19.6" y="18" width="3.8" height="3" rx="1" fill="#ff7a1a" />
-    <rect x="19.6" y="21.8" width="3.8" height="3" rx="1" fill="#ff7a1a" />
-    <rect x="19.6" y="25.6" width="3.8" height="3" rx="1" fill="#ff7a1a" />
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M18.4 30.2 Q21 31.6 23.8 31.4" />
   </g>
-  <path fill="#ff7a1a" d="M20.4 29.6 Q24 31.4 27.6 29.6 L27.2 31.2 Q24 32.4 20.8 31.2 Z" />
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M19.6 18 L23.4 18 L23.4 21 L19.6 21 Z M19.6 21.8 L23.4 21.8 L23.4 24.8 L19.6 24.8 Z M19.6 25.6 L23.4 25.6 L23.4 28.6 L19.6 28.6 Z M20.4 29.6 Q24 31.4 27.6 29.6 L27.2 31.2 Q24 32.4 20.8 31.2 Z M24 18.5 L24 28.5" />
+
+  <!-- rectus abdominis: one sheet from the sternum to the pubis -->
+  <path fill="#ff7a1a" d="M20 18.4 Q24 17.3 28 18.4 Q27.8 22.4 27.6 25 Q27.3 27.6 26.7 29.7 Q24 30.7 21.3 29.7 Q20.7 27.6 20.4 25 Q20.2 22.4 20 18.4 Z" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M20 18.4 Q24 17.3 28 18.4 Q27.8 22.4 27.6 25 Q27.3 27.6 26.7 29.7 Q24 30.7 21.3 29.7 Q20.7 27.6 20.4 25 Q20.2 22.4 20 18.4 Z" />
+  <!-- tendon intersections and the linea alba -->
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" d="M20.5 21.2 Q24 22.3 27.5 21.2 M20.6 24.4 Q24 25.4 27.4 24.4 M20.9 27.4 Q24 28.4 27.1 27.4 M24 18.2 L24 30" />
 </svg>

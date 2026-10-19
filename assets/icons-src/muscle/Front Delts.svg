@@ -1,32 +1,38 @@
 <svg viewBox="10 10 26 26">
-  <!-- front upper body: neck, shoulder girdle, upper arms, torso top -->
+  <!-- front upper body: neck, deltoid caps, arms hanging from them, torso -->
   <path fill="#808080" d="M21.5 8.5 L26.5 8.5 L27.2 12.5 L20.8 12.5 Z" />
-  <path fill="#808080" d="M13.2 14.6 Q17.5 12 20.8 12.2 L27.2 12.2 Q30.5 12 34.8 14.6 L33.6 20.5 Q32.8 26 31.4 31.6 L28.6 32.6 Q24 33.4 19.4 32.6 L16.6 31.6 Q15.2 26 14.4 20.5 Z" />
-  <circle cx="12.4" cy="16.4" r="3.4" fill="#808080" />
-  <circle cx="35.6" cy="16.4" r="3.4" fill="#808080" />
-  <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
+
+  <!-- upper arms: widest at the deltoid, tapering to the elbow and wrist -->
+  <path fill="#808080" d="M10.7 15 Q9.7 19.8 10.3 24.4 Q10.7 28.6 10.9 32.6 L13.6 32.6 Q13.7 28.6 14 24.4 Q14.3 20 14.5 15.6 Z" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#808080" d="M9.2 17 Q7.6 18.6 7.2 22 L6.6 27 Q8.6 28 10.8 27.4 L11.8 22 Q12.4 19 12 17 Z" />
+    <path fill="#808080" d="M10.7 15 Q9.7 19.8 10.3 24.4 Q10.7 28.6 10.9 32.6 L13.6 32.6 Q13.7 28.6 14 24.4 Q14.3 20 14.5 15.6 Z" />
   </g>
 
-  <!-- anatomy: collarbones, sternum, pec seam, deltoid seam -->
+  <!-- deltoid caps: the round mass on top of each arm -->
+  <circle fill="#808080" cx="12.6" cy="16.4" r="4.1" />
+  <circle fill="#808080" cx="35.4" cy="16.4" r="4.1" />
+
+  <!-- torso: shoulders taper to the waist -->
+  <path fill="#808080" d="M13.2 14.6 Q17.5 12 20.8 12.2 L27.2 12.2 Q30.5 12 34.8 14.6 L33.6 20.5 Q32.8 26 31.4 31.6 L28.6 32.6 Q24 33.4 19.4 32.6 L16.6 31.6 Q15.2 26 14.4 20.5 Z" />
+
+  <!-- anatomy: collarbones, sternum, pec seam, armpit fold -->
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 28" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M23.4 20.4 Q20.4 21.8 17.6 21.2" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M13.6 15.4 Q12.8 17.4 13 19.4 Q13.4 21.2 14.4 21.9" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M16.2 19.4 Q15.2 21 15.1 22.8" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
     <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M23.4 20.4 Q20.4 21.8 17.6 21.2" />
-    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M13.6 15.4 Q12.8 17.4 13 19.4 Q13.4 21.2 14.4 21.9" />
+    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M16.2 19.4 Q15.2 21 15.1 22.8" />
   </g>
 
-  <!-- front delts: the anterior head, clavicle down to the armpit -->
-  <path fill="#ff7a1a" d="M17.8 16.2 Q15.6 16 14 17 Q12.8 18.2 13 19.8 Q13.4 21.4 14.4 21.8 Q15.8 22.4 17 22 Q18.2 21 18.5 19.2 Q18.8 17.4 17.8 16.2 Z" />
+  <!-- front delts: the anterior head, clavicle down to the deltoid insertion -->
+  <path fill="#ff7a1a" d="M16.4 15.7 Q14.6 15.9 14.2 17.6 Q13.8 19.5 14.6 21 Q15.4 22 16.3 21.2 Q17.1 19.6 17.3 17.7 Q17.2 16.3 16.4 15.7 Z" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#ff7a1a" d="M17.8 16.2 Q15.6 16 14 17 Q12.8 18.2 13 19.8 Q13.4 21.4 14.4 21.8 Q15.8 22.4 17 22 Q18.2 21 18.5 19.2 Q18.8 17.4 17.8 16.2 Z" />
+    <path fill="#ff7a1a" d="M16.4 15.7 Q14.6 15.9 14.2 17.6 Q13.8 19.5 14.6 21 Q15.4 22 16.3 21.2 Q17.1 19.6 17.3 17.7 Q17.2 16.3 16.4 15.7 Z" />
   </g>
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M17.8 16.2 Q15.6 16 14 17 Q12.8 18.2 13 19.8 Q13.4 21.4 14.4 21.8 Q15.8 22.4 17 22 Q18.2 21 18.5 19.2 Q18.8 17.4 17.8 16.2 Z M17.2 17 L15.6 21.4 M18.1 17.8 L16.8 21.6 M15.6 17.4 L14.2 20.4" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M16.4 15.7 Q14.6 15.9 14.2 17.6 Q13.8 19.5 14.6 21 Q15.4 22 16.3 21.2 Q17.1 19.6 17.3 17.7 Q17.2 16.3 16.4 15.7 Z M15.9 16.5 L15.2 20.9 M15 16.9 L14.5 20.4" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M17.8 16.2 Q15.6 16 14 17 Q12.8 18.2 13 19.8 Q13.4 21.4 14.4 21.8 Q15.8 22.4 17 22 Q18.2 21 18.5 19.2 Q18.8 17.4 17.8 16.2 Z M17.2 17 L15.6 21.4 M18.1 17.8 L16.8 21.6 M15.6 17.4 L14.2 20.4" />
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M16.4 15.7 Q14.6 15.9 14.2 17.6 Q13.8 19.5 14.6 21 Q15.4 22 16.3 21.2 Q17.1 19.6 17.3 17.7 Q17.2 16.3 16.4 15.7 Z M15.9 16.5 L15.2 20.9 M15 16.9 L14.5 20.4" />
   </g>
 </svg>

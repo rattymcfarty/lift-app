@@ -2,6 +2,14 @@
 
 ## Unreleased (addendum)
 
+- Muscle icons (detail pass): **Abs** draws the rectus abdominis as one sheet with tendon
+  intersections and the linea alba, instead of six separate plates; **Front Delts** and
+  **Middle Delts** sit on a rebuilt upper body — the arm now hangs from a deltoid cap
+  instead of floating beside the torso as a separate ribbon, and the highlight wraps the
+  joint rather than sitting on the chest like a badge; **Neck** highlights the neck column
+  and the upper traps instead of two thin slivers. Original vector work, four authoring
+  colours, theme colouring unchanged.
+
 - Equipment icons: the ten figures now share one body language — a neck, a torso that
   tapers from the shoulders to the waist, an elbow or knee in every limb, and a foot where
   the pose puts one on the floor. **Barbell** (bench press), **Bodyweight** (push-up),

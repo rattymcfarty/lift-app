@@ -6,23 +6,26 @@
 
   <!-- anatomy: jaw line, sternal notch, collarbones, trap seam -->
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M20.9 7.4 Q24 9.4 27.1 7.4" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M22.9 12.6 Q24 13.6 25.1 12.6" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M18.6 14.9 Q20.6 15.7 22.9 15.1" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M14.8 16.4 Q18.8 18.6 22.6 16.6" />
-    <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M18.6 14.9 Q20.6 15.7 22.9 15.1" />
   </g>
 
-  <!-- neck: sternocleidomastoid from behind the jaw to the sternal notch, and the upper traps -->
-  <path fill="#ff7a1a" d="M22 8.9 Q20.6 11 21.9 13.4 Q23.2 14 23.9 12.8 Q23 10.6 23.4 8.7 Q22.6 8.3 22 8.9 Z" />
-  <path fill="#ff7a1a" d="M22.5 12.2 Q18.4 12 14.9 14.7 Q16.4 16.7 19.2 15.8 Q21.6 14.8 22.9 13.5 Z" />
+  <!-- neck: the column from under the jaw to the sternal notch -->
+  <path fill="#ff7a1a" d="M21.3 8.9 L26.7 8.9 L27.1 12.6 Q24 13.9 20.9 12.6 Z" />
+  <!-- upper traps: from the neck base out to the shoulder -->
+  <path fill="#ff7a1a" d="M21.6 12.5 Q18.4 12.4 15 14.8 L16.3 16.3 Q19.3 15.7 21.9 14.6 Z" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#ff7a1a" d="M22 8.9 Q20.6 11 21.9 13.4 Q23.2 14 23.9 12.8 Q23 10.6 23.4 8.7 Q22.6 8.3 22 8.9 Z" />
-    <path fill="#ff7a1a" d="M22.5 12.2 Q18.4 12 14.9 14.7 Q16.4 16.7 19.2 15.8 Q21.6 14.8 22.9 13.5 Z" />
+    <path fill="#ff7a1a" d="M21.6 12.5 Q18.4 12.4 15 14.8 L16.3 16.3 Q19.3 15.7 21.9 14.6 Z" />
   </g>
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M22 8.9 Q20.6 11 21.9 13.4 Q23.2 14 23.9 12.8 Q23 10.6 23.4 8.7 Q22.6 8.3 22 8.9 Z M21.8 9.5 Q21.2 11.2 22 13.1 M22.9 9.6 Q22.8 11.4 23.3 12.6 M22.5 12.2 Q18.4 12 14.9 14.7 Q16.4 16.7 19.2 15.8 Q21.6 14.8 22.9 13.5 Z M17.4 14.4 Q19.8 14.4 21.8 13.5 M16 15.4 Q18.6 15.6 20.8 14.8" />
+
+  <!-- neck detail: sternocleidomastoid edges and trap fibres -->
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M21.3 8.9 L26.7 8.9 L27.1 12.6 Q24 13.9 20.9 12.6 Z M24 9 L24 12.9" />
+  <path fill="none" stroke="#b34700" stroke-width="0.7" stroke-linecap="round" d="M22.2 9.2 Q21.7 11 22.4 12.8 M25.8 9.2 Q26.3 11 25.6 12.8" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M21.6 12.5 Q18.4 12.4 15 14.8 L16.3 16.3 Q19.3 15.7 21.9 14.6 Z" />
+  <path fill="none" stroke="#b34700" stroke-width="0.7" stroke-linecap="round" d="M19.4 13.4 Q17.6 14 16.4 14.9 M20.6 13 Q19 13.6 17.8 14.4" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M22 8.9 Q20.6 11 21.9 13.4 Q23.2 14 23.9 12.8 Q23 10.6 23.4 8.7 Q22.6 8.3 22 8.9 Z M21.8 9.5 Q21.2 11.2 22 13.1 M22.9 9.6 Q22.8 11.4 23.3 12.6 M22.5 12.2 Q18.4 12 14.9 14.7 Q16.4 16.7 19.2 15.8 Q21.6 14.8 22.9 13.5 Z M17.4 14.4 Q19.8 14.4 21.8 13.5 M16 15.4 Q18.6 15.6 20.8 14.8" />
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M21.6 12.5 Q18.4 12.4 15 14.8 L16.3 16.3 Q19.3 15.7 21.9 14.6 Z" />
+    <path fill="none" stroke="#b34700" stroke-width="0.7" stroke-linecap="round" d="M19.4 13.4 Q17.6 14 16.4 14.9 M20.6 13 Q19 13.6 17.8 14.4" />
   </g>
 </svg>
