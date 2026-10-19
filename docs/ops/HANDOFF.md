@@ -194,21 +194,24 @@ iOS via Expo Go only (iOS native build needs macOS/Xcode or EAS — not availabl
 
 Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
-### Verified at last session
-- `npm run verify` ALL GREEN. Counts: kb 29, p7 96, plan 167, backup 91 + roundtrip 23,
-  calculators 23, programs 48, progression 45, stats 71, typography gate ok.
-- Maestro on the signed release APK (emulator `lift-test`): `onboarding`, `tabs`,
-  `user-content`, `workout-flow` all pass.
+### Verified at last session (2026-10-19)
+- `npm run verify` ALL GREEN. Device: `exercise-detail` PASS on a release build from this
+  tree (it now scrolls and asserts every guide card); earlier on the same tree `sheets`,
+  `exercise-menu`, `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
   Android physical device. **Needs the owner's hands.**
 
 ### Knowledge base (`lift-kb`)
-- Bundle **0.5.1**: 627 exercise files, **577 live** (50 duplicates deprecated with
+- Bundle **0.6.0**: 631 exercise pages, **581 live** (duplicates deprecated with
   `replacedBy`), 1 program (`longevity-foundations`, 4 weeks, deload week 4).
-- 194 exercises (added in 0.5.0) have curated, exercise-specific prose, but the
-  later batches are thin (4–5 steps, brief safety notes). **Not yet reviewed by a
-  coach** — required before any public release (project rule).
-- App snapshot (`assets/kb/snapshot`) is in sync with 0.5.1.
+- Six pages are the **rich-page pilot** (`barbell-squat`, `barbell-deadlift`, `push-up`,
+  `farmer-carry`, `bird-dog`, `rowing-machine`): subheaded longevity notes, tempo written
+  into the instructions, a motivation line, a safety note that says when to stop and who
+  should regress. **Awaiting the owner's approval before the other ~600 pages are rewritten.**
+- The later curated batches are still thin (4–5 steps, brief safety notes). **Not yet
+  reviewed by a coach** — required before any public release (project rule).
+- App snapshot (`assets/kb/snapshot`) is in sync with 0.6.0. The exercise page shows the
+  longevity notes as the **Why** card; before 2026-10-19 the importer never stored them.
 
 ## 2. Next up (priority order)
 
@@ -281,6 +284,17 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-19 — exercise-guide bug, queue F and G (opencode)
+- Found a real content bug while making the guide flow honest: the KB importer dropped
+  `longevityNotes` (the transform passed it, `upsertKbExercise` never wrote it), so the
+  **Why** card was missing on every exercise page. Fixed (`0f209bb`).
+- Rewrote `.maestro/exercise-detail.yaml` to scroll the guide in measured 25%-of-screen
+  steps (`_scroll-guide.yaml`): `scrollUntilVisible` flings ~1.5 screens on this page and
+  skips the short card headers. It now asserts a line from every card (`41b3953`).
+- Queue F: `opencode/beam-free` passed the parseDuration bake-off in 17 s (fastest) and
+  moved to 2nd in `pool_order` + the `code` rank (`d7e084a`, `docs/ops/DELEGATION.md` §6).
+- Queue G: this checkpoint. `main` pushed through `cbf4f07`; nothing in flight.
 
 ### 2026-10-16 — leave-program deadlock fixed (opencode helper)
 - Leaving a program works again: enrolling re-took the database write lock from inside itself
