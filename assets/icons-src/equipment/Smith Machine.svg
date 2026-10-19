@@ -9,15 +9,22 @@
   <circle fill="#808080" cx="24" cy="8.6" r="3.2" />
   <path fill="#808080" d="M22.4 11.6 L25.6 11.6 L25.8 14 L22.2 14 Z" />
   <path fill="#808080" d="M18.6 14.4 Q24 12.4 29.4 14.4 Q30 19.2 28.8 24 L28.6 26.6 L19.4 26.6 L19.2 24 Q18 19.2 18.6 14.4 Z" />
+  <path fill="#4d4d4d" d="M29.4 14.4 Q30 19.2 28.8 24 L28.6 26.6 L27.4 26.6 L27.6 24 Q28.8 19.2 28 14.8 Z" />
 
   <!-- hands out to the bar -->
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M 20.1 15.4 L 17.9 13.4" />
   <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M19.4 15.4 L17.2 13.4" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M 29.3 15.4 L 31.5 13.4" />
   <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M28.6 15.4 L30.8 13.4" />
 
   <!-- legs: squat, knee, foot -->
+  <path fill="none" stroke="#4d4d4d" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M 21.9 26.6 L 18.9 32.8" />
   <path fill="none" stroke="#808080" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M21.2 26.6 L18.2 32.8" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M 27.5 26.6 L 30.5 32.8" />
   <path fill="none" stroke="#808080" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M26.8 26.6 L29.8 32.8" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M 18.9 32.8 L 21.1 39.4" />
   <path fill="none" stroke="#808080" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M18.2 32.8 L20.4 39.4" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M 30.5 32.8 L 28.3 39.4" />
   <path fill="none" stroke="#808080" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M29.8 32.8 L27.6 39.4" />
   <ellipse fill="#808080" cx="20.6" cy="40.6" rx="2.9" ry="1.4" />
   <ellipse fill="#808080" cx="27.4" cy="40.6" rx="2.9" ry="1.4" />

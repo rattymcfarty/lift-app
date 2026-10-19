@@ -2,10 +2,13 @@
   <!-- front legs: hips to just below the knees, kneecaps and hip crease visible -->
   <!-- hips / pelvis -->
   <path fill="#808080" d="M18.8 21 L29.2 21 L30.4 26.6 L30.2 31.8 Q24 33.4 17.8 31.8 L17.6 26.6 Z" />
+  <path fill="#4d4d4d" d="M29.4 21.4 L30.1 26.6 L29.9 31.4 L28.7 31.3 L28.9 26.5 L28.1 21.4 Z" />
   <!-- thighs (outer sides) -->
   <path fill="#808080" d="M17.6 31.8 Q15.6 37 17 41 L21.5 41 Q23 36.5 22 31.8 Z" />
+  <path fill="#4d4d4d" d="M22 31.8 Q22.7 36.4 21.5 41 L20.4 41 Q21.5 36.4 20.9 31.9 Z" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="#808080" d="M17.6 31.8 Q15.6 37 17 41 L21.5 41 Q23 36.5 22 31.8 Z" />
+  <path fill="#4d4d4d" d="M22 31.8 Q22.7 36.4 21.5 41 L20.4 41 Q21.5 36.4 20.9 31.9 Z" />
   </g>
 
   <!-- anatomy: centre line, hip crease, adductor seams, knee crease -->

@@ -4,8 +4,10 @@
 
   <!-- upper arms: widest at the deltoid, tapering to the elbow and wrist -->
   <path fill="#808080" d="M10.7 15 Q9.7 19.8 10.3 24.4 Q10.7 28.6 10.9 32.6 L13.6 32.6 Q13.7 28.6 14 24.4 Q14.3 20 14.5 15.6 Z" />
+  <path fill="#4d4d4d" d="M14.5 15.6 Q14.3 20 14 24.4 Q13.7 28.6 13.6 32.6 L12.3 32.6 Q12.4 28.6 12.7 24.4 Q12.9 20 13.1 15.6 Z" />
   <g transform="translate(48 0) scale(-1 1)">
     <path fill="#808080" d="M10.7 15 Q9.7 19.8 10.3 24.4 Q10.7 28.6 10.9 32.6 L13.6 32.6 Q13.7 28.6 14 24.4 Q14.3 20 14.5 15.6 Z" />
+  <path fill="#4d4d4d" d="M14.5 15.6 Q14.3 20 14 24.4 Q13.7 28.6 13.6 32.6 L12.3 32.6 Q12.4 28.6 12.7 24.4 Q12.9 20 13.1 15.6 Z" />
   </g>
 
   <!-- deltoid caps: the round mass on top of each arm -->
@@ -14,6 +16,7 @@
 
   <!-- torso: shoulders taper to the waist -->
   <path fill="#808080" d="M13.2 14.6 Q17.5 12 20.8 12.2 L27.2 12.2 Q30.5 12 34.8 14.6 L33.6 20.5 Q32.8 26 31.4 31.6 L28.6 32.6 Q24 33.4 19.4 32.6 L16.6 31.6 Q15.2 26 14.4 20.5 Z" />
+  <path fill="#4d4d4d" d="M27.4 12.4 Q30.6 12.3 34.4 14.8 L33.4 20.5 Q32.6 26 31.2 31.4 L28.8 32.4 L29.2 31.2 Q30.4 31 31.4 25.9 Q32.2 20.6 32.3 17.1 Q30.4 13.8 27.6 13.7 Z" />
 
   <!-- anatomy: collarbones, sternum, pec seam, armpit fold -->
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 14 L24 28" />

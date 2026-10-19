@@ -10,6 +10,7 @@
   <!-- frame: down tube, seat post, handlebar -->
   <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" d="M16.6 27.6 L24 15.4" />
   <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" d="M24 15.4 L20.6 10.8" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 23.7 16.1 L 34.3 21.1 L 37.1 15.1" />
   <path fill="none" stroke="#808080" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M24 15.4 L34 20.4 L36.4 14.8" />
 
   <!-- rider: head, torso, arm to the bars, thigh and shin to the pedal -->

@@ -109,20 +109,27 @@ try {
   eq(
     'dark theme palette',
     ic.themeIconPalette('#4a4a50', '#ff7a1a'),
-    { body: '#4a4a50', line: '#89898d', hi: '#ff7a1a', hiLine: '#a64f11' },
+    { body: '#4a4a50', line: '#89898d', shadow: '#35353a', hi: '#ff7a1a', hiLine: '#a64f11' },
   );
   eq(
     'light theme palette',
     ic.themeIconPalette('#9a9aa3', '#ff7a1a'),
-    { body: '#9a9aa3', line: '#bdbdc3', hi: '#ff7a1a', hiLine: '#a64f11' },
+    { body: '#9a9aa3', line: '#bdbdc3', shadow: '#6f6f75', hi: '#ff7a1a', hiLine: '#a64f11' },
   );
 
   /* ---- substitution ---- */
-  const art = '<path fill="#808080" stroke="#bfbfbf" /><path fill="#ff7a1a" stroke="#b34700" />';
+  const art =
+    '<path fill="#808080" stroke="#bfbfbf" /><path fill="#4d4d4d" /><path fill="#ff7a1a" stroke="#b34700" />';
   eq(
-    'all four authoring colors are swapped',
-    ic.applyIconPalette(art, { body: '#4a4a50', line: '#89898d', hi: '#ff7a1a', hiLine: '#a64f11' }),
-    '<path fill="#4a4a50" stroke="#89898d" /><path fill="#ff7a1a" stroke="#a64f11" />',
+    'all five authoring colors are swapped',
+    ic.applyIconPalette(art, {
+      body: '#4a4a50',
+      line: '#89898d',
+      shadow: '#35353a',
+      hi: '#ff7a1a',
+      hiLine: '#a64f11',
+    }),
+    '<path fill="#4a4a50" stroke="#89898d" /><path fill="#35353a" /><path fill="#ff7a1a" stroke="#a64f11" />',
   );
   eq(
     'uppercase hex is matched too',
@@ -134,6 +141,7 @@ try {
     ic.applyIconPalette('<path fill="#808080" />', {
       body: '#ff7a1a',
       line: '#89898d',
+      shadow: '#35353a',
       hi: '#b34700',
       hiLine: '#b34700',
     }),
@@ -195,7 +203,7 @@ try {
       hexes.slice(1).every((hex) => tokenSrc.includes(`'${hex}'`)),
     );
   }
-  for (const name of ['LINE_LIGHTEN', 'HI_LINE_DARKEN']) {
+  for (const name of ['LINE_LIGHTEN', 'SHADOW_DARKEN', 'HI_LINE_DARKEN']) {
     eq(
       `render sheet mirrors ${name}`,
       numberIn(sheetSrc, name),
@@ -204,8 +212,9 @@ try {
     check(`${name} still has a numeric value`, Number.isFinite(numberIn(colorSrc, name)));
   }
   check(
-    'render sheet derives line and hiLine the same way as the app',
+    'render sheet derives line, shadow and hiLine the same way as the app',
     /mix\(t\.muted, 255, LINE_LIGHTEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
+      /mix\(t\.muted, 0, SHADOW_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.highlight, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
   );
 

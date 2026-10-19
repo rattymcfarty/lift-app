@@ -9,8 +9,12 @@
   <!-- figure standing, arm reaching to the handle -->
   <circle fill="#808080" cx="34" cy="16" r="3.4" />
   <path fill="#808080" d="M30 21 Q35 19 40 21 L39 32 L31 32 Z" />
+  <path fill="#4d4d4d" d="M36.6 19.6 Q38.4 19.8 40 21 L39 32 L37.8 32 L38.7 21.3 Q37.4 20.5 36.4 20.6 Z" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="4" stroke-linecap="round" d="M 33.3 32.0 L 32.7 42.0" />
   <path fill="none" stroke="#808080" stroke-width="4" stroke-linecap="round" d="M32.6 32 L32 42" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="4" stroke-linecap="round" d="M 36.9 32.1 L 37.7 42.1" />
   <path fill="none" stroke="#808080" stroke-width="4" stroke-linecap="round" d="M37.6 32 L38.4 42" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.2" stroke-linecap="round" d="M 31.1 22.7 L 27.7 21.1" />
   <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" d="M31.4 22 L28 20.4" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.8" stroke-linecap="round" d="M34.6 23 Q35.6 26.4 35 29.4" />
 

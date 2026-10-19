@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- Icon palette: a fifth authoring colour, `#4d4d4d` SHADOW, mapped at render time to
+  `darken(muted, 0.28)` — a real shade of the body tone in both themes (light
+  `#5c5c60` → `#424245`, dark `#a1a1a6` → `#747478`). All 31 icons now carry a shadow
+  pass: a tapered band 1.0-1.6 units wide inside the right edge of each torso and pelvis,
+  and a 0.7-unit offset stroke under every limb, drawn before the body stroke so only a
+  crescent shows. The light direction (upper left) and the layering rules are in
+  `docs/design/ICON_STYLE.md` §Shading; the sheet derives the new tone exactly as
+  `src/lib/iconColors.ts` does, and `test:icons` grew to 65 assertions.
+
 - Muscle icons (detail pass): **Abs** draws the rectus abdominis as one sheet with tendon
   intersections and the linea alba, instead of six separate plates; **Front Delts** and
   **Middle Delts** sit on a rebuilt upper body — the arm now hangs from a deltoid cap

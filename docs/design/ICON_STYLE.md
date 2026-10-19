@@ -34,15 +34,39 @@ is the authority and rejects anything that breaks these rules:
   drawing must stay on a transparent background.
 - Only: `svg g path circle ellipse rect line polyline polygon`. No text, image, style,
   script, filter, gradient, mask, clipPath, use, foreignObject, no external references.
-- **Only these four authoring colors** (the app substitutes theme colors for them):
+- **Only these five authoring colors** (the app substitutes theme colors for them):
   - `#808080` BODY: body fill (the part that is not highlighted)
   - `#bfbfbf` LINE: thin separation / detail lines on the body (stroke 0.7-1.2)
+  - `#4d4d4d` SHADOW: the shaded side of a body form (fill only, never a stroke and
+    never an outline)
   - `#ff7a1a` HI: the highlighted muscle (or the equipment accent) fill
   - `#b34700` HI_LINE: outline and fiber lines on the highlighted muscle (stroke 0.7-1.2)
   `fill="none"` is allowed. Nothing else. (`#4a4a50` / `#85858c` are the dark-theme
   *rendered* body/line colors — never author them.)
 - Keep every file small: the validator allows 24 KB, current art is 1-3 KB.
   Round coordinates to one decimal.
+
+## Shading
+
+The light comes from the **upper left**, the same way in every icon, and SHADOW is
+the body tone one step darker (the app derives it as `darken(muted, 0.28)`, so it
+stays a real shade of the body in both themes). It is what stops the figure reading
+as a flat silhouette.
+
+- Shade the form, not the drawing: a band 1.0-1.6 units wide inside the **right**
+  edge of a torso or pelvis, following that edge's curve and tapering at both ends.
+  On paired limbs the left form carries the band on its inner edge and the mirror
+  puts it on the outer edge of the right form — draw it once and mirror.
+- Limbs drawn with a `#808080` stroke get a shadow stroke of the same width,
+  offset ~0.7 units perpendicular to the limb (toward the lower right) and drawn
+  **before** the body stroke. The body stroke then covers all but a 0.7 crescent.
+  Same for arms, legs, and equipment handles.
+- Order in the file: body fills, then SHADOW, then LINE anatomy, then HI/HI_LINE.
+  A shadow under a highlight is invisible and harmless; do not put it on top.
+- Never use SHADOW as an outline, for a whole limb, or for the highlighted muscle:
+  that is HI_HI_LINE's job, and a shadow outline reads as a second silhouette.
+- The head is small and usually cropped: shade it only when it is more than ~6
+  units across, and then only as a crescent on the right.
 
 ## Muscle icons
 

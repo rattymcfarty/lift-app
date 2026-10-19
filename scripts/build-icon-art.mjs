@@ -32,7 +32,7 @@ const KINDS = [
 const GRID = 48;
 const MAX_BYTES = 24 * 1024;
 const MAX_ELEMENTS = 200;
-const PALETTE = ['#808080', '#bfbfbf', '#ff7a1a', '#b34700'];
+const PALETTE = ['#808080', '#bfbfbf', '#4d4d4d', '#ff7a1a', '#b34700'];
 const ELEMENTS = new Set([
   'svg',
   'g',
@@ -93,7 +93,7 @@ function colorProblem(svg) {
   const problems = [];
   if (/url\s*\(/i.test(svg)) problems.push('url(...) references are not allowed');
   if (/\b(?:rgb|rgba|hsl|hsla|color-mix)\s*\(/i.test(svg)) {
-    problems.push('rgb()/hsl() colors are not allowed — use the four palette hexes');
+    problems.push('rgb()/hsl() colors are not allowed — use the palette hexes');
   }
   if (/currentColor/i.test(svg)) problems.push('currentColor is not allowed');
   for (const m of svg.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) {

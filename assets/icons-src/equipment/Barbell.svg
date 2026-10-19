@@ -11,11 +11,15 @@
   <path fill="#808080" d="M16.4 24.6 Q23 22.8 29.6 25 Q32 25.8 33.6 26.4 L33.6 30.6 Q27 31 21.6 30.8 Q17.6 30.6 16.4 30.4 Z" />
 
   <!-- arms: shoulder, elbow, hand at the bar -->
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M 20.5 25.5 L 21.1 19.7 L 21.5 14.5" />
   <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M19.8 25.4 L20.4 19.6 L20.8 14.4" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M 25.9 24.9 L 26.3 19.3 L 26.7 14.5" />
   <path fill="none" stroke="#808080" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M25.2 24.8 L25.6 19.2 L26 14.4" />
 
   <!-- legs: hip, thigh, shin, foot on the floor -->
+  <path fill="none" stroke="#4d4d4d" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M 33.1 29.3 L 37.3 30.9" />
   <path fill="none" stroke="#808080" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" d="M33.4 28.6 L37.6 30.2" />
+  <path fill="none" stroke="#4d4d4d" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M 36.9 30.4 L 39.5 37.1 L 39.9 42.0" />
   <path fill="none" stroke="#808080" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" d="M37.6 30.2 L39.4 36.4 L39.2 42" />
   <ellipse fill="#808080" cx="40.2" cy="42.6" rx="2.8" ry="1.4" />
 

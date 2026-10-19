@@ -2,19 +2,21 @@
  * Icon art color plumbing — pure functions, no React, no DB.
  *
  * Source SVGs (assets/icons-src, see docs/design/ICON_STYLE.md) are drawn in
- * four placeholder colors so they stay theme-agnostic. At render time those
- * four tokens are swapped for colors derived from the caller's props, which is
+ * five placeholder colors so they stay theme-agnostic. At render time those
+ * five tokens are swapped for colors derived from the caller's props, which is
  * what makes one piece of artwork work in light and dark mode.
  */
 
-/** The four colors an icon source file may use (authoring placeholders). */
+/** The five colors an icon source file may use (authoring placeholders). */
 export const ART_BODY = '#808080';
 export const ART_LINE = '#bfbfbf';
+export const ART_SHADOW = '#4d4d4d';
 export const ART_HI = '#ff7a1a';
 export const ART_HI_LINE = '#b34700';
 
-/** How far LINE travels toward white and how far HI_LINE darkens. */
+/** How far LINE travels toward white, and how SHADOW / HI_LINE darken. */
 export const LINE_LIGHTEN = 0.35;
+export const SHADOW_DARKEN = 0.28;
 export const HI_LINE_DARKEN = 0.35;
 
 /** Resolved colors for one rendered icon. */
@@ -23,6 +25,8 @@ export interface IconPalette {
   body: string;
   /** Definition lines and edges. */
   line: string;
+  /** Shaded side of the figure — the body tone, darkened. */
+  shadow: string;
   /** Worked muscle / implement. */
   hi: string;
   /** Deeper edge on the highlight. */
@@ -86,13 +90,14 @@ export function themeIconPalette(silhouette: string, highlight: string): IconPal
   return {
     body: silhouette,
     line: lightenTowardWhite(silhouette, LINE_LIGHTEN),
+    shadow: darken(silhouette, SHADOW_DARKEN),
     hi: highlight,
     hiLine: darken(highlight, HI_LINE_DARKEN),
   };
 }
 
 /**
- * Substitute the four authoring colors in SVG markup with palette colors.
+ * Substitute the authoring colors in SVG markup with palette colors.
  * One pass over a single alternation, so a substituted value can never be
  * re-substituted (the highlight is #ff7a1a in art *and* in the theme).
  * Markup without any authoring color comes back unchanged.
@@ -101,6 +106,7 @@ export function applyIconPalette(markup: string, palette: IconPalette): string {
   const map: Record<string, string> = {
     [ART_BODY]: palette.body,
     [ART_LINE]: palette.line,
+    [ART_SHADOW]: palette.shadow,
     [ART_HI]: palette.hi,
     [ART_HI_LINE]: palette.hiLine,
   };
