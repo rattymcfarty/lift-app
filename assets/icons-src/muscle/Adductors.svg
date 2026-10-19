@@ -8,7 +8,7 @@
 
   <!-- anatomy: sternum centre, hip crease, adductor seams, knee crease -->
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M24 21 L24 30" />
-  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M16 29 Q24 31 32 29" />
+  <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 29.2 Q24 31 30.6 29.2" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M20.5 31 Q21 37 21 41" />
   <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 40.2 Q19.3 41.2 21.2 40.2" />
   <g transform="translate(48 0) scale(-1 1)">
@@ -16,13 +16,13 @@
     <path fill="none" stroke="#bfbfbf" stroke-width="0.7" stroke-linecap="round" d="M17.4 40.2 Q19.3 41.2 21.2 40.2" />
   </g>
 
-  <!-- adductors (inner thighs) -->
-  <path fill="#ff7a1a" d="M20.5 31.5 Q19.5 36 20 40.5 L22.5 40.5 Q23.5 36 22.5 31.5 Z" />
+  <!-- adductors: the medial mass, hugging the inner edge of each thigh -->
+  <path fill="#ff7a1a" d="M22 31.9 Q19.6 34.8 19.8 37.6 Q20.1 39.4 21.1 40.5 L23.2 40.5 Q23.6 36 23.5 32.2 Z" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="#ff7a1a" d="M20.5 31.5 Q19.5 36 20 40.5 L22.5 40.5 Q23.5 36 22.5 31.5 Z" />
+    <path fill="#ff7a1a" d="M22 31.9 Q19.6 34.8 19.8 37.6 Q20.1 39.4 21.1 40.5 L23.2 40.5 Q23.6 36 23.5 32.2 Z" />
   </g>
-  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M20.5 31.5 Q19.5 36 20 40.5 L22.5 40.5 Q23.5 36 22.5 31.5 Z M21 34 L21.5 39" />
+  <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M22 31.9 Q19.6 34.8 19.8 37.6 Q20.1 39.4 21.1 40.5 L23.2 40.5 Q23.6 36 23.5 32.2 Z M21.6 33.4 Q20.9 36.6 21.4 39.8 M22.6 33.2 Q22.4 36.6 22.6 39.9" />
   <g transform="translate(48 0) scale(-1 1)">
-    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M20.5 31.5 Q19.5 36 20 40.5 L22.5 40.5 Q23.5 36 22.5 31.5 Z M21 34 L21.5 39" />
+    <path fill="none" stroke="#b34700" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" d="M22 31.9 Q19.6 34.8 19.8 37.6 Q20.1 39.4 21.1 40.5 L23.2 40.5 Q23.6 36 23.5 32.2 Z M21.6 33.4 Q20.9 36.6 21.4 39.8 M22.6 33.2 Q22.4 36.6 22.6 39.9" />
   </g>
 </svg>

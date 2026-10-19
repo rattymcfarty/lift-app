@@ -9,6 +9,11 @@
   joint rather than sitting on the chest like a badge; **Neck** highlights the neck column
   and the upper traps instead of two thin slivers. Original vector work, four authoring
   colours, theme colouring unchanged.
+- Muscle icons (detail pass, second batch): **Adductors** put one teardrop mass on the
+  inner edge of each thigh with a real gap between the legs, and the hip-crease line no
+  longer runs past the silhouette; **Forearms** highlights the whole flexor segment from
+  elbow to wrist instead of a stripe along one edge, which also removes the stray tail at
+  the wrist.
 
 - Equipment icons: the ten figures now share one body language — a neck, a torso that
   tapers from the shoulders to the waist, an elbow or knee in every limb, and a foot where
