@@ -11,12 +11,14 @@
 export const ART_BODY = '#808080';
 export const ART_LINE = '#bfbfbf';
 export const ART_SHADOW = '#4d4d4d';
+export const ART_SHADOW_SOFT = '#6a6a6a';
 export const ART_HI = '#ff7a1a';
 export const ART_HI_LINE = '#b34700';
 
 /** How far LINE travels toward white, and how SHADOW / HI_LINE darken. */
 export const LINE_LIGHTEN = 0.35;
 export const SHADOW_DARKEN = 0.28;
+export const SHADOW_SOFT_DARKEN = 0.14;
 export const HI_LINE_DARKEN = 0.35;
 
 /** Resolved colors for one rendered icon. */
@@ -27,6 +29,8 @@ export interface IconPalette {
   line: string;
   /** Shaded side of the figure — the body tone, darkened. */
   shadow: string;
+  /** The step between the shadow and the body, half as dark. */
+  shadowSoft: string;
   /** Worked muscle / implement. */
   hi: string;
   /** Deeper edge on the highlight. */
@@ -91,6 +95,7 @@ export function themeIconPalette(silhouette: string, highlight: string): IconPal
     body: silhouette,
     line: lightenTowardWhite(silhouette, LINE_LIGHTEN),
     shadow: darken(silhouette, SHADOW_DARKEN),
+    shadowSoft: darken(silhouette, SHADOW_SOFT_DARKEN),
     hi: highlight,
     hiLine: darken(highlight, HI_LINE_DARKEN),
   };
@@ -107,6 +112,7 @@ export function applyIconPalette(markup: string, palette: IconPalette): string {
     [ART_BODY]: palette.body,
     [ART_LINE]: palette.line,
     [ART_SHADOW]: palette.shadow,
+    [ART_SHADOW_SOFT]: palette.shadowSoft,
     [ART_HI]: palette.hi,
     [ART_HI_LINE]: palette.hiLine,
   };

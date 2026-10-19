@@ -109,12 +109,12 @@ try {
   eq(
     'dark theme palette',
     ic.themeIconPalette('#4a4a50', '#ff7a1a'),
-    { body: '#4a4a50', line: '#89898d', shadow: '#35353a', hi: '#ff7a1a', hiLine: '#a64f11' },
+    { body: '#4a4a50', line: '#89898d', shadow: '#35353a', shadowSoft: '#404045', hi: '#ff7a1a', hiLine: '#a64f11' },
   );
   eq(
     'light theme palette',
     ic.themeIconPalette('#9a9aa3', '#ff7a1a'),
-    { body: '#9a9aa3', line: '#bdbdc3', shadow: '#6f6f75', hi: '#ff7a1a', hiLine: '#a64f11' },
+    { body: '#9a9aa3', line: '#bdbdc3', shadow: '#6f6f75', shadowSoft: '#84848c', hi: '#ff7a1a', hiLine: '#a64f11' },
   );
 
   /* ---- substitution ---- */
@@ -126,6 +126,7 @@ try {
       body: '#4a4a50',
       line: '#89898d',
       shadow: '#35353a',
+      shadowSoft: '#404045',
       hi: '#ff7a1a',
       hiLine: '#a64f11',
     }),
@@ -203,7 +204,7 @@ try {
       hexes.slice(1).every((hex) => tokenSrc.includes(`'${hex}'`)),
     );
   }
-  for (const name of ['LINE_LIGHTEN', 'SHADOW_DARKEN', 'HI_LINE_DARKEN']) {
+  for (const name of ['LINE_LIGHTEN', 'SHADOW_DARKEN', 'SHADOW_SOFT_DARKEN', 'HI_LINE_DARKEN']) {
     eq(
       `render sheet mirrors ${name}`,
       numberIn(sheetSrc, name),
@@ -215,6 +216,7 @@ try {
     'render sheet derives line, shadow and hiLine the same way as the app',
     /mix\(t\.muted, 255, LINE_LIGHTEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.muted, 0, SHADOW_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
+      /mix\(t\.muted, 0, SHADOW_SOFT_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.highlight, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
   );
 

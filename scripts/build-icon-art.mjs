@@ -32,7 +32,7 @@ const KINDS = [
 const GRID = 48;
 const MAX_BYTES = 24 * 1024;
 const MAX_ELEMENTS = 200;
-const PALETTE = ['#808080', '#bfbfbf', '#4d4d4d', '#ff7a1a', '#b34700'];
+const PALETTE = ['#808080', '#bfbfbf', '#6a6a6a', '#4d4d4d', '#ff7a1a', '#b34700'];
 const ELEMENTS = new Set([
   'svg',
   'g',

@@ -10,6 +10,10 @@
   crescent shows. The light direction (upper left) and the layering rules are in
   `docs/design/ICON_STYLE.md` §Shading; the sheet derives the new tone exactly as
   `src/lib/iconColors.ts` does, and `test:icons` grew to 65 assertions.
+- Icon shading, second step: `#6a6a6a` SHADOW_SOFT = `darken(muted, 0.14)`, used as a
+  wider copy of every shadow band (shifted 1.3 units inward) and as a 1.4-unit-wider
+  limb stroke, so the falloff reads as two soft steps instead of one hard edge —
+  gradients are not allowed in the art. `test:icons` 67 assertions.
 
 - Muscle icons (detail pass): **Abs** draws the rectus abdominis as one sheet with tendon
   intersections and the linea alba, instead of six separate plates; **Front Delts** and

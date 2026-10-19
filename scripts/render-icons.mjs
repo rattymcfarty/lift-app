@@ -41,11 +41,12 @@ const CELL_H = TILE_BIG + LABEL_H + PAD * 2;
  * the app: `body` is theme `muted`, `hi` is theme `highlight` (the blue set
  * numbers and active borders use — never the #ff7a1a authoring placeholder),
  * and `line`/`shadow`/`hiLine` are derived exactly as src/lib/iconColors.ts
- * derives them (LINE_LIGHTEN / SHADOW_DARKEN / HI_LINE_DARKEN below, mirrored in
+ * derives them (LINE_LIGHTEN / SHADOW_* / HI_LINE_DARKEN below, mirrored in
  * `themeIconPalette`).
  */
 const LINE_LIGHTEN = 0.35;
 const SHADOW_DARKEN = 0.28;
+const SHADOW_SOFT_DARKEN = 0.14;
 const HI_LINE_DARKEN = 0.35;
 
 function mix(color, target, amount) {
@@ -69,6 +70,7 @@ const THEMES = Object.fromEntries(
       body: t.muted,
       line: mix(t.muted, 255, LINE_LIGHTEN),
       shadow: mix(t.muted, 0, SHADOW_DARKEN),
+      shadowSoft: mix(t.muted, 0, SHADOW_SOFT_DARKEN),
       hi: t.highlight,
       hiLine: mix(t.highlight, 0, HI_LINE_DARKEN),
     },
@@ -84,11 +86,12 @@ const PALETTE = {
   '#808080': 'body',
   '#bfbfbf': 'line',
   '#4d4d4d': 'shadow',
+  '#6a6a6a': 'shadowSoft',
   '#ff7a1a': 'hi',
   '#b34700': 'hiLine',
 };
 function themeColors(markup, theme) {
-  return markup.replace(/#(?:808080|bfbfbf|4d4d4d|ff7a1a|b34700)\b/gi, (match) => theme[PALETTE[match.toLowerCase()]]);
+  return markup.replace(/#(?:808080|bfbfbf|4d4d4d|6a6a6a|ff7a1a|b34700)\b/gi, (match) => theme[PALETTE[match.toLowerCase()]]);
 }
 
 /** Pull the two art records out of the generated TS file. */
