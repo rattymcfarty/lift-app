@@ -9,6 +9,16 @@
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
+- [opencode] **Equipment icons: one figure language — done 2026-10-19** (`7a1402e`). The ten
+  equipment illustrations now share a figure: neck, a torso tapering from the shoulders to
+  the waist, an elbow or knee in every limb, feet where the pose has them. Barbell,
+  Bodyweight, Kettlebell, Safety Bar and Smith Machine were redrawn, Dumbbell got the same
+  body; the language is written into `docs/design/ICON_STYLE.md`. Render for review:
+  `~/lift/icon-review/6-equipment-figure-pass.png` and `6b-equipment-closeup.png`.
+  `npm run verify` ALL GREEN, `test:icons` 63, device `exercise-menu` + `exercise-detail`
+  PASS on a release build. Next icon step, if the owner wants it: the same detail pass on
+  the muscle set (the reference is fully shaded; ours is flat) — see the handoff queue.
+
 - [opencode] **Exercise guide page: the Why card was missing (bug) — fixed 2026-10-19**, branch main.
   The KB importer never wrote `longevityNotes`: the transform handed it over, the column
   exists, but `upsertKbExercise` neither accepted it nor copied it into its insert/update
@@ -295,6 +305,9 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - Queue F: `opencode/beam-free` passed the parseDuration bake-off in 17 s (fastest) and
   moved to 2nd in `pool_order` + the `code` rank (`d7e084a`, `docs/ops/DELEGATION.md` §6).
 - Queue G: this checkpoint. `main` pushed through `cbf4f07`; nothing in flight.
+- Equipment icons: the ten figures now share one body language (neck, tapered torso, elbows
+  and knees, feet); Barbell/Bodyweight/Kettlebell/Safety Bar/Smith Machine redrawn (`7a1402e`).
+  Device `exercise-menu` and `exercise-detail` PASS on a release build from that tree.
 
 ### 2026-10-16 — leave-program deadlock fixed (opencode helper)
 - Leaving a program works again: enrolling re-took the database write lock from inside itself
