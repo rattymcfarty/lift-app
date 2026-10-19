@@ -2,6 +2,13 @@
 
 ## Unreleased (addendum)
 
+- Exercise detail (bug): the KB importer never wrote `longevityNotes` — the transform
+  handed it to `upsertKbExercise`, but that function's input type and its insert/update
+  object both dropped it, so the **Why** card was missing on every exercise page. It is
+  stored now. The `.maestro/exercise-detail.yaml` flow is what caught it: it scrolls the
+  guide in fixed steps (Maestro's `scrollUntilVisible` flings ~1.5 screens on this page and
+  jumps the card headers) and asserts a line from every card, Overview through Progression.
+
 - Icons (fidelity pass): `Calves.svg` now shows **both** lower legs with the gastrocnemius
   bellies highlighted (it was one leg, which the reference crop never was); `Forearms.svg`
   is a single arm on a diagonal with an open hand, so the flexor mass fills the tile;

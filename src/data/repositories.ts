@@ -1369,6 +1369,8 @@ export async function upsertKbExercise(input: {
   mediaImageUrl?: string;
   mediaVideoUrl?: string;
   longevityPillars?: LongevityPillar[];
+  /** KB longevity-lens prose shown in the Why card on the exercise page. */
+  longevityNotes?: string | null;
   kbCategory?: string;
   kbDetailJson?: string;
 }): Promise<string> {
@@ -1389,6 +1391,7 @@ export async function upsertKbExercise(input: {
       instructions: input.instructions ?? null,
       mediaImageUrl: input.mediaImageUrl ?? null,
       mediaVideoUrl: input.mediaVideoUrl ?? null,
+      longevityNotes: input.longevityNotes ?? null,
       longevityPillars: encodePillars(input.longevityPillars ?? []),
       kbVersion: input.kbVersion,
       kbDetailJson: input.kbDetailJson ?? null,
