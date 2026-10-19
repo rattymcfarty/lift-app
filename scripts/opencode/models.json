@@ -1,5 +1,5 @@
 {
-  "$comment": "Delegation model registry. Owner rule: free Console models ONLY. 'rank' lists are tried in order (fallback on hang/failure). Update rankings from measured results (docs/ops/DELEGATION.md section 6), never from guesses. Ranks from the 2026-10-16 bake-off (DELEGATION.md section 6); docs/content ranks are provisional (bake-off measured coding only).",
+  "$comment": "Delegation model registry. Owner rule: free Console models ONLY. 'rank' lists are tried in order (fallback on hang/failure). Update rankings from measured results (docs/ops/DELEGATION.md section 6), never from guesses. Ranks from the 2026-10-16 bake-off, re-run for beam-free on 2026-10-19 (DELEGATION.md section 6); docs/content ranks are provisional (bake-off measured coding only).",
   "allowed": [
     "opencode/deepseek-v4.1-flash-free",
     "opencode/glm-5.3-flash-free",
@@ -21,6 +21,7 @@
       "criteria": "Write or change source code: unit tests, small features, refactors, bug fixes, type or lint cleanups.",
       "rank": [
         "opencode/deepseek-v4.1-flash-free",
+        "opencode/beam-free",
         "opencode/space-bunny-free",
         "opencode/muse-spark-1.3-contributor-free",
         "opencode/glm-5.3-flash-free"
@@ -65,8 +66,8 @@
   },
   "pool_order": [
     "opencode/deepseek-v4.1-flash-free",
-    "opencode/space-bunny-free",
     "opencode/beam-free",
+    "opencode/space-bunny-free",
     "opencode/glm-5.3-flash-free",
     "opencode/big-pickle",
     "opencode/longcat-2.5-preview-free",

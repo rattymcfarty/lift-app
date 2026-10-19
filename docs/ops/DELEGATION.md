@@ -128,6 +128,7 @@ Bake-off 2026-10-16. Task: implement `parseDuration` from a 16-case spec; pass =
 
 | Model | Result | Time | Notes |
 |---|---|---|---|
+| Beam Free | ✅ pass | 17 s | **2026-10-19 re-run** on the same fixture; a regex parser, not a lookup table. Its shell was blocked by the sandbox allowlist, so the lead ran the acceptance test |
 | DeepSeek V4.1 Flash Free | ✅ pass | 20 s | fastest, minimal tool use; also did the first real LIFT delegation (14 tests, 67 s) |
 | Space Bunny Free | ✅ pass | 24 s | fast; zero-retention provider |
 | Muse Spark 1.3 Free | ✅ pass | 34 s | responses API, works through OpenCode |
@@ -141,10 +142,18 @@ Bake-off 2026-10-16. Task: implement `parseDuration` from a 16-case spec; pass =
 | Nemotron 3.5 Lightning Free | ❌ timeout | 150 s | |
 | Cat Jam Free | ❌ unavailable | 1 s | "Model unavailable" at the time of testing |
 
-Resulting ranks in `models.json`: code/analysis → DeepSeek, Space Bunny, Muse Spark
-(+GLM for code); docs/content → DeepSeek, GLM, Space Bunny (provisional; prose
-wasn't benchmarked); vision → Nemotron Super VL. Re-run a bake-off when models
-change; failing models stay allowed but unranked.
+Resulting ranks in `models.json`: code/analysis → DeepSeek, Beam (code), Space Bunny,
+Muse Spark (+GLM for code); docs/content → DeepSeek, GLM, Space Bunny (provisional; prose
+wasn't benchmarked); vision → Nemotron Super VL. `pool_order`: DeepSeek first (real
+delegation track record), Beam second (fastest fixture pass), then Space Bunny and the
+rest. Re-run a bake-off when models change; failing models stay allowed but unranked.
+
+**2026-10-19 — `opencode/beam-free` measured.** Same fixture, one run, 3-minute cap: pass
+in 17 s (fastest so far), `spec.md` and `test.mjs` untouched, and the implementation is a
+regex parser rather than a table of the visible cases. The helper could not run the
+acceptance test itself (the sandbox allowlist denied the shell command), so the lead ran
+it in the worktree — `ALL PASS`, exit 0 — and reviewed `duration.mjs`. Promoted to 2nd in
+`pool_order` and in the `code` rank, behind DeepSeek for its real-delegation history.
 
 The fixture is committed and reproducible: `docs/ops/bakeoff/parseDuration/`
 (`spec.md` + `test.mjs`) with the protocol in `docs/ops/bakeoff/README.md`. Pass =
