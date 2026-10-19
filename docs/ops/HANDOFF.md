@@ -9,6 +9,17 @@
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
+- [opencode] **Icons: shadow tone across the set — done 2026-10-19** (`acd6380`). Owner
+  approved a fifth authoring colour: `#4d4d4d` SHADOW → `darken(muted, 0.28)` at render
+  time (light `#424245`, dark `#747478`). All 31 source SVGs now carry a shadow pass —
+  tapered band inside the right edge of each torso/pelvis, 0.7-unit offset stroke under
+  each limb, drawn before the body stroke. Light from the upper left; rules in
+  `docs/design/ICON_STYLE.md` §Shading. `test:icons` 65, `npm run verify` ALL GREEN,
+  device `exercise-menu` PASS on a release build. Sheet: `~/lift/icon-review/8-shadow-pass.png`.
+  Honest limit: no gradients are allowed, so the shadow is a hard-edged band, not the
+  reference's soft airbrush. Next if the owner wants it: a second, lighter shadow step
+  (`#6a6a6a`) for a two-tone falloff, which would double the authoring work per icon.
+
 - [opencode] **Muscle icons: detail pass, second batch — done 2026-10-19** (`23110ec`).
   **Adductors** now has one teardrop on the inner edge of each thigh with a gap between the
   legs (and the hip-crease line stops inside the silhouette); **Forearms** fills the whole
@@ -333,6 +344,8 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   (`f8c76db`). Device `exercise-menu` PASS on a release build.
 - Muscle icons, second batch: Adductors (teardrops on the inner thigh, no whisker) and
   Forearms (flexor segment filled) (`23110ec`), same flow PASS.
+- Icon shadow tone: fifth authoring colour `#4d4d4d` → `darken(muted, 0.28)`; every
+  source SVG shaded (torso/pelvis band, limb offset strokes) (`acd6380`), flow PASS.
 
 ### 2026-10-16 — leave-program deadlock fixed (opencode helper)
 - Leaving a program works again: enrolling re-took the database write lock from inside itself
