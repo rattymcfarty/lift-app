@@ -2,6 +2,14 @@
 
 ## Unreleased (addendum)
 
+- Equipment icons: the ten figures now share one body language — a neck, a torso that
+  tapers from the shoulders to the waist, an elbow or knee in every limb, and a foot where
+  the pose puts one on the floor. **Barbell** (bench press), **Bodyweight** (push-up),
+  **Kettlebell** (bell raised to the chest with a visible handle) and both squats
+  (**Safety Bar**, **Smith Machine**) were redrawn; **Dumbbell** got the same torso and feet.
+  Original vector work on the 48 grid from the four authoring colours; the language is
+  recorded in `docs/design/ICON_STYLE.md`. Theme colouring is unchanged.
+
 - Exercise detail (bug): the KB importer never wrote `longevityNotes` — the transform
   handed it to `upsertKbExercise`, but that function's input type and its insert/update
   object both dropped it, so the **Why** card was missing on every exercise page. It is

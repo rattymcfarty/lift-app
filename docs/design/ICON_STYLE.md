@@ -85,7 +85,12 @@ is the authority and rejects anything that breaks these rules:
   (held at the chest), machine (seated on a selectorised machine), bodyweight (push-up on a
   mat — the mat is the accent), cardio (stationary bike), smith-machine (squat in a guided-bar
   rack), cable (cable pulley station), safety-bar (back squat under the cambered yoke bar),
-  other (three dots). All ten taxonomy ids in `src/kb/taxonomy.ts` have a source file, so the
+  other (three dots).
+- One figure language across all ten (2026-10-19 pass): a head with a neck, a torso that
+  tapers from the shoulders to the waist, limbs with an elbow or knee rather than one
+  straight stroke, and a foot where the pose puts one on the floor. The `LINE_LIGHTEN`
+  strokes are anatomy — collarbone, sternum, rib line, shoulder blade — never whole-body
+  outlines. All ten taxonomy ids in `src/kb/taxonomy.ts` have a source file, so the
   whole equipment set renders from this pipeline; `all` (a 2x2 grid of squares) stays a shared
   React primitive in `src/components/icons/iconPrimitives.tsx`, like the muscle set's `all` and
   `other` fallbacks.
