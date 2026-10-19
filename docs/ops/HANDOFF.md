@@ -9,6 +9,16 @@
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
+- [opencode] **Muscle icons: detail pass, second batch — done 2026-10-19** (`23110ec`).
+  **Adductors** now has one teardrop on the inner edge of each thigh with a gap between the
+  legs (and the hip-crease line stops inside the silhouette); **Forearms** fills the whole
+  flexor segment from elbow to wrist and loses the stray tail at the wrist. `test:icons` 63,
+  `npm run verify` ALL GREEN, device `exercise-menu` PASS on a release build. Sheets
+  refreshed in `~/lift/icon-review/`. Remaining weak tile: **Biceps** — its arms still read
+  as bars beside a slab torso; also **Abductors** (patches sit outside the hip line).
+  The wider gap to the reference is shading: it is a fully shaded anatomical drawing, ours
+  is flat fill plus line work, and copying theirs is not allowed.
+
 - [opencode] **Muscle icons: detail pass, first batch — done 2026-10-19** (`f8c76db`). **Abs**
   is one rectus sheet with tendon lines; **Front Delts** and **Middle Delts** sit on a rebuilt
   upper body (deltoid cap carries the arm, which now hangs from it and tapers, and the
@@ -321,6 +331,8 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - Muscle icons, first detail batch: Abs (one rectus sheet), Front/Middle Delts (arm hangs
   from a deltoid cap; highlight wraps the joint) and Neck (column + traps) rebuilt
   (`f8c76db`). Device `exercise-menu` PASS on a release build.
+- Muscle icons, second batch: Adductors (teardrops on the inner thigh, no whisker) and
+  Forearms (flexor segment filled) (`23110ec`), same flow PASS.
 
 ### 2026-10-16 — leave-program deadlock fixed (opencode helper)
 - Leaving a program works again: enrolling re-took the database write lock from inside itself
