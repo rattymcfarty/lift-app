@@ -9,6 +9,16 @@
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
+- [opencode] **Muscle icons: detail pass, first batch — done 2026-10-19** (`f8c76db`). **Abs**
+  is one rectus sheet with tendon lines; **Front Delts** and **Middle Delts** sit on a rebuilt
+  upper body (deltoid cap carries the arm, which now hangs from it and tapers, and the
+  highlight wraps the joint instead of sitting on the chest); **Neck** shows the neck column
+  plus the upper traps. Render: `~/lift/icon-review/7-muscle-detail-pass.png` and
+  `7b-muscle-closeup.png`. `npm run verify` ALL GREEN, `test:icons` 63, device
+  `exercise-menu` PASS on a release build. Still flat next to the reference (which is fully
+  shaded) — the remaining candidates for a second batch are **Biceps** (arms read as bars),
+  **Adductors** (a sliver) and **Forearms** (thin highlight).
+
 - [opencode] **Equipment icons: one figure language — done 2026-10-19** (`7a1402e`). The ten
   equipment illustrations now share a figure: neck, a torso tapering from the shoulders to
   the waist, an elbow or knee in every limb, feet where the pose has them. Barbell,
@@ -308,6 +318,9 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - Equipment icons: the ten figures now share one body language (neck, tapered torso, elbows
   and knees, feet); Barbell/Bodyweight/Kettlebell/Safety Bar/Smith Machine redrawn (`7a1402e`).
   Device `exercise-menu` and `exercise-detail` PASS on a release build from that tree.
+- Muscle icons, first detail batch: Abs (one rectus sheet), Front/Middle Delts (arm hangs
+  from a deltoid cap; highlight wraps the joint) and Neck (column + traps) rebuilt
+  (`f8c76db`). Device `exercise-menu` PASS on a release build.
 
 ### 2026-10-16 — leave-program deadlock fixed (opencode helper)
 - Leaving a program works again: enrolling re-took the database write lock from inside itself
