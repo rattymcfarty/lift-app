@@ -15,8 +15,8 @@ on from here. Read this file, then `AGENTS.md`, then `docs/ops/HANDOFF.md` and
 5. Review `package.json` / `app.json` diffs by eye before committing (helpers cannot edit `package.json`).
 6. Run `npm run verify` (must print **ALL GREEN**) before every commit. Commit small, one topic each.
 7. Do **not push** unless the current work is done and `npm run verify` is green
-   and the device flows pass. `main` was last pushed on 2026-10-18 (stage B, side
-   panels); anything after that is local-only.
+   and the device flows pass. `main` is pushed through `41b3953` (2026-10-19); push
+   each verified checkpoint from now on.
 8. Reference images in `~/lift/ref-icons/` are local-only: never commit them, never copy them into the repo.
 
 ## 1. How to work (delegate-first)
@@ -39,10 +39,15 @@ on from here. Read this file, then `AGENTS.md`, then `docs/ops/HANDOFF.md` and
 
 ## 2. State right now
 
-Committed locally (not pushed): glass top bar with panel/settings buttons, companion in a
-fixed glass circle at top centre, floating glass tab bar with reorderable tab order, the
-free-model pool, the icon pipeline, and **all 21 muscle-group icons + all 10 equipment
-icons**. Nothing is running. Working tree clean after commit `5736bfd`.
+Everything through queue item F is **pushed** (`main` = `41b3953`, 2026-10-19): side panels
+(B), glass sheets (C), the full muscle + equipment icon set (D), the exercise-guide pass
+(E — lift-kb 0.6.0, four new movements, the six-page rich pilot, the detail-screen Overview
+change) and the exercise-detail flow. Nothing is running; working tree clean.
+
+**Fixed 2026-10-19:** the KB importer never wrote `longevityNotes`, so the exercise page's
+**Why** card (the longevity notes) was missing on every imported exercise. It is stored now,
+and `.maestro/exercise-detail.yaml` asserts a line from every guide card, so this cannot
+vanish silently again.
 
 **Added 2026-10-18 (opencode session, stage B):** the two top-bar buttons now open the
 **side panels** — left menu (New workout, Search, the four sections with long-press drag to
@@ -76,10 +81,12 @@ Every bottom sheet is now one glass component with a shared header
 the emulator found (Android pull-down claiming at touch-down, the `maxHeight`
 cap, the flow's swipe coordinates) are in `01c8f5f` — see `docs/ops/HANDOFF.md` §0.
 
-### D. Icons — refinement then equipment ✅ DONE 2026-10-18
+### D. Icons — refinement then equipment ✅ DONE 2026-10-18, crop fixes 2026-10-19
 Muscle art redrawn where the highlight was thin or the crop wrong (Biceps,
-Front/Middle Delts, Neck, Olympic, Other); Forearms and Calves are now one limb
-drawn larger (documented exception in `docs/design/ICON_STYLE.md`). All ten
+Front/Middle Delts, Neck, Olympic, Other). **Calves now draws both lower legs** —
+the reference crop shows both — and **Forearms** is the single documented
+one-limb exception (one arm on a diagonal with a hand); see
+`docs/design/ICON_STYLE.md`. All ten
 equipment ids render from `assets/icons-src/equipment/*.svg` (barbell, dumbbell,
 kettlebell, machine, bodyweight, cardio, smith machine, cable, safety bar, other)
 and the exercise detail page shows the equipment icon next to the name. The build
@@ -88,20 +95,22 @@ real theme colours (`--only=muscle|equipment`), and `test:icons` is 63 assertion
 Pushed `a782d31`, `5736bfd`; contact sheet at `.opencode/renders/sheet.png`
 (`node scripts/render-icons.mjs`).
 
-### E. Rich exercise pages + missing exercises (repo `~/lift/lift-kb`)
+### E. Rich exercise pages + missing exercises (repo `~/lift/lift-kb`) ✅ DONE 2026-10-18 (pilot awaiting owner approval)
 - Pilot ~6 rich pages (why it matters for longevity, rhythm/tempo, motivation, safety) for the
   owner to approve before rewriting all exercises/programs.
 - Write missing: Bird Dog, Cable Woodchops, Rowing Machine, Outdoor Cycling; add to the foundational list.
 - Markdown pages are the only source of truth; after edits run `node scripts/validate-content.mjs`
   in lift-kb, rebuild the bundle, and confirm the app snapshot (`assets/kb/snapshot`) is regenerated.
 
-### F. Beam bake-off
-`opencode/beam-free` is new: run a small coding test (e.g. the 16-case `parseDuration` task), then
-set its place in `pool_order` in `scripts/opencode/models.json` and note the result in
-`docs/ops/DELEGATION.md` §6. Do it when no other job is running.
+### F. Beam bake-off ✅ DONE 2026-10-19
+`opencode/beam-free` measured on the 16-case `parseDuration` fixture: **pass in 17 s** (fastest
+in the pool), spec and test untouched, a regex parser rather than a lookup table. Promoted to
+2nd in `pool_order` (behind DeepSeek for its real-delegation history) and in the `code` rank;
+row + notes in `docs/ops/DELEGATION.md` §6. Worktree cleaned.
 
-### G. Housekeeping
-Update `docs/ops/HANDOFF.md` §0 and `CHANGELOG.md` at the end of each session.
+### G. Housekeeping ✅ DONE 2026-10-19
+`docs/ops/HANDOFF.md` §0, `CHANGELOG.md`, this file and `DELEGATION.md` are current after the
+2026-10-19 session. Keep doing this at the end of every session.
 
 ## 4. Owner-only items (don't try to do these)
 - Verify recent features on the iPhone (Expo Go).

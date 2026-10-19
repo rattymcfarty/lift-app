@@ -9,6 +9,26 @@
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 
+- [opencode] **Exercise guide page: the Why card was missing (bug) — fixed 2026-10-19**, branch main.
+  The KB importer never wrote `longevityNotes`: the transform handed it over, the column
+  exists, but `upsertKbExercise` neither accepted it nor copied it into its insert/update
+  object, so every imported exercise stored `null` and the exercise page silently dropped
+  its **Why** card (the longevity notes). Now stored; pushed as `0f209bb`/`41b3953`.
+  `.maestro/exercise-detail.yaml` is what found it: the flow now scrolls the guide in
+  measured 25%-of-screen steps (`_scroll-guide.yaml`) because Maestro's
+  `scrollUntilVisible` flings ~1.5 screens on this page and skips the short card headers,
+  and it asserts a line from every card — Overview, Why, How-to, Safety, Progression.
+  `npm run verify` ALL GREEN; `scripts/e2e.sh exercise-detail` PASS on a release build.
+  Re-measure the step counts if the guide copy on `barbell-squat` grows or shrinks.
+
+- [opencode] **Queue F (Beam bake-off) — done 2026-10-19.** `opencode/beam-free` passed the
+  committed 16-case `parseDuration` fixture in **17 s** (fastest in the pool), with `spec.md`
+  and `test.mjs` untouched and a real regex parser (not a lookup table). The helper's shell
+  was blocked by the sandbox allowlist, so the lead ran the test in the worktree (`ALL PASS`)
+  and reviewed the file. Promoted to 2nd in `pool_order` and in the `code` rank, behind
+  DeepSeek for its real-delegation history; table and notes in `docs/ops/DELEGATION.md` §6.
+  Worktree cleaned.
+
 - [opencode] **Exercise guides (queue item E)**, branch main, worked 2026-10-18.
   lift-kb bundle **0.6.0** (631 pages, 581 live, pushed as `d9f9e8e`): the four
   movements the curated list was missing are written — `bird-dog`,
@@ -41,10 +61,11 @@
   Delts** (a deltoid cap from the clavicle to the armpit, at the zoom `Rear Delts`
   uses), **Neck** (sternocleidomastoid + upper traps, not a rectangle),
   **Olympic** (clean traps/delts/glutes/quads), **Other** (three separated dots).
-  **Forearms and Calves are now one limb drawn larger** — a symmetric crop of the
-  shared figure cannot make those muscles fill the tile; `docs/design/ICON_STYLE.md`
-  records that as the only two exceptions to "every icon is a window onto the one
-  figure". All ten equipment ids now render from `assets/icons-src/equipment/*.svg`
+  **Forearms is one limb drawn larger** — a symmetric crop of the shared figure cannot
+  make it fill the tile; `docs/design/ICON_STYLE.md` records that as the only exception to
+  "every icon is a window onto the one figure". **Calves was changed on 2026-10-19 to draw
+  both lower legs** (the reference crop shows both), together with bigger Biceps/Forearms
+  highlights and a cleaner Neck; committed `3f2176a`. All ten equipment ids now render from `assets/icons-src/equipment/*.svg`
   instead of half of them silently falling back to the older hand-drawn React
   scenes in `src/components/icons/equipmentIcons.tsx` (that file stays as the
   fallback for unknown ids and for `All`). Art is authored in four placeholder
