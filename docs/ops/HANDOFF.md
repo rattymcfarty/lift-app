@@ -2,12 +2,32 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-18, after the exercise-guide pass (queue item E). Repo HEAD
-> at the time: see `git log -1`.
+> Last updated: 2026-10-22, after the two-step icon shadow. Repo HEAD at the time:
+> see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
+- [opencode] **Icons: two-step shadow — done 2026-10-22** (`f7dbaa2`). Owner asked for a
+  softer falloff, so a sixth authoring colour was added: `#6a6a6a` SHADOW_SOFT →
+  `darken(muted, 0.14)` (light `#515156`, dark `#828286`). Every shadow band is now
+  painted twice — the soft copy translated `1.3` units further into the form — and every
+  limb shadow is drawn twice, the soft stroke 1.4 units wider underneath. 36 soft fills
+  and 47 soft strokes across the 31 icons. `test:icons` 67, `npm run verify` ALL GREEN,
+  device `exercise-menu` PASS on a release build (`/tmp/lift-e2e-082213`). Sheet:
+  `~/lift/icon-review/9-shadow-soft-pass.png`. Honest limit: the validator bans gradients,
+  so this is two flat tones standing in for a falloff, not an airbrush.
+
+  **Correction to the entries below:** the reference sheet is *not* "fully shaded". Measured
+  pixel values from `reference-muscle-groups.png`: card `#1d1d1d`, body fill `#343434`
+  (only ~9 % above the card), internal lines `#656565`, muscle flat `#ff7a1a`, no shadow
+  step at all. The look comes from a **low-contrast body plus dense line work**, not from
+  shading. Ours in dark mode is body `#a1a1a6` on a `#1c1c1e` tile (~52 % contrast), so our
+  grey figure shouts where theirs whispers. Re-mapping the body toward the surface colour
+  and promoting the current `muted` tone to *line* is the biggest remaining fidelity lever;
+  it would also make the shadow near-invisible, so the shadow would have to be re-derived
+  around the new body tone (or dropped). Not started — owner to decide.
 
 - [opencode] **Icons: shadow tone across the set — done 2026-10-19** (`acd6380`). Owner
   approved a fifth authoring colour: `#4d4d4d` SHADOW → `darken(muted, 0.28)` at render
@@ -235,10 +255,10 @@ iOS via Expo Go only (iOS native build needs macOS/Xcode or EAS — not availabl
 
 Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
-### Verified at last session (2026-10-19)
-- `npm run verify` ALL GREEN. Device: `exercise-detail` PASS on a release build from this
-  tree (it now scrolls and asserts every guide card); earlier on the same tree `sheets`,
-  `exercise-menu`, `workout-flow` and `program-builder` passed.
+### Verified at last session (2026-10-22)
+- `npm run verify` ALL GREEN. Device: `exercise-menu` PASS on a release build from this
+  tree (`/tmp/lift-e2e-082213`); earlier on the same tree `exercise-detail`, `sheets`,
+  `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
   Android physical device. **Needs the owner's hands.**
 
@@ -325,6 +345,16 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-22 — two-step icon shadow, reference re-measured (opencode)
+- Soft shadow step shipped (`f7dbaa2`): `#6a6a6a` → `darken(muted, 0.14)`, a translated copy
+  of every shadow band plus a wider under-stroke on every limb; 36 soft fills, 47 soft
+  strokes. `test:icons` 67, verify green, `exercise-menu` PASS on a release build
+  (`/tmp/lift-e2e-082213`). Sheet `~/lift/icon-review/9-shadow-soft-pass.png`.
+- Re-measured the reference instead of trusting the earlier description: it is flat fill +
+  line work, **no shading** — card `#1d1d1d`, body `#343434`, lines `#656565`, muscle
+  `#ff7a1a`. The gap to close is body contrast (ours +52 % vs theirs +9 %) and line density
+  (ours 3–9 strokes per icon), not shadow. Recorded in §0 with the owner decision.
 
 ### 2026-10-19 — exercise-guide bug, queue F and G (opencode)
 - Found a real content bug while making the guide flow honest: the KB importer dropped
