@@ -1,0 +1,116 @@
+{
+  "iconCount": 18,
+  "icons": {
+    "abductors": {
+      "dark": "e349b0ab84e6fb24bb06bc20a3dfca0e3bf49d53ec20432b3012a7ecc2459cae",
+      "light": "c915cf57158fdc51bbba031340ef1c4243c038b525396dbcb64778f5ed5cfb14",
+      "qa": "PASS"
+    },
+    "abs": {
+      "dark": "c454a42ba02a7e40ba02d3ffdcf90eab695bee56bdcd5dbc4fd416906b480474",
+      "light": "f3910d7fef32210a0cc5d60fa9837131143a3cbc0e7edb80b748acd5d3aac7d7",
+      "qa": "PASS"
+    },
+    "adductors": {
+      "dark": "d9c5677d121be3961fc2323c2c901ad5213f380b2a2eea4292795ab4055fadd4",
+      "light": "8df39e6f54bd555c9bf4e4c1341b8fdc8f2545e175326484384562f51fb7dec2",
+      "qa": "PASS"
+    },
+    "biceps": {
+      "dark": "51dd72bf41579bf69ae8cd73f95a0490b0c980c4b419fb5b061ac8d8ab8e5107",
+      "light": "f9e4c9d676d85f1bed1723d4eb7ecf8aafbdaaa6b4c3178cf650b71261a8a091",
+      "qa": "PASS"
+    },
+    "calves": {
+      "dark": "fab8d7d2ac8f850f55e6b6414e4b47da68043890146bc504943e52696fc601d6",
+      "light": "0dc76bae949ddd4db4718be9b2b1c409d8a933530f809c93a911fd4c6feea822",
+      "qa": "PASS"
+    },
+    "chest": {
+      "dark": "9cc2b348a809208f2ba1ad40f47fbe190affd8efac229f57d4823a94c34ec6a4",
+      "light": "82c0544f5c2a167d49dbdd26c89d7f20e17e98a7b6d3d56b993e305aea9f8044",
+      "qa": "PASS"
+    },
+    "forearms": {
+      "dark": "b349f70a1e965899cee81412fc8d3df11cc564543bb1d7b7778cd151be9ef999",
+      "light": "bd56317d7044f7ed14e46b4e3fc9a4672828e4f9b3f3ac46570bc62da5277551",
+      "qa": "PASS"
+    },
+    "front-delts": {
+      "dark": "cd57548c9c4bb102226d66ff6666876f1639797159417713bc1c033868e6027b",
+      "light": "78ab72cbe7c4cbebdf0da48797d1dc3312957b29a7106abb1a34727c752bb518",
+      "qa": "PASS"
+    },
+    "glutes": {
+      "dark": "b5c840a1e62ee6b6243564dcda5bb6b547e3296daa2c9f1b8dd4a8aebb6ee105",
+      "light": "856762e438fc7557be69ed139db4d858d96df57b0b92f643391ec24f46983ca5",
+      "qa": "PASS"
+    },
+    "hamstrings": {
+      "dark": "aaf5a752af5e5ed2d85599aae73b1ef8c58c736c4df7b936cd9d690bb2d72cb0",
+      "light": "6ed8844fc8490748566f390bac69d4c8292b54fb4045288c5eab7f48bde5aa81",
+      "qa": "PASS"
+    },
+    "lats": {
+      "dark": "4ee104d8c8a920ee323b40f66d65ef7b799bfc870811e94856e33c021da8a342",
+      "light": "c29e651e7fd40cbf9048e33d67567bf220ae4d9a57388f82b013df578f033693",
+      "qa": "PASS"
+    },
+    "lower-back": {
+      "dark": "9e50ef987c0eb93d2d13a3fc227d16f7cda83cfc96d24d63ba3a6a24ceac2258",
+      "light": "648f76ee9a57d266827cbee8857f84790d048755af62c9564f7e2ae6ebf01502",
+      "qa": "PASS"
+    },
+    "middle-delts": {
+      "dark": "d62c2794d79d24135751a6aa58d4b0cc4b49a7e9ebaaa4d13faa376d9df38311",
+      "light": "9e6f7af158b08d0486f28decb29f1ff0aeffec7e714c51aa1cf5fca7b40443e1",
+      "qa": "PASS"
+    },
+    "neck": {
+      "dark": "199a782653feff196b171f38ae19f35f7ba5cbeb66a7a71951c906993600eece",
+      "light": "6be61962d68abaf8ccdc216d20ca2476a2c79b18ce371ae1628c9eb3c88510c9",
+      "qa": "PASS"
+    },
+    "quadriceps": {
+      "dark": "0dc1e4af7cee51b9ca9484ccc7e1e77781a510c3344c145430e6c6acdaec4b4e",
+      "light": "53b333a1e79ec5b80f99a72513053faa6aabf33077089415b89be7484d3cf810",
+      "qa": "PASS"
+    },
+    "rear-delts": {
+      "dark": "e7f6d79af557845c43bef4c55c0040823e8032d7413445ceb31a83613c20c3e8",
+      "light": "a3c39ce18514449645db3e204a3ea8f6eb4010c3dc7f2a812f948eb884df68cd",
+      "qa": "PASS"
+    },
+    "triceps": {
+      "dark": "088cb2a20c198a4dd4ab53024c0ed1495169bd0dc2eb3b8c1f192daa48f035a6",
+      "light": "3b2232652d2645a025ae7af5f4264179b1f070b51c995479bd852c05dc11bd7e",
+      "qa": "PASS"
+    },
+    "upper-back": {
+      "dark": "918aebb57131c9d37fb085efa00fd4f7b8b218a86ef8654fd5a166463451a795",
+      "light": "ccdc1fdad8fca792a7024292fc1f5bd6c6dc998d953eaa8764a2a36b34f67878",
+      "qa": "PASS"
+    }
+  },
+  "size": 288,
+  "verdicts": {
+    "abductors": "PASS",
+    "abs": "PASS",
+    "adductors": "PASS",
+    "biceps": "PASS",
+    "calves": "PASS",
+    "chest": "PASS",
+    "forearms": "PASS",
+    "front-delts": "PASS",
+    "glutes": "PASS",
+    "hamstrings": "PASS",
+    "lats": "PASS",
+    "lower-back": "PASS",
+    "middle-delts": "PASS",
+    "neck": "PASS",
+    "quadriceps": "PASS",
+    "rear-delts": "PASS",
+    "triceps": "PASS",
+    "upper-back": "PASS"
+  }
+}

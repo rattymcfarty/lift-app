@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- Muscle icons are **3D mannequin renders** now, not vectors: each of the 18 groups ships as a
+  288 px PNG per theme (`assets/icons-3d/{dark,light}/`, 1.7 MB total) rendered from Blender's
+  CC0 *Human Base Meshes* body at 640 px / 320 spp with the muscle baked as an opaque lit pass
+  and the accent sampled from the owner's reference (`#ff7a1a` family, red available via
+  `--color red`). `TaxonomyIcon` picks the render for the active theme and falls back to the
+  vectors for `All` / `Olympic` / `Full-Body` and for equipment; the vector muscle fallbacks
+  carry the same sampled accent. Assets are SHA-256-pinned in `assets/icons-3d/qa.json` and
+  `test:icons` grew to 216 assertions. Pipeline, licence and thresholds:
+  `scripts/render/README.md`.
 - Icon palette: a fifth authoring colour, `#4d4d4d` SHADOW, mapped at render time to
   `darken(muted, 0.28)` — a real shade of the body tone in both themes (light
   `#5c5c60` → `#424245`, dark `#a1a1a6` → `#747478`). All 31 icons now carry a shadow

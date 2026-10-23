@@ -11,7 +11,8 @@
  * Usage: node scripts/test-icons.mjs   (npm run test:icons)
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -219,6 +220,40 @@ try {
       /mix\(t\.muted, 0, SHADOW_SOFT_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.highlight, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
   );
+
+  /* ---- 5. the 3D muscle renders are the ones the gate passed ---- */
+  // assets/icons-3d/qa.json is written by scripts/render/build-icons.py: the
+  // QA verdict and the SHA-256 of every shipped PNG. A hand-edited, resized or
+  // swapped file fails here, so a failing render cannot ship.
+  const qaPath = 'assets/icons-3d/qa.json';
+  check('the 3D render manifest exists', existsSync(qaPath));
+  if (existsSync(qaPath)) {
+    const qa = JSON.parse(readFileSync(qaPath, 'utf8'));
+    const slugs = Object.keys(qa.icons ?? {});
+    eq('18 muscle renders are registered', slugs.length, 18);
+    eq('every render passed the numeric gate', slugs.filter((s) => qa.icons[s].qa !== 'PASS'), []);
+    for (const slug of slugs) {
+      for (const mode of ['dark', 'light']) {
+        const file = `assets/icons-3d/${mode}/${slug}.png`;
+        check(`${slug} ${mode}: file exists`, existsSync(file));
+        if (!existsSync(file)) continue;
+        const buf = readFileSync(file);
+        const isPng = buf.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+        check(`${slug} ${mode}: is a PNG`, isPng);
+        check(`${slug} ${mode}: ${qa.size}px square`, buf.readUInt32BE(16) === qa.size && buf.readUInt32BE(20) === qa.size);
+        check(
+          `${slug} ${mode}: matches the verified build`,
+          createHash('sha256').update(buf).digest('hex') === qa.icons[slug][mode],
+        );
+      }
+    }
+    const mapSrc = readFileSync('src/components/icons/muscleRenders.generated.ts', 'utf8');
+    check(
+      'the generated TS map covers every render',
+      slugs.every((slug) => mapSrc.includes(`icons-3d/dark/${slug}.png`)),
+    );
+    check('the app selects the render by theme', readFileSync('src/components/icons/TaxonomyIcon.tsx', 'utf8').includes('MUSCLE_RENDERS'));
+  }
 
   console.log(`test:icons — ${passed} assertions passed`);
 } finally {

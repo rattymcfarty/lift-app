@@ -18,10 +18,29 @@ conventions of good anatomy-chart icons (views, proportions, highlight scheme) b
   and a light tile, labelled) with headless Chrome so you can look at the result. It uses the
   **real app theme colors** (light/dark `muted` + `highlight` from `src/theme/tokens.ts`, with
   `line`/`hiLine` derived exactly as `src/lib/iconColors.ts` derives them), so the sheet shows
-  what the app draws — the `#ff7a1a` authoring orange never reaches a screen. Add
-  `--only=muscle` or `--only=equipment` while redrawing one half of the set.
+  what the app draws — `#ff7a1a` is an authoring placeholder, not a screen colour
+  (muscle icons ship the sampled warm accent; see below). Add `--only=muscle` or
+  `--only=equipment` while redrawing one half of the set.
 - The components `MuscleIconArt` / `EquipmentIconArt` draw the generated SVG with the
   app's colors; icons without art yet fall back to the older drawing.
+
+## 3D muscle renders
+
+Muscle icons are rendered from a 3D mannequin at build time rather than drawn as
+SVG. Each of the 18 muscle groups ships two 288 px PNGs, one per theme, in
+`assets/icons-3d/{dark,light}/`. `TaxonomyIcon` picks the file by theme; the SVG
+art is still the fallback for ids with no render (`All`, `Olympic`, `Full-Body`)
+and for every equipment icon.
+
+- Render, gate and packaging: `scripts/render/render-all.sh`; details and the
+  QA thresholds are in `scripts/render/README.md`.
+- The renders are pinned to their gate result: `assets/icons-3d/qa.json` stores
+  the QA verdict and the SHA-256 of every PNG, and `test:icons` fails if a file
+  is missing, resized, edited, or the generated map is stale.
+- The muscle accent (`#dd7726` dark, `#bc591b` light) is sampled from the renders
+  and passed to the remaining vector muscle icons, so `All`/`Olympic`/`Full-Body`
+  sit next to the 3D set without a colour jump. Equipment icons keep the theme's
+  blue highlight.
 
 ## SVG rules
 
