@@ -2,12 +2,49 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-22, after the two-step icon shadow. Repo HEAD at the time:
-> see `git log -1`.
+> Last updated: 2026-10-23, after the 3D muscle-icon renders shipped. Repo HEAD at
+> the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
+
+- [opencode] **Muscle icons: 3D mannequin renders replaced the vectors — done 2026-10-23.**
+  Owner approved the look, asked for the reference's warm accent instead of theme blue and
+  for production quality. All 18 groups now render from Blender's CC0 *Human Base Meshes*
+  body at 640 px / 320 spp and ship as 288 px PNGs, one per theme:
+  `assets/icons-3d/{dark,light}/` (1.7 MB total). The muscle layer is an **opaque lit pass**
+  — skin colour where the mask is zero — so there is no alpha compositing and no pale halo
+  at the patch edge (the old artefact). Definition comes from fibre striations, anatomical
+  crease lines (linea alba + three tendinous intersections, quad separations, pec lower
+  border, glute fold, calf split, biceps/triceps lines) and a darker rim; the muscle is matte
+  (roughness 0.55→0.68 under the mask) so highlights don't blow out at 44 pt.
+
+  Gate: `scripts/render/qa.py` **18/18 PASS** (it recovers the painted area from the rendered
+  colour difference, not from the mask), then the owner's visual check. `npm run verify` ALL
+  GREEN (test:icons 216). Assets are SHA-256-pinned to `assets/icons-3d/qa.json`, so a failed
+  or hand-edited render breaks the build. Pipeline + licence: `scripts/render/README.md`;
+  render driver `scripts/render/render-all.sh` (~50 min on this rig at 640/320).
+
+  The vectors stay as the fallback for `All` / `Olympic` / `Full-Body` (no render) and for
+  equipment. Their highlight is now the accent sampled from the renders — `#dd7726` dark,
+  `#bc591b` light — so the two sets don't clash; equipment keeps the theme's blue.
+  Review sheets: `~/lift/icon-review/38-app-dark.png`, `38-app-light.png`, `39-app-small.png`,
+  `34-orange-set.png`, `35-orange-vs-reference.png`, `37-qa-final.txt`.
+
+  Known soft spots (owner accepted the set as-is): the quad crease lines are still a little
+  straight (the vastus medialis should be a teardrop at the knee), the chest patch's top edge
+  is a straight cut across the clavicle, and the three deltoid heads aren't separated. Arm
+  regions crop the arms at the frame edge by design.
+
+- [opencode] **Open decision: the owner's iPhone cannot open the app — Expo Go is SDK 58,
+  the project is SDK 57 (2026-10-23).** Expo Go on iOS only ever ships the newest SDK and an
+  older one cannot be installed on a physical device, so the error "Project is incompatible
+  with this version of Expo Go" has no project-side workaround. Two paths: (a) migrate the app
+  to SDK 58 as its own task — `expo` plus the whole `expo-*` family and React Native, then
+  regenerate `android/` and re-run `npm run verify` + the device flows; expect real breakage in
+  sqlite/notifications/router; or (b) keep testing on Android (release APK). Do not fold the
+  migration into an unrelated change.
 
 - [opencode] **Icons: two-step shadow — done 2026-10-22** (`f7dbaa2`). Owner asked for a
   softer falloff, so a sixth authoring colour was added: `#6a6a6a` SHADOW_SOFT →
@@ -255,10 +292,12 @@ iOS via Expo Go only (iOS native build needs macOS/Xcode or EAS — not availabl
 
 Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
-### Verified at last session (2026-10-22)
-- `npm run verify` ALL GREEN. Device: `exercise-menu` PASS on a release build from this
-  tree (`/tmp/lift-e2e-082213`); earlier on the same tree `exercise-detail`, `sheets`,
-  `workout-flow` and `program-builder` passed.
+### Verified at last session (2026-10-23)
+- `npm run verify` ALL GREEN. Device: `exercise-menu` PASS on a **release** build carrying the
+  3D icons (`/tmp/lift-e2e-163516`), so the packaged PNGs and the generated map are what the
+  flow exercised.
+- Earlier (2026-10-22): `exercise-menu` PASS on a release build (`/tmp/lift-e2e-082213`);
+  before that `exercise-detail`, `sheets`, `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
   Android physical device. **Needs the owner's hands.**
 
@@ -345,6 +384,34 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-23 — 3D muscle icons: production renders, warm accent (opencode)
+
+- Replaced the 18 vector muscle icons with renders of a 3D mannequin (Blender 4.5 LTS,
+  Cycles, CC0 base mesh). Owner's brief: match the reference's look without copying its art;
+  then, after the first review, "orange instead of blue" and sharper muscle definition.
+- Definition was the interesting problem. Ambient occlusion alone was too subtle at tile
+  size, so the separation is *drawn*: crease polylines in `CREASES` darken the muscle colour
+  along the linea alba, the tendinous intersections, the quad heads and the pec border.
+  The other half of the fix was making the muscle pass opaque — the pale band across the
+  biceps and triceps was semi-transparent muscle blending with the grey body, not lighting.
+- Colours: `--color orange` (default) or `--color red`; the dark/light pair bakes in one run.
+  Light theme gets a darker skin tint (linear ×0.235) at packaging time so the figure holds
+  up on the `#e9e9ee` tile.
+- Framing is still a per-region crop, not the reference's full-body tile; the owner approved
+  the crops in this round.
+- Not done: the three deltoid heads, the quad medialis teardrop, and the clavicle cut on the
+  chest patch (listed in §0).
+- Gate: `exercise-menu` PASS on a release build with the new icons (`/tmp/lift-e2e-163516`);
+  `npm run verify` ALL GREEN (test:icons 216). Committed as `4d5ad63`.
+- Dev-build noise worth knowing: a debug APK shows a LogBox error at launch,
+  `expo-notifications: Custom sound 'default' not found in native app`, from
+  `sound: 'default'` in `src/notifications/restAlert.ts`. LogBox hides the UI and makes
+  Maestro fail mid-flow, so **gate on a release build** (`scripts/e2e.sh --build <flow>`),
+  not a Metro-served debug APK. The notification sound itself deserves a look.
+- Owner's iPhone is blocked on Expo tooling: Expo Go on iOS is SDK 58 only and cannot be
+  downgraded, so an SDK 57 project refuses to load. Android release APK works. An SDK 58
+  migration is a separate job (see §0).
 
 ### 2026-10-22 — two-step icon shadow, reference re-measured (opencode)
 - Soft shadow step shipped (`f7dbaa2`): `#6a6a6a` → `darken(muted, 0.14)`, a translated copy
