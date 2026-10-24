@@ -23,8 +23,10 @@ maestro test .maestro/workout-flow.yaml
 ## Flows
 
 - `workout-flow.yaml` — happy path: launch (fresh state) → start blank
-  workout → add "Goblet Squat" → log 1 set (10 reps @ 20 kg) → finish →
-  verify the exercise appears on the summary screen.
+  workout → add "Goblet Squat" → log 1 set (10 reps @ 20 kg) → open the RPE
+  explainer from the RPE column header (Pip's intro, levels, worked example) →
+  more sets, a warm-up row, a swap, the picker filters and the exercise detail
+  tabs → finish → verify the exercise appears on the summary screen.
 - `workout-discard.yaml` — discard path: log a set → header Finish → the
   finish/discard sheet → Discard workout → confirm → back on Train with an
   empty History (the workout left no trace).
@@ -50,6 +52,8 @@ changes. Key testIDs:
 | `add-exercise-row-<id>` | Add exercise → row per exercise id |
 | `set-reps-<n>`, `set-weight-<n>` | Set row inputs (n = set number) |
 | `log-set-<n>` | Set row → Log button |
+| `rpe-help` | Set table → RPE column header (opens the RPE explainer) |
+| `plan-rpe-help` | Plan target editor → RPE field label (same explainer) |
 | `workout-finish` | Active workout → footer Finish workout |
 | `workout-finish-bar` | Active workout → header Finish |
 | `finish-sheet` | Finish/discard bottom sheet surface |
@@ -72,8 +76,8 @@ pickers (`OptionSheet`) are thin wrappers over it. A sheet is dismissed by its
 header close (`<testID>-close`), a tap on the dimmed backdrop, a pull down on the
 header, or Android back. Surfaces in use: `finish-sheet`, `action-sheet`,
 `warmup-sheet`, `reorder-sheet`, `superset-sheet`, `plate-sheet`, `muscle-sheet`,
-`rest-timer`, `schedule-sheet`, `weeks-sheet`, `deload-sheet`, `copy-week-sheet`,
-`day-sheet`.
+`rest-timer`, `rpe-sheet`, `schedule-sheet`, `weeks-sheet`, `deload-sheet`,
+`copy-week-sheet`, `day-sheet`.
 
 The side panels close on a scrim tap; because the panel covers most of the
 width, tap the bare strip on the far side (`tapOn: { point: "95%,50%" }` for the
