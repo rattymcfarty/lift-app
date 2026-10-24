@@ -8,9 +8,8 @@
 ## 0. In-flight work (update before every commit)
 
 > Nothing uncommitted as of 2026-10-24: the round below is committed and pushed (`git log -1`),
-> `npm run verify` is ALL GREEN, and the only thing outstanding is the **device re-run** of the
-> two new icons and the RPE sheet (see the last line of this section). The durable record of
-> the round is §6 (session log).
+> `npm run verify` is ALL GREEN, and the device re-run is done (see "Verified at last session"
+> in §1). The durable record of the round is §6 (session log).
 
 - [opencode] **RPE explainer + the last two 3D icons — 2026-10-24 (committed).** Two
   independent pieces from the same session:
@@ -38,9 +37,12 @@
      `scripts/test-rpe.mjs` (38 assertions). Flows: `.maestro/workout-flow.yaml` (after
      set 1) and `.maestro/plan-picker.yaml` (after adding an exercise).
 
-  Gate: `npm run verify` ALL GREEN (icon commit `ffe3667`→`be2f51c`). **Still pending: the
-  device re-run of the two icons + the RPE sheet** — `workout-flow` (opens the sheet,
-  `shot-rpe-sheet`) and `plan-picker` on a fresh release APK.
+  Gate: `npm run verify` ALL GREEN (icon commit `ffe3667`→`be2f51c`). Device: **PASS** on a
+  fresh release APK (`/tmp/lift-e2e-rpe`) — `workout-flow` (opens the RPE sheet from the set
+  table's RPE header; `shot-rpe-sheet` captured), `plan-picker` (opens the same sheet from a
+  plan's RPE target label), and a browse-grid screenshot showing Full-Body + Olympic at tile
+  size. `plan-picker.yaml` needed two flow fixes on the way: collapse the muscle grid after
+  clearing its filter, and match the plan row's numbered label (`.*Goblet Squat.*`).
 
 - [opencode] **UI polish round 3: pinned browse controls, uniform filters, adaptive type —
   2026-10-24 (committed).** Three things the owner saw on the iPhone, plus the concept
@@ -380,12 +382,17 @@ iOS via Expo Go only (iOS native build needs macOS/Xcode or EAS — not availabl
 Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ### Verified at last session (2026-10-24)
-- `npm run verify` ALL GREEN; `expo-doctor` 20/20 on SDK 58. Device: `onboarding`, `tabs` and
-  `exercise-menu` PASS on a **release** build of SDK 58 (`/tmp/lift-e2e-104711`) — the tab bar
-  rewrite and the 3D icon assets are both covered by those flows.
-- Purple icon set: `same gate` — `exercise-menu` and `exercise-detail` PASS on a release build
-  (`/tmp/lift-e2e-120444`); `qa.py` 18/18 on the new renders, and 18/18 on the old orange set
-  under the same (changed) metric.
+- `npm run verify` ALL GREEN; `expo-doctor` 20/20 on SDK 58. **Device (release APK,
+  `/tmp/lift-e2e-rpe`): `workout-flow` PASS** — it logs sets, opens the RPE explainer from the
+  set table's RPE header (`shot-rpe-sheet`) and finishes; **`plan-picker` PASS** — it adds an
+  exercise and opens the same RPE sheet from the plan target editor's RPE label. A muscle-grid
+  screenshot confirms the two new 3D renders (Full-Body, Olympic) at tile size in the dark
+  theme.
+- Purple icon set: `qa.py` 20/20 (18 cropped muscles + Full-Body/Olympic × 2 themes), and
+  18/18 on the old orange set under the same (changed) metric; `exercise-menu` and
+  `exercise-detail` PASS on a release build (`/tmp/lift-e2e-120444`).
+- Earlier (2026-10-24, SDK 58 release build, `/tmp/lift-e2e-104711`): `onboarding`, `tabs` and
+  `exercise-menu` PASS (the tab-bar rewrite + the 3D icon assets are covered there).
 - Earlier (2026-10-22): `exercise-menu` PASS on a release build (`/tmp/lift-e2e-082213`);
   before that `exercise-detail`, `sheets`, `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
@@ -422,6 +429,66 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
    exercise detail, history rows, plan detail/edit, measure, analytics charts. Audit
    at 1.3× text and 320 pt width (emulator: `adb shell settings put system font_scale 1.3`,
    `wm size 720x1280; wm density 360`).
+
+2a. **"Plan vs Program" explainer — owner request 2026-10-24 (copy supplied).** An
+    informational page that answers the terminology the app leans on every day: a **Plan**
+    is *what/when* (the weekly schedule: Mon chest·tri, Tue back·bi, Wed rest…); a
+    **Program** is *how it progresses* (a 12-week structure with sets/reps, intensity,
+    progressive overload, recovery, progress tracking). Owner's framing to keep: Program =
+    the higher-level structure, Plan = the schedule that organises its execution (a
+    12-week muscle-building program *contains* the weekly plan, the sessions, the
+    exercises); note that the fitness industry uses the two interchangeably.
+
+    Recommendations:
+    - **Copy lives in content, not JSX.** A structured module (`src/content/planVsProgram.ts`
+      → blocks: intro, definition pair, schedule example, program example, key-line,
+      caveat) rendered by one shared `ProsePage`/`InfoPage` component. Editing words must
+      never mean editing layout.
+    - **Make it updatable "from GitHub" the sanctioned way.** The app already has exactly
+      one network call — an anonymous GET of public KB JSON (`src/kb/channel.ts`) — and the
+      KB lives in `lift-kb` on GitHub. Put the long-form page in the KB as a *concept page*
+      (new content type, shipped in the snapshot and updatable through the existing channel),
+      so the owner can edit it on GitHub and (once the KB host serves the new bundle) users
+      get it without an app release. No new SDK, no new endpoint. Interim if the KB schema
+      is not touched yet: the local content module above, with the snapshot migration noted
+      as a follow-up.
+    - **Entry points:** Programs tab header (ⓘ "How programs work"), the first page of the
+      program builder, the plan detail footer, the Programs empty state, and the left
+      panel's More list (so it is findable from anywhere).
+    - Match the app's own vocabulary in the copy (Plan = the routine the user edits;
+      Program = the multi-week structure; Workout = a session) and say so explicitly.
+    - Tests: a unit test for the content shape (every block has text; the two examples
+      present) + a Maestro flow that opens it from the Programs header; typography gate
+      applies as usual.
+
+2b. **Programs section review — owner request 2026-10-24.** Four things the owner saw, plus
+    the coherence pass they asked for ("all sections should be nicely and equally laid out…
+    uniform and cohesive"):
+    1. **Missing section header on Programs.** The tab opens straight into content while
+       Browse/Articles lead with a title. Give every section the same header
+       (title + a factual one-line subtitle, e.g. "Browse Exercises · 581 exercises in the
+       library") via ONE shared component, so height, padding and type are identical.
+    2. **Analytics top area takes too much room.** Review the title block + week strip
+       stack and tighten it; the fix must be made in the shared header, not just there, so
+       the four tabs stay equal.
+    3. **Review/update the bio "persona" at any time.** A reachable "Your profile / persona"
+       editor (Programs section + Settings) showing the inputs the generator uses (goal,
+       experience, equipment, days/week, session length, limitations, PAR-Q+) *and* what each
+       one changes (volume, reps, rest, excluded movements), with a "regenerate my program"
+       action. Today the profile is set at onboarding and only reachable from Settings.
+    4. **A new guided quiz that generates a fresh Program (and its Plans).** A step-by-step
+       interview that (re)builds the persona, explains each question, then produces a
+       multi-week program with plans inside it through the existing generator/builder — and
+       shows the result for review before saving. **Constraint to state up front:** LIFT is
+       local-first and offline; "intelligent" here must be deterministic and explainable
+       (rule-based questions + the existing generator), NOT a cloud/LLM call — no new SDK,
+       no network. If the owner wants LLM-authored programs, that is a product decision
+       (docs/release/DECISIONS.md) and conflicts with the privacy non-negotiable.
+    - Also found on the device run (same pass): the muscle/equipment filter chips show a
+      caret ▲ on the *equipment* chip while the *muscle* grid is open (screenshot in the
+      2026-10-24 session notes) — the open/collapsed indicator should track the grid that is
+      actually open.
+
 3. **Exercise content quality:** enrich the thin entries (list: live exercises with
    fewer than 4 instruction steps); add real safety notes for neck, behind-the-neck,
    plyometrics, dragon flag, Nordic curl, handstand push-ups; coach review.

@@ -35,6 +35,10 @@ appId: app.lift.mobile
     id: "plan-picker-filter-muscle-clear"
 - tapOn:
     id: "plan-picker-filter-muscle-clear"
+# Collapse the muscle grid so the results area is back (it stays open after a
+# filter is cleared, which would otherwise hide the row we tap next).
+- tapOn:
+    id: "plan-picker-filter-muscle"
 
 # Add an exercise, expand its target editor, and open the RPE explainer from the
 # RPE label — the same sheet the workout set table's RPE header opens.
@@ -44,7 +48,7 @@ appId: app.lift.mobile
 - hideKeyboard
 - tapOn:
     id: "plan-add-exercise-row-goblet-squat"
-- assertVisible: "Goblet Squat.*"
+- assertVisible: ".*Goblet Squat.*"
 - tapOn:
     id: "plan-item-0"
 - tapOn:

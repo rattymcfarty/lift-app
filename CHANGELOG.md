@@ -23,7 +23,8 @@
   on the companion being enabled. The same sheet opens from the RPE label in a plan's target
   editor (`NumberInput` gained an optional label button). `scripts/test-rpe.mjs` (38
   assertions) pins the scale, the copy and that both entry points stay wired;
-  `.maestro/workout-flow.yaml` and `plan-picker.yaml` open the sheet on device.
+  `.maestro/workout-flow.yaml` and `plan-picker.yaml` open the sheet on device — both PASS
+  on a release APK (`/tmp/lift-e2e-rpe`).
 
 - **Android Expo Go opens again.** `expo-notifications` 58.1.6 imports
   `ExpoTopicSubscriptionModule` at module load, and the SDK 58 Expo Go for Android

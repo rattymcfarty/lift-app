@@ -17,6 +17,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Flag limitations (knees, lower back, shoulders) | ✅ P9 | Excludes risky movements |
 | Safety screening (PAR-Q+) | ✅ | Gate before programs |
 | A plan built for me, adjustable afterwards | ✅ P9 | Rule-based generator → ordinary editable plans |
+| A guided interview that builds a **program** (plans + progression) for me | 🟡 → queued | Onboarding generates a plan today; a step-by-step quiz with a review step before saving is queue 2b |
 | Starting weights sized to my body & level | ✅ P9 | Conservative estimates, clearly labelled |
 
 ## 2. Deciding what to do today
@@ -31,6 +32,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Sheets and dialogs that look like one app | ✅ C | Every bottom sheet is the same glass component (`BottomSheet` + shared `SheetHeader`: grabber, title, close); the option pickers, the plate calculator, the muscle sheet and the rest timer all render it, and the rename dialog is glass. Dismiss by the header close, a backdrop tap, a pull down on the header, or Android back |
 | Find exercises by muscle or equipment at a glance | ✅ D | 2-column tile + label grid (`TaxonomyFilterGrid`) with original LIFT artwork: 21 muscle-group and 10 equipment icons, figure in the theme's muted colour with the worked muscle or the implement in the theme highlight (light and dark), so the set follows the app theme rather than a fixed accent (`docs/design/ICON_STYLE.md`) |
 | Know how to do a movement, and why it matters | ✅ E | Exercise guide (KB bundle 0.6.0, 631 pages): numbered steps with the tempo written in, coaching cues, common mistakes, a safety note that says when to stop, and longevity notes under *why this matters for a long life · rhythm and tempo · keeping it for life*. All 50 curated foundational names now resolve to a live page (Bird Dog, Cable Woodchops, Rowing Machine and Outdoor Cycling were written for this pass) |
+| Understand what "Plan" and "Program" mean in this app | ❌ → queued | Owner-supplied copy — a Plan is the weekly schedule, a Program is how training progresses over weeks; needs one shared info page and a copy source that can be edited later (queue 2a) |
 
 ## 3. During the workout
 | Need | Status | Notes |
@@ -67,6 +69,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Hide the companion completely | ✅ | Settings → Companion (default ON); the circle is fixed in the top bar centre |
 | Choose the companion's look | ✅ | Settings → Companion → Style: Mouse (default) / Blob; persisted, rides in backups |
 | Works offline, no tracking | ✅ | |
+| Review and update my profile ("persona") at any time, and see what each answer changes | 🟡 → queued | Editable in Settings today (and carried in backups); a reachable reviewer in the Programs section that shows the effect on volume/reps/rest/exclusions is queue 2b |
 
 ## 6. Longevity layer
 | Need | Status | Notes |
