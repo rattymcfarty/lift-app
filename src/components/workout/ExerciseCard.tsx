@@ -113,6 +113,11 @@ interface ExerciseCardProps {
   plannedSets?: PlannedSetRow[];
   /** Superset group info for visual indicators, or null if not in a superset. */
   supersetGroup?: SupersetGroupInfo | null;
+  /**
+   * Opens the RPE explainer from the set table's RPE header. Absent outside the
+   * workout screen, where the header then stays a plain label.
+   */
+  onRpeHelp?: () => void;
 }
 
 export function ExerciseCard({
@@ -125,6 +130,7 @@ export function ExerciseCard({
   workoutName,
   plannedSets,
   supersetGroup = null,
+  onRpeHelp,
 }: ExerciseCardProps): JSX.Element {
   const { theme } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
@@ -732,18 +738,38 @@ export function ExerciseCard({
                 ['Reps', GRID_FLEX.reps],
                 ['RPE', GRID_FLEX.rpe],
               ] as [string, number][]
-            ).map(([label, flex]) => (
-              <Text
-                key={label}
-                style={[styles.columnHeader, { flex, minWidth: 0, color: theme.colors.muted, fontSize: gm.fontHeader }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-                maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
-              >
-                {label}
-              </Text>
-            ))}
+            ).map(([label, flex]) =>
+              label === 'RPE' && onRpeHelp ? (
+                <Pressable
+                  key={label}
+                  testID="rpe-help"
+                  onPress={onRpeHelp}
+                  accessibilityRole="button"
+                  accessibilityLabel="What is RPE?"
+                  accessibilityHint="Opens a short explanation of the RPE scale"
+                  hitSlop={10}
+                  style={[styles.rpeHeader, { flex }]}
+                >
+                  <Text
+                    style={[styles.columnHeader, { color: theme.colors.accent, fontSize: gm.fontHeader }]}
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
+                  >
+                    {label}
+                  </Text>
+                  <ActionIcon name="info" color={theme.colors.accent} size={gm.fontHeader + 1} />
+                </Pressable>
+              ) : (
+                <Text
+                  key={label}
+                  style={[styles.columnHeader, { flex, minWidth: 0, color: theme.colors.muted, fontSize: gm.fontHeader }]}
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
+                >
+                  {label}
+                </Text>
+              ),
+            )}
             <View style={{ flex: GRID_FLEX.check + GRID_FLEX.remove, alignItems: 'center' }}>
               <ActionIcon name="check" color={theme.colors.muted} size={gm.fontHeader + 6} />
             </View>
@@ -877,6 +903,14 @@ const styles = StyleSheet.create({
   columnHeader: {
     fontWeight: FONT_WEIGHT.medium,
     textAlign: 'center',
+  },
+  /** The RPE header doubles as the explainer's trigger. */
+  rpeHeader: {
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
   },
   footerRow: {
     marginTop: 6,

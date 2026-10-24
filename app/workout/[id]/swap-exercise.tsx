@@ -27,6 +27,7 @@ import { decodeStringArray, EXERCISE_CATEGORIES, type Exercise } from '../../../
 import { useTheme } from '../../../src/theme';
 import { Button, ScreenHeader, EmptyState } from '../../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
+import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
@@ -125,6 +126,8 @@ export default function SwapExerciseScreen(): JSX.Element {
     );
     setEquipmentExpanded(true);
   };
+  const clearMuscles = () => setSelectedMuscles([]);
+  const clearEquipment = () => setSelectedEquipment([]);
 
   const handleConfirm = useCallback(async () => {
     if (!workoutExerciseId || !selectedId || selectedId === currentExercise?.id || !workoutId) {
@@ -185,68 +188,24 @@ export default function SwapExerciseScreen(): JSX.Element {
                 }}
               />
 
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                <Pressable
+              <FilterChipRow>
+                <FilterChip
+                  label="Muscles"
+                  count={selectedMuscles.length}
+                  expanded={muscleExpanded}
+                  onToggle={() => setMuscleExpanded((p) => !p)}
+                  onClear={clearMuscles}
                   testID="swap-filter-muscle"
-                  onPress={() => setMuscleExpanded((p) => !p)}
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: muscleExpanded }}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: theme.colors.border,
-                    borderRadius: theme.radius.md,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.md,
-                    backgroundColor: theme.colors.surface,
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: theme.spacing.xs,
-                  }}
-                >
-                  <Text
-                    style={{ color: theme.colors.text, fontSize: t.size.caption, fontWeight: t.weight.medium, flexShrink: 1 }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                  >
-                    {selectedMuscles.length > 0 ? `Muscles (${selectedMuscles.length})` : 'All Muscles'}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
-                    {muscleExpanded ? '▾' : '▴'}
-                  </Text>
-                </Pressable>
-                <Pressable
+                />
+                <FilterChip
+                  label="Equipment"
+                  count={selectedEquipment.length}
+                  expanded={equipmentExpanded}
+                  onToggle={() => setEquipmentExpanded((p) => !p)}
+                  onClear={clearEquipment}
                   testID="swap-filter-equipment"
-                  onPress={() => setEquipmentExpanded((p) => !p)}
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: equipmentExpanded }}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: theme.colors.border,
-                    borderRadius: theme.radius.md,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.md,
-                    backgroundColor: theme.colors.surface,
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: theme.spacing.xs,
-                  }}
-                >
-                  <Text
-                    style={{ color: theme.colors.text, fontSize: t.size.caption, fontWeight: t.weight.medium, flexShrink: 1 }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                  >
-                    {selectedEquipment.length > 0 ? `Equipment (${selectedEquipment.length})` : 'All Equipment'}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
-                    {equipmentExpanded ? '▾' : '▴'}
-                  </Text>
-                </Pressable>
-              </View>
+                />
+              </FilterChipRow>
               {muscleExpanded ? (
                 <TaxonomyFilterGrid
                   mode="muscle"

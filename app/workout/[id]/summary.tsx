@@ -14,6 +14,7 @@ import {
   type WorkoutDetail,
 } from '../../../src/data/repositories';
 import { useTheme } from '../../../src/theme';
+import { useGroupFit } from '../../../src/theme/adaptive';
 import {
   formatDuration,
   formatSetSummary,
@@ -28,20 +29,36 @@ import { listPRsWithExercises } from '../../../src/data/repositories';
 import { prKindLabel } from '../../../src/components/dashboard/prLabels';
 import { companionRecords, companionWorkoutFinished } from '../../../src/companion/triggers';
 
-function Stat({ label, value }: { label: string; value: string }): JSX.Element {
+function Stat({ label, value, size }: { label: string; value: string; size: number }): JSX.Element {
   const { theme } = useTheme();
-  const t = theme.typography;
   return (
     <View style={styles.stat}>
       <Text
-        style={{ color: theme.colors.text, fontSize: t.size.display, fontWeight: t.weight.bold }}
+        style={{ color: theme.colors.text, fontSize: size, fontWeight: theme.typography.weight.bold }}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.6}
       >
         {value}
       </Text>
-      <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>{label}</Text>
+      <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.caption }}>{label}</Text>
+    </View>
+  );
+}
+
+/**
+ * The three summary numbers. They used to shrink individually, so a long volume
+ * sat smaller than a two-digit set count. Now one size is computed for the row
+ * from its widest value and given to all three.
+ */
+function StatRow({ stats }: { stats: ReadonlyArray<{ label: string; value: string }> }): JSX.Element {
+  const { theme } = useTheme();
+  const t = theme.typography;
+  const longest = stats.reduce((a, s) => (s.value.length > a.length ? s.value : a), '');
+  const fit = useGroupFit({ longest, base: t.size.display, min: t.size.section, count: stats.length });
+  return (
+    <View onLayout={fit.onLayout} style={styles.statRow}>
+      {stats.map((s) => (
+        <Stat key={s.label} label={s.label} value={s.value} size={fit.size} />
+      ))}
     </View>
   );
 }
@@ -161,11 +178,13 @@ export default function WorkoutSummaryScreen(): JSX.Element {
           <Celebration records={records} setCount={allSets.length} />
 
           <Card>
-            <View style={styles.statRow}>
-              <Stat label="EXERCISES" value={String(detail.items.length)} />
-              <Stat label="SETS" value={String(allSets.length)} />
-              <Stat label="VOLUME (KG)" value={trimNumber(totalVolumeKg(allSets))} />
-            </View>
+            <StatRow
+              stats={[
+                { label: 'EXERCISES', value: String(detail.items.length) },
+                { label: 'SETS', value: String(allSets.length) },
+                { label: 'VOLUME (KG)', value: trimNumber(totalVolumeKg(allSets)) },
+              ]}
+            />
           </Card>
 
           {detail.items.map((item) => (

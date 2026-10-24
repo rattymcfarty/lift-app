@@ -17,6 +17,7 @@ import { getSettings, setIdleThresholds, setWeightUnit, type WeightUnit } from '
 import { Button, Card } from '../workout/ui';
 import { deleteBackupFile, exportBackup, shareBackup } from '../../data/export';
 import { applyReminders, getReminders, type ReminderSettings } from '../../notifications/workoutReminders';
+import { notificationsAvailable } from '../../notifications/native';
 import { getProfile, type Profile } from '../../data/profile';
 import { GOAL_LABEL } from '../../data/generatedPlan';
 import { dryRunImport, importBackup, pickBackupFile } from '../../data/import';
@@ -78,8 +79,6 @@ function SegmentedOption<T extends string>({
           textAlign: 'center',
         }}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
       >
         {shownLabel}
       </Text>
@@ -132,7 +131,12 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
       if (!ok) {
         Alert.alert(
           'Notifications are off',
-          'Allow notifications for LIFT in your phone settings to get workout reminders.',
+          // Expo Go builds are frozen at publish time; one that predates the
+          // notifications module cannot schedule anything, whatever the OS
+          // permission says. Say so instead of blaming the phone settings.
+          notificationsAvailable()
+            ? 'Allow notifications for LIFT in your phone settings to get workout reminders.'
+            : 'This Expo Go build cannot schedule notifications. Install the LIFT app build to use workout reminders.',
         );
         setReminders({ ...next, enabled: false });
         void applyReminders({ ...next, enabled: false });

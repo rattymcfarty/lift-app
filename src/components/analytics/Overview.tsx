@@ -7,6 +7,7 @@ import { useCallback, useState, type JSX } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../theme';
+import { useGroupFit } from '../../theme/adaptive';
 import { fetchStatWorkouts, getDashboardStats } from '../../stats/queries';
 import { startOfWeekMonday, workoutVolume } from '../../stats/volume';
 import { listPRsWithExercises, type PRWithExercise } from '../../data/repositories';
@@ -32,8 +33,19 @@ function compact(n: number): string {
 function StatTriplet({ items }: { items: ReadonlyArray<{ value: string; label: string }> }): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
+  // One size for all three numbers, computed from the longest value. Per-tile
+  // autoshrink used to make "12,340" smaller than "28" in the same row.
+  const longest = items.reduce((a, it) => (it.value.length > a.length ? it.value : a), '');
+  const fit = useGroupFit({
+    longest,
+    base: t.size.section,
+    min: t.size.meta,
+    count: items.length,
+    padding: theme.spacing.xs,
+  });
   return (
     <View
+      onLayout={fit.onLayout}
       style={{
         flexDirection: 'row',
         backgroundColor: theme.colors.surfaceMuted,
@@ -54,18 +66,14 @@ function StatTriplet({ items }: { items: ReadonlyArray<{ value: string; label: s
           }}
         >
           <Text
-            style={{ color: theme.colors.highlight, fontSize: t.size.section, fontWeight: t.weight.bold }}
+            style={{ color: theme.colors.highlight, fontSize: fit.size, fontWeight: t.weight.bold }}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.6}
           >
             {it.value}
           </Text>
           <Text
             style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
           >
             {it.label}
           </Text>

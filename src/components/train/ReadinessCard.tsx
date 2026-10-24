@@ -9,6 +9,7 @@ import { Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme';
+import { useGroupFit } from '../../theme/adaptive';
 import { Card } from '../workout/ui';
 
 export type Readiness = 'great' | 'okay' | 'low';
@@ -46,10 +47,20 @@ export function ReadinessCard(): JSX.Element {
   };
 
   const advice = OPTIONS.find((o) => o.key === value)?.advice;
+  // "Great / Okay / Tired / sore" share one size; autoshrink made the third
+  // option visibly smaller than the first two.
+  const fit = useGroupFit({
+    longest: OPTIONS.reduce((a, o) => (o.label.length > a.length ? o.label : a), ''),
+    base: t.size.meta + 1,
+    min: t.size.caption,
+    count: OPTIONS.length,
+    padding: theme.spacing.xs,
+    gap: theme.spacing.sm * (OPTIONS.length - 1),
+  });
   return (
     <Card>
       <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>HOW ARE YOU FEELING?</Text>
-      <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+      <View onLayout={fit.onLayout} style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
         {OPTIONS.map((o) => {
           const on = value === o.key;
           return (
@@ -72,10 +83,8 @@ export function ReadinessCard(): JSX.Element {
               }}
             >
               <Text
-                style={{ color: on ? c.text : c.muted, fontSize: t.size.meta + 1, fontWeight: on ? t.weight.semibold : t.weight.regular }}
+                style={{ color: on ? c.text : c.muted, fontSize: fit.size, fontWeight: on ? t.weight.semibold : t.weight.regular }}
                 numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
               >
                 {o.label}
               </Text>

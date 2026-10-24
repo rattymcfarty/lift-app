@@ -18,3 +18,24 @@ appId: app.lift.mobile
 - tapOn:
     id: "new-workout-start-blank"
 - takeScreenshot: shot-workout
+
+# Browse: controls pinned after the list is scrolled, then the muscle grid open.
+- tapOn:
+    id: "tab-exercises"
+- scroll
+- scroll
+- takeScreenshot: shot-browse-scrolled
+- tapOn:
+    id: "browse-filter-muscle"
+- takeScreenshot: shot-browse-filters
+- tapOn:
+    id: "browse-filter-muscle"
+
+# Exercise guide: the Progression card (label/value layout, long guidance wraps).
+- tapOn:
+    id: "browse-exercise-row-.*"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Progression"
+- takeScreenshot: shot-exercise-progression

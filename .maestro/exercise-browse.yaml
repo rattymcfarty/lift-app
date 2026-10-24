@@ -1,0 +1,57 @@
+# Browse Exercises: the search field and the muscle/equipment chips are pinned
+# above the list, so they stay reachable after scrolling and while filtering.
+# Guards the layout the owner asked for: filters never scroll away, and the two
+# chips share one type size (no autoshrink on the longer label).
+# Run: maestro test .maestro/exercise-browse.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "tab-exercises"
+- assertVisible: "Browse Exercises"
+
+# Controls start pinned at the top.
+- assertVisible:
+    id: "browse-exercises-search"
+- assertVisible:
+    id: "browse-filter-muscle"
+- assertVisible:
+    id: "browse-filter-equipment"
+
+# Scroll deep into the library. The list moves; the controls must not.
+- scroll
+- scroll
+- scroll
+- assertVisible:
+    id: "browse-exercises-search"
+- assertVisible:
+    id: "browse-filter-muscle"
+- assertVisible:
+    id: "browse-filter-equipment"
+
+# Open the muscle grid in place, pick one, and check the chip reflects it.
+- tapOn:
+    id: "browse-filter-muscle"
+- assertVisible:
+    id: "picker-muscle-Chest"
+- tapOn:
+    id: "picker-muscle-Chest"
+- assertVisible: "Muscles (1)"
+- assertVisible:
+    id: "browse-filter-muscle-clear"
+
+# Clearing restores the full label — same size as its neighbour.
+- tapOn:
+    id: "browse-filter-muscle-clear"
+- assertVisible: ".*All Muscles.*"
+
+# Search still works from the same pinned position.
+- tapOn:
+    id: "browse-exercises-search"
+- inputText: "squat"
+- hideKeyboard
+- assertVisible:
+    id: "browse-exercise-row-.*"
+    index: 0

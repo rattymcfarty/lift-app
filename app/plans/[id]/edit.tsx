@@ -46,6 +46,7 @@ import {
   ScreenHeader,
 } from '../../../src/components/workout/ui';
 import { parseUserInt, parseUserNumber } from '../../../src/components/workout/format';
+import { RpeSheet } from '../../../src/components/workout/RpeSheet';
 import { formatTargets as formatPlanTargets } from '../../../src/components/routines/format';
 import { displayName } from '../../../src/kb/taxonomy';
 
@@ -91,6 +92,8 @@ export default function PlanEditScreen(): JSX.Element {
   const [draftError, setDraftError] = useState<string | null>(null);
   const [savingTargets, setSavingTargets] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
+  /** The RPE explainer, opened from the RPE target field's label. */
+  const [rpeSheetVisible, setRpeSheetVisible] = useState(false);
 
   // Re-entrancy guard: disabled-button state updates async.
   const busyRef = useRef(false);
@@ -522,6 +525,7 @@ export default function PlanEditScreen(): JSX.Element {
                 onPress={() => openTargets(item)}
                 accessibilityRole="button"
                 accessibilityLabel={`Edit targets for ${displayName(item.exercise)}`}
+                testID={`plan-item-${index}`}
                 style={styles.itemRow}
               >
                 <View style={styles.itemText}>
@@ -638,6 +642,8 @@ export default function PlanEditScreen(): JSX.Element {
                       decimal
                       label="RPE"
                       width={80}
+                      onLabelPress={() => setRpeSheetVisible(true)}
+                      labelTestID="plan-rpe-help"
                     />
                     <NumberInput
                       value={draft.rest}
@@ -684,6 +690,8 @@ export default function PlanEditScreen(): JSX.Element {
           />
         }
       />
+      {/* RPE explainer — the RPE target field's label opens it. */}
+      <RpeSheet visible={rpeSheetVisible} onClose={() => setRpeSheetVisible(false)} />
     </SafeAreaView>
   );
 }

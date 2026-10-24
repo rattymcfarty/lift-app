@@ -33,6 +33,7 @@ import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { ExerciseCard, type SupersetGroupInfo } from '../../src/components/workout/ExerciseCard';
+import { RpeSheet } from '../../src/components/workout/RpeSheet';
 import { TaxonomyIcon } from '../../src/components/icons';
 import { ToolIcon } from '../../src/components/icons/ToolIcons';
 import { RestTimer } from '../../src/components/workout/RestTimer';
@@ -98,6 +99,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
   const [finishSheetVisible, setFinishSheetVisible] = useState(false);
   const [plateModalVisible, setPlateModalVisible] = useState(false);
   const [muscleSheetVisible, setMuscleSheetVisible] = useState(false);
+  const [rpeSheetVisible, setRpeSheetVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
   const [restSecondsForTimer, setRestSecondsForTimer] = useState<number | null>(null);
   const { width } = useWindowDimensions();
@@ -366,6 +368,7 @@ export default function ActiveWorkoutScreen(): JSX.Element {
       workoutName={detail?.workout.name}
       plannedSets={plannedFor(item.item)}
       supersetGroup={item.supersetGroup}
+      onRpeHelp={() => setRpeSheetVisible(true)}
     />
   );
 
@@ -475,6 +478,9 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         </View>
       </BottomSheet>
 
+      {/* RPE explainer — opened from the RPE column header in any set table. */}
+      <RpeSheet visible={rpeSheetVisible} onClose={() => setRpeSheetVisible(false)} />
+
       {/* Plate calculator modal */}
       <PlateCalculator
         visible={plateModalVisible}
@@ -569,8 +575,6 @@ function TopActionBar({ detail, compactMode, onTimer, onPlate, onMuscle, onFinis
               <Text
                 style={{ color: theme.colors.muted, fontSize: Math.round(t.size.caption * toolScale * 2) / 2, fontWeight: t.weight.medium }}
                 numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
                 maxFontSizeMultiplier={1.1}
               >
                 {b.label}

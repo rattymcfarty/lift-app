@@ -35,6 +35,7 @@ import {
 } from 'react-native';
 import type { LoggedSet } from '../../db/schema';
 import { useTheme } from '../../theme';
+import { fitTextSize } from '../../theme/adaptive';
 import { formatWeight, parseWeightInput } from '../../lib/units';
 import { parseUserInt, parseUserNumber } from './format';
 import { Button, NumberInput } from './ui';
@@ -216,9 +217,27 @@ export function SetRow(props: SetRowProps): JSX.Element {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
   const m = gridMetrics(width);
+  // Columns are proportional (setGrid), so a column's width is its flex share of
+  // the row. The row's numbers get ONE size, computed from those widths — never
+  // per-cell shrinking, which could print "80" bigger than "227.5" beside it.
+  const rowWidth = Math.max(200, width - 64);
   return props.mode === 'logged'
-    ? <LoggedRow {...props} theme={theme} m={m} />
-    : <PendingRow {...props} theme={theme} m={m} />;
+    ? <LoggedRow {...props} theme={theme} m={m} rowWidth={rowWidth} />
+    : <PendingRow {...props} theme={theme} m={m} rowWidth={rowWidth} />;
+}
+
+/** Width of one table column, less a point of breathing room on each side. */
+function columnWidth(rowWidth: number, flex: number): number {
+  return Math.max(0, (rowWidth * flex) / 100 - 2);
+}
+
+/** One size for the previous column's text ("80 × 10"). */
+function previousSize(rowWidth: number, text: string, m: ReturnType<typeof gridMetrics>): number {
+  return fitTextSize(columnWidth(rowWidth, GRID_FLEX.prev), {
+    longest: text || '–',
+    base: m.fontMeta,
+    min: Math.min(m.fontMeta, 12),
+  });
 }
 
 function Prev({ text, testID, theme, fontSize }: { text: string; testID: string; theme: ThemeT; fontSize: number }): JSX.Element {
@@ -228,8 +247,6 @@ function Prev({ text, testID, theme, fontSize }: { text: string; testID: string;
         testID={testID}
         style={{ color: theme.colors.muted, fontSize, fontVariant: ['tabular-nums'], textAlign: 'center' }}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
         maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
       >
         {text || '–'}
@@ -238,8 +255,8 @@ function Prev({ text, testID, theme, fontSize }: { text: string; testID: string;
   );
 }
 
-function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; m: ReturnType<typeof gridMetrics> }): JSX.Element {
-  const { theme, m, loggedSet, displayUnit, previousText, onDelete, setNumber } = props;
+function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; m: ReturnType<typeof gridMetrics>; rowWidth: number }): JSX.Element {
+  const { theme, m, loggedSet, displayUnit, previousText, onDelete, setNumber, rowWidth } = props;
   const isWarmup = loggedSet.isWarmup === true;
   const valueColor = isWarmup ? theme.colors.muted : theme.colors.text;
   const weightDisplay = loggedSet.weightKg != null
@@ -252,13 +269,25 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; m: ReturnType<typ
     Animated.spring(pop, { toValue: 1, friction: 7, tension: 120, useNativeDriver: true }).start();
   }, [pop]);
 
+  const numberSize = Math.min(
+    ...[
+      [GRID_FLEX.weight, weightDisplay],
+      [GRID_FLEX.reps, repsDisplay],
+      [GRID_FLEX.rpe, rpeDisplay],
+    ].map(([flex, v]) =>
+      fitTextSize(columnWidth(rowWidth, flex as number), {
+        longest: (v as string) || '–',
+        base: m.fontBody,
+        min: Math.min(m.fontBody, 12),
+      }),
+    ),
+  );
+
   const num = (v: string, flex: number, color: string): JSX.Element => (
     <Col flex={flex}>
       <Text
-        style={{ color, fontSize: m.fontBody, fontVariant: ['tabular-nums'], fontWeight: FONT_WEIGHT.semibold }}
+        style={{ color, fontSize: numberSize, fontVariant: ['tabular-nums'], fontWeight: FONT_WEIGHT.semibold }}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
         maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
       >
         {v || '–'}
@@ -295,7 +324,12 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; m: ReturnType<typ
             {loggedSet.setNumber}
           </Text>
         </Col>
-        <Prev text={previousText} testID={`exercise-previous-${setNumber}`} theme={theme} fontSize={m.fontMeta} />
+        <Prev
+          text={previousText}
+          testID={`exercise-previous-${setNumber}`}
+          theme={theme}
+          fontSize={previousSize(rowWidth, previousText, m)}
+        />
         {num(weightDisplay, GRID_FLEX.weight, valueColor)}
         {num(repsDisplay, GRID_FLEX.reps, valueColor)}
         {num(rpeDisplay, GRID_FLEX.rpe, theme.colors.faint)}
@@ -329,8 +363,8 @@ function LoggedRow(props: LoggedSetRowProps & { theme: ThemeT; m: ReturnType<typ
   );
 }
 
-function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<typeof gridMetrics> }): JSX.Element {
-  const { theme, m, setNumber, displayUnit, previousText, initial, isWarmup, busy, error, onLog, onCancel, onValuesChange } = props;
+function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<typeof gridMetrics>; rowWidth: number }): JSX.Element {
+  const { theme, m, setNumber, displayUnit, previousText, initial, isWarmup, busy, error, onLog, onCancel, onValuesChange, rowWidth } = props;
   const [reps, setRepsState] = useState(initial.reps);
   const [weightKg, setWeightState] = useState(initial.weightKg);
   const [rpe, setRpeState] = useState(initial.rpe);
@@ -381,7 +415,12 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
               </Text>
             )}
           </Col>
-          <Prev text={previousText} testID={`exercise-previous-${setNumber}`} theme={theme} fontSize={m.fontMeta} />
+          <Prev
+            text={previousText}
+            testID={`exercise-previous-${setNumber}`}
+            theme={theme}
+            fontSize={previousSize(rowWidth, previousText, m)}
+          />
           <InputPill
             theme={theme}
             fontSize={m.fontBody}

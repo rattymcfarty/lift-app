@@ -56,11 +56,13 @@ appId: app.lift.mobile
 - assertVisible: "Safety"
 - assertVisible: ".*safety pins set just below your bottom position.*"
 
-# Progression card: loading guidance and the current exercise name.
+# Progression card: loading guidance and the current exercise name. Label and
+# value are stacked (not one long row), so they assert separately.
 - runFlow: _scroll-guide.yaml
 - assertVisible: "Progression"
-- assertVisible: "Loading guidance:"
-- assertVisible: ".*Current: Barbell Squat.*"
+- assertVisible: "Loading guidance"
+- assertVisible: "Current"
+- assertVisible: ".*Barbell Squat.*"
 
 # Back to the browser.
 - pressKey: back

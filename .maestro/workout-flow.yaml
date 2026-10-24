@@ -46,6 +46,21 @@ appId: app.lift.mobile
 - assertVisible:
     text: "20"
 
+# RPE explainer: the RPE column header opens the sheet (companion on by default,
+# so Pip's intro is the first block). Closes back to the table.
+- tapOn:
+    id: "rpe-help"
+- assertVisible:
+    id: "rpe-sheet"
+- assertVisible:
+    text: "Rate of Perceived Exertion"
+- assertVisible:
+    id: "rpe-level-8"
+- tapOn:
+    id: "rpe-sheet-close"
+- assertNotVisible:
+    id: "rpe-sheet"
+
 # A. Gradual sets + warmup exclusion
 - tapOn:
     id: "add-set"

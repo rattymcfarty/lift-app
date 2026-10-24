@@ -100,8 +100,6 @@ function ActionTile({
         <Text
           style={{ color: theme.colors.text, fontSize: t.size.row, fontWeight: t.weight.medium, flexShrink: 1 }}
           numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
         >
           {label}
         </Text>

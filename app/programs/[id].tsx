@@ -323,7 +323,7 @@ export default function ProgramEditorScreen(): JSX.Element {
                 paddingHorizontal: theme.spacing.md,
               }}
             >
-              <Text style={{ color: c.text, fontSize: t.size.body, fontWeight: t.weight.semibold, flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              <Text style={{ color: c.text, fontSize: t.size.body, fontWeight: t.weight.semibold, flexShrink: 1 }} numberOfLines={1}>
                 {label}
               </Text>
               <Text style={{ color: c.muted, fontSize: t.size.meta }}>⌄</Text>

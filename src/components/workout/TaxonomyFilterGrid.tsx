@@ -3,12 +3,18 @@
  * the swap screen, and the exercise browser. Multi-select toggles.
  * Each cell is an icon-tile + label row (original LIFT icon art —
  * see src/components/icons/ for the copyright note).
+ *
+ * Every label in the grid renders at ONE size, computed from the grid's measured
+ * width (`filterMetrics`). Do not reintroduce `adjustsFontSizeToFit` here: it
+ * shrinks each label by a different amount, which is exactly the inconsistency
+ * this replaced.
  */
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../theme';
 import { MUSCLE_GROUPS, EQUIPMENT } from '../../kb/taxonomy';
 import { TaxonomyIcon } from '../icons';
+import { filterMetrics } from './filterMetrics';
 
 export interface TaxonomyFilterGridProps {
   mode: 'muscle' | 'equipment';
@@ -22,8 +28,13 @@ export function TaxonomyFilterGrid({ mode, selected, onToggle, testIDPrefix = 'p
   const { theme } = useTheme();
   const t = theme.typography;
   const items = mode === 'muscle' ? MUSCLE_GROUPS : EQUIPMENT;
+  const [gridWidth, setGridWidth] = useState(0);
+  const m = filterMetrics(gridWidth);
   return (
-    <View style={styles.grid}>
+    <View
+      style={styles.grid}
+      onLayout={(e) => setGridWidth(Math.round(e.nativeEvent.layout.width))}
+    >
       {items.map((item) => {
         const isSelected = selected.includes(item.id);
         return (
@@ -39,21 +50,22 @@ export function TaxonomyFilterGrid({ mode, selected, onToggle, testIDPrefix = 'p
                 backgroundColor: theme.colors.surface,
                 borderColor: isSelected ? theme.colors.highlight : theme.colors.border,
                 opacity: pressed ? 0.85 : 1,
+                paddingVertical: m.pad,
+                paddingHorizontal: m.pad,
+                gap: m.gap,
               },
             ]}
           >
-            <TaxonomyIcon kind={mode} id={item.id} size={40} />
+            <TaxonomyIcon kind={mode} id={item.id} size={m.icon} />
             <Text
               style={{
                 color: isSelected ? theme.colors.highlight : theme.colors.text,
-                fontSize: t.size.row,
+                fontSize: m.label,
                 fontWeight: isSelected ? t.weight.medium : t.weight.regular,
                 textAlign: 'left',
-                flexShrink: 1,
+                flex: 1,
               }}
               numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
             >
               {item.label}
             </Text>
@@ -71,13 +83,11 @@ const styles = StyleSheet.create({
   },
   cell: {
     width: '50%',
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     borderWidth: 1,
     borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    gap: 8,
   },
 });

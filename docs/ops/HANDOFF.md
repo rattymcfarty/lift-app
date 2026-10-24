@@ -2,10 +2,83 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-24, after the SDK 58 migration. Repo HEAD at the time:
-> see `git log -1`.
+> Last updated: 2026-10-24, after the RPE explainer + Full-Body/Olympic renders round.
+> Repo HEAD at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
+
+- [opencode] **RPE explainer + the last two 3D icons — 2026-10-24 (uncommitted at the time
+  of writing).** Two independent pieces from the same session:
+
+  1. **`Full-Body` and `Olympic` are 3D renders** (`assets/icons-3d/{dark,light}/`,
+     20 renders × 2 themes). Full-Body lights all seven front-facing muscles from the
+     standard mannequin; Olympic is the same figure with a rendered barbell at the thighs
+     (steel shaft, dark plates, collar) so the tiles stay distinct at 40 pt. Renderer:
+     `scripts/render/render-muscle.py` (`REGIONS`/`FRAMING`/`FIBRE_AXIS["Olympic"]`,
+     `barbell()` prop helper); packager `scripts/render/build-icons.py` now takes `--only`
+     so a single icon can be re-baked while the other 19 keep their verified hashes.
+     `qa.py` gives whole-figure icons a 0.14 `body_coverage` floor (a head-to-feet figure
+     cannot fill a square frame like a cropped muscle) — still a soft check, all 20 PASS.
+     `render-all.sh` defaults to the shipped purple now (the old default was orange — a
+     footgun for a full re-run).
+     `scripts/test-icons.mjs` → 232 assertions.
+  2. **RPE explains itself where it is entered.** `src/components/workout/rpeGuide.ts`
+     (copy: levels 6–10 + reps left, worked example, effort ≠ load, 7–9 target) →
+     `src/components/workout/RpeSheet.tsx` (BottomSheet). Trigger: the **RPE column header**
+     in any set table (`ExerciseCard`, accent + new `info` ActionIcon, `testID="rpe-help"`,
+     screen passes `onRpeHelp`) and the **RPE label** in a plan's target editor
+     (`NumberInput` gained optional `onLabelPress`/`labelTestID` → `plan-rpe-help`).
+     Companion on → Pip's avatar (`ImageSkin`/`Creature`, framed like the top-bar ring) says
+     the one-liner; companion off → neutral “1–10 effort” badge and plain copy. Gate:
+     `scripts/test-rpe.mjs` (38 assertions). Flows: `.maestro/workout-flow.yaml` (after
+     set 1) and `.maestro/plan-picker.yaml` (after adding an exercise).
+
+  Gate: `npm run verify` ALL GREEN. Device re-run pending for the two icons + RPE sheet.
+
+- [opencode] **UI polish round 3: pinned browse controls, uniform filters, adaptive type —
+  2026-10-24 (uncommitted at the time of writing).** Three things the owner saw on the
+  iPhone, plus the concept applied across the app:
+
+  1. **Browse Exercises keeps its controls.** Search + the two filter chips moved out of
+     the `SectionList` header into a pinned block above it; a filter grid opens in place
+     inside a `ScrollView` capped at `max(180, min(320, windowHeight * 0.42))`
+     (`app/(tabs)/exercises.tsx`).
+  2. **One size per group, app-wide.** The filter-grid trick (`filterMetrics`) became
+     `src/theme/adaptive.ts` — `fitTextSize` / `fitGroupSize` / `useGroupFit`. A group of
+     peers gets ONE size computed from the width available and its longest label; no
+     label shrinks on its own. Applied to the filter chips and grid, analytics tiles,
+     readiness options, summary numbers, segmented titles, settings segments, set-table
+     numbers/headers and the workout toolbar. `adjustsFontSizeToFit` remains only on
+     three lone dynamic headings (screen header, program name, onboarding title) and
+     `scripts/check-typography.mjs` enforces that allowlist. Rule + width table:
+     `docs/design/TYPE.md`; tests: `scripts/test-adaptive.mjs` (55), `test-filters` (71).
+  3. **Progression card** in the exercise guide stacks label above value, full width,
+     wrapping, like the other cards (`app/exercises/[id].tsx`).
+
+  Gate: `npm run verify` ALL GREEN; release-build flows (see the session log in
+  `/tmp/lift-e2e-*`) — exercise-browse, exercise-detail, plan-picker, workout-flow, tabs.
+
+- [opencode] **Android Expo Go could not start — fixed 2026-10-24.** Two separate causes,
+  and the first masked the second:
+
+  1. The phone had the Play Store SDK 57 Expo Go while the project (and iOS Expo Go) is
+     SDK 58, because Expo Go on each platform only runs one SDK. Fixed by installing the
+     SDK 58 APK (`Expo-Go-58.0.5.apk` from expo.dev/go; see ENVIRONMENT.md).
+  2. With 58.0.5 installed, launch died in `requireNativeModule`:
+     `Cannot find native module 'ExpoTopicSubscriptionModule'` from
+     `expo-notifications/build/index.js`, imported by `src/workouts/lifecycle.ts`, which
+     `app/_layout.tsx` imports while building the route tree. Expo Go's native modules
+     are frozen at its publish date and 58.0.5 predates that module; our JS package is
+     58.1.6. iOS Expo Go was newer, so only Android failed.
+
+  Fix: `src/notifications/native.ts` loads `expo-notifications` with `require()` inside a
+  try/catch and caches `null` when the runtime lacks it. The three callers
+  (`restAlert`, `workoutReminders`, `lifecycle`) take the API object from `notifications()`
+  and no-op when it is null; Settings says the build cannot schedule notifications
+  instead of blaming the OS permission. Dev builds and the release APK bundle the
+  module, so nothing changes there. `scripts/test-notifications.mjs` (8 assertions)
+  covers both branches. **Notifications are unavailable in Expo Go 58.0.5 on Android —
+  use a development build to test them.**
 
 - **START HERE if you are taking over while Claude Code is away (2026-10-18 → Monday):** `docs/ops/HANDOFF_AGENT_TO_AGENT.md` holds the ordered queue, rules and gotchas.
 

@@ -28,6 +28,7 @@ export type ActionIconName =
   | 'arrow-up'
   | 'arrow-down'
   | 'grip'
+  | 'info'
   | 'check';
 
 export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; color: string; size?: number }): JSX.Element {
@@ -153,6 +154,12 @@ export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; c
           <Circle cx={15} cy={12} r={1.3} fill={color} />
           <Circle cx={9} cy={17} r={1.3} fill={color} />
           <Circle cx={15} cy={17} r={1.3} fill={color} />
+        </>
+      ) : name === 'info' ? (
+        <>
+          <Circle cx={12} cy={12} r={8.6} {...c} />
+          <Line x1={12} y1={11.2} x2={12} y2={16.4} {...c} />
+          <Circle cx={12} cy={8.2} r={0.95} fill={color} />
         </>
       ) : (
         <Polyline points="5 12.5 10 17.5 19 7.5" {...c} />

@@ -32,7 +32,7 @@ import { EmptyState, ScreenHeader, Button } from '../../../src/components/workou
 import { ComposerTaxonomyPicker } from '../../../src/components/workout/ComposerTaxonomyPicker';
 import { displayName } from '../../../src/kb/taxonomy';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
-import { FilterChip } from '../../../src/components/workout/FilterChip';
+import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 
@@ -265,7 +265,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
           )}
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+              <FilterChipRow>
                 <FilterChip
                   label="Muscles"
                   count={selectedMuscles.length}
@@ -282,7 +282,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
                   onClear={() => setSelectedEquipment([])}
                   testID="plan-picker-filter-equipment"
                 />
-              </View>
+              </FilterChipRow>
               {muscleExpanded ? (
                 <TaxonomyFilterGrid
                   mode="muscle"

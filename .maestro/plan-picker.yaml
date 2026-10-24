@@ -35,3 +35,25 @@ appId: app.lift.mobile
     id: "plan-picker-filter-muscle-clear"
 - tapOn:
     id: "plan-picker-filter-muscle-clear"
+
+# Add an exercise, expand its target editor, and open the RPE explainer from the
+# RPE label — the same sheet the workout set table's RPE header opens.
+- tapOn:
+    id: "plan-picker-search"
+- inputText: "Goblet Squat"
+- hideKeyboard
+- tapOn:
+    id: "plan-add-exercise-row-goblet-squat"
+- assertVisible: "Goblet Squat.*"
+- tapOn:
+    id: "plan-item-0"
+- tapOn:
+    id: "plan-rpe-help"
+- assertVisible:
+    id: "rpe-sheet"
+- assertVisible:
+    text: "Rate of Perceived Exertion"
+- tapOn:
+    id: "rpe-sheet-close"
+- assertNotVisible:
+    id: "rpe-sheet"

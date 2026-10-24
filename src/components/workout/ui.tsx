@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { TOP_BAR_HEIGHT, useTopBarVisible } from '../chrome/TopBar';
+import { ActionIcon } from '../icons';
 import { useTheme } from '../../theme';
 
 type ButtonVariant =
@@ -226,12 +227,7 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
           </Text>
           {subtitle != null ? (
             typeof subtitle === 'string' ? (
-              <Text
-                style={{ color: theme.colors.muted, fontSize: t.size.caption }}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
+              <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }} numberOfLines={1}>
                 {subtitle}
               </Text>
             ) : (
@@ -293,6 +289,13 @@ interface NumberInputProps {
   editable?: boolean;
   label?: string;
   testID?: string;
+  /**
+   * Makes the label a button that opens an explanation (the RPE field uses it
+   * for the RPE guide). Absent → the label stays a plain caption.
+   */
+  onLabelPress?: () => void;
+  /** testID for the label button, so a flow can open the explanation. */
+  labelTestID?: string;
   /** Dense variant for set tables: less padding, text scaling capped at 1.1x. */
   compact?: boolean;
 }
@@ -313,6 +316,8 @@ export function NumberInput({
   editable = true,
   label,
   testID,
+  onLabelPress,
+  labelTestID,
   compact = false,
 }: NumberInputProps): JSX.Element {
   const { theme } = useTheme();
@@ -327,9 +332,23 @@ export function NumberInput({
   return (
     <View style={containerStyle}>
       {label ? (
-        <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, textAlign: 'center' }}>
-          {label}
-        </Text>
+        onLabelPress ? (
+          <Pressable
+            testID={labelTestID}
+            onPress={onLabelPress}
+            accessibilityRole="button"
+            accessibilityLabel={`What is ${label}?`}
+            hitSlop={8}
+            style={styles.inputLabelButton}
+          >
+            <Text style={{ color: theme.colors.accent, fontSize: t.size.caption }}>{label}</Text>
+            <ActionIcon name="info" color={theme.colors.accent} size={t.size.caption - 2} />
+          </Pressable>
+        ) : (
+          <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, textAlign: 'center' }}>
+            {label}
+          </Text>
+        )
       ) : null}
       <TextInput
         value={value}
@@ -371,6 +390,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     // minHeight lives in the inline style (44 default / 56 large) — do
     // NOT add one here or it will silently lose to the inline value.
+  },
+  /** A caption label that doubles as the trigger for an explanation. */
+  inputLabelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
   },
   card: {
     borderWidth: 1,

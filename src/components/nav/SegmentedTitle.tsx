@@ -8,6 +8,7 @@
 import type { JSX, ReactNode } from 'react';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTheme } from '../../theme';
+import { fitGroupSize } from '../../theme/adaptive';
 
 export interface SegmentedTitleProps<K extends string> {
   segments: ReadonlyArray<{ key: K; label: string; testID?: string }>;
@@ -26,7 +27,18 @@ export function SegmentedTitle<K extends string>({
   const { theme } = useTheme();
   const t = theme.typography;
   const { width } = useWindowDimensions();
-  const size = width < 360 ? t.size.screenCompact : t.size.screen;
+  // One size for every segment, computed once from the narrowest thing that has
+  // to fit: the longest label in the width left over after the trailing action.
+  // Each segment used to autoshrink on its own, so "Train | History" could come
+  // out as two different sizes.
+  const reserved = right ? theme.spacing.md + 40 : 0;
+  const size = fitGroupSize(width - theme.spacing.md * 2 - reserved, {
+    longest: segments.reduce((a, s) => (s.label.length > a.length ? s.label : a), ''),
+    base: width < 360 ? t.size.screenCompact : t.size.screen,
+    min: t.size.card,
+    count: segments.length,
+    gap: theme.spacing.md * (segments.length - 1),
+  });
   return (
     <View
       style={{
@@ -56,8 +68,6 @@ export function SegmentedTitle<K extends string>({
             >
               <Text
                 numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
                 style={{
                   color: on ? theme.colors.text : theme.colors.muted,
                   fontSize: size,

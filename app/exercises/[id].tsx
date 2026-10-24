@@ -335,46 +335,35 @@ const GuideTab = ({ exercise }: { exercise: any }) => {
     const progression = kbDetailJson.progression || {};
     if (!progression.regressTo && !progression.progressTo && !progression.loadingGuidance) return null;
 
+    // Label above value, both full width. The old layout put "Regress to:" and
+    // the exercise name in one row with no wrap and no shrink, so a long name
+    // ran straight out of the card. Stacked rows cannot overflow: the value
+    // wraps inside the card, whatever the name length or screen width.
+    const rows: Array<{ label: string; value: string; strong?: boolean }> = [];
+    if (progression.regressTo) rows.push({ label: 'Regress to', value: progression.regressTo });
+    rows.push({ label: 'Current', value: displayName(exercise), strong: true });
+    if (progression.progressTo) rows.push({ label: 'Progress to', value: progression.progressTo });
+    if (progression.loadingGuidance) rows.push({ label: 'Loading guidance', value: progression.loadingGuidance });
+
     return (
       <Card>
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
-            Progression
-          </Text>
-          {progression.regressTo && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-                Regress to:
-              </Text>
-              <Text style={{ color: theme.colors.muted, fontSize: t.size.body }}>
-                {progression.regressTo}
-              </Text>
-            </View>
-          )}
-          <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium, marginVertical: theme.spacing.sm }}>
-            Current: {displayName(exercise)}
-          </Text>
-          {progression.progressTo && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-                Progress to:
-              </Text>
-              <Text style={{ color: theme.colors.muted, fontSize: t.size.body }}>
-                {progression.progressTo}
-              </Text>
-            </View>
-          )}
-          {progression.loadingGuidance && (
-            <View style={{ marginVertical: theme.spacing.sm }}>
-              <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-                Loading guidance:
-              </Text>
-              <Text style={{ color: theme.colors.muted, fontSize: t.size.body }}>
-                {progression.loadingGuidance}
-              </Text>
-            </View>
-          )}
-        </View>
+        <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
+          Progression
+        </Text>
+        {rows.map((row) => (
+          <View key={row.label} style={{ gap: 2 }}>
+            <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>{row.label}</Text>
+            <Text
+              style={{
+                color: theme.colors.text,
+                fontSize: t.size.body,
+                fontWeight: row.strong ? t.weight.medium : t.weight.regular,
+              }}
+            >
+              {row.value}
+            </Text>
+          </View>
+        ))}
       </Card>
     );
   };

@@ -17,11 +17,12 @@ import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import {
   Alert,
   ActivityIndicator,
-  Pressable,
+  ScrollView,
   SectionList,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   type TextInputInstance,
   View,
 } from 'react-native';
@@ -32,6 +33,7 @@ import { decodeStringArray, type Exercise } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../src/components/workout/TaxonomyFilterGrid';
+import { FilterChip, FilterChipRow } from '../../src/components/workout/FilterChip';
 import { buildExerciseSections, type ExerciseSection } from '../../src/lib/exerciseSections';
 import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
@@ -112,80 +114,14 @@ function SectionHeader({
   );
 }
 
-function FilterChip({
-  label,
-  count,
-  expanded,
-  onToggle,
-  onClear,
-  testID,
-}: {
-  label: string;
-  count: number;
-  expanded: boolean;
-  onToggle: () => void;
-  onClear: () => void;
-  testID: string;
-}): JSX.Element {
-  const { theme } = useTheme();
-  const t = theme.typography;
-  const display = count > 0 ? `${label} (${count})` : `All ${label}`;
-  return (
-    // The clear (X) button sits inline AFTER the chip, never absolutely
-    // positioned over it — the old absolute X covered the chevron.
-    <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs }}>
-      <Pressable
-        testID={testID}
-        onPress={onToggle}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          flexDirection: 'row',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          borderRadius: theme.radius.md,
-          paddingVertical: theme.spacing.sm,
-          paddingHorizontal: theme.spacing.md,
-          backgroundColor: theme.colors.surface,
-          gap: theme.spacing.xs,
-        }}
-      >
-        <Text
-          style={{ color: theme.colors.text, fontSize: t.size.caption, fontWeight: t.weight.medium, flexShrink: 1 }}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
-        >
-          {display}
-        </Text>
-        <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
-          {expanded ? '▾' : '▴'}
-        </Text>
-      </Pressable>
-      {count > 0 && (
-        <Pressable
-          testID={`${testID}-clear`}
-          onPress={onClear}
-          accessibilityRole="button"
-          accessibilityLabel={`Clear ${label} filter`}
-          hitSlop={8}
-          style={{ padding: 4, minWidth: 28, minHeight: 28, alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>✕</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
-
 export default function BrowseExercisesScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const tabBarSpace = useTabBarSpace();
+  const { height: windowHeight } = useWindowDimensions();
+  // Bounded filter grid: enough to browse, never so tall that the results
+  // disappear behind it on a short screen.
+  const gridMaxHeight = Math.max(180, Math.min(320, Math.round(windowHeight * 0.42)));
   const params = useLocalSearchParams<{ focus?: string }>();
   const searchRef = useRef<TextInputInstance>(null);
 
@@ -278,53 +214,70 @@ export default function BrowseExercisesScreen(): JSX.Element {
         }
       />
       <View style={[styles.body, { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm }]}>
-        <SectionList
-          contentContainerStyle={{ paddingBottom: tabBarSpace }}
-          ListHeaderComponent={
-            <View style={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
-              <TextInput
-                value={query}
-                testID="browse-exercises-search"
-                ref={searchRef}
-                onChangeText={setQuery}
-                placeholder="Search exercises…"
-                placeholderTextColor={theme.colors.faint}
-                returnKeyType="search"
-                autoCapitalize="none"
-                style={{
-                  backgroundColor: theme.colors.surfaceMuted,
-                  borderColor: theme.colors.border,
-                  borderWidth: 1,
-                  borderRadius: theme.radius.md,
-                  color: theme.colors.text,
-                  fontSize: t.size.body,
-                  paddingVertical: theme.spacing.sm,
-                  paddingHorizontal: theme.spacing.md,
-                }}
-              />
-              {searching ? <ActivityIndicator color={theme.colors.muted} /> : null}
-              {error ? (
-                <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>{error}</Text>
-              ) : null}
+        {/*
+          Pinned controls. Search and the two chips sit OUTSIDE the list, so they
+          stay on screen while the results scroll — filtering is always one tap
+          away instead of a scroll back to the top. The grids open in place,
+          inside a bounded scroll area: 21 muscles in two columns would otherwise
+          eat the whole screen and leave nothing to scroll.
+        */}
+        <View
+          style={{
+            gap: theme.spacing.sm,
+            paddingBottom: theme.spacing.sm,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.border,
+          }}
+        >
+          <TextInput
+            value={query}
+            testID="browse-exercises-search"
+            ref={searchRef}
+            onChangeText={setQuery}
+            placeholder="Search exercises…"
+            placeholderTextColor={theme.colors.faint}
+            returnKeyType="search"
+            autoCapitalize="none"
+            style={{
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.border,
+              borderWidth: 1,
+              borderRadius: theme.radius.md,
+              color: theme.colors.text,
+              fontSize: t.size.body,
+              paddingVertical: theme.spacing.sm,
+              paddingHorizontal: theme.spacing.md,
+            }}
+          />
+          {searching ? <ActivityIndicator color={theme.colors.muted} /> : null}
+          {error ? (
+            <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>{error}</Text>
+          ) : null}
 
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                <FilterChip
-                  label="Muscles"
-                  count={selectedMuscles.length}
-                  expanded={muscleExpanded}
-                  onToggle={() => setMuscleExpanded((p) => !p)}
-                  onClear={clearMuscles}
-                  testID="browse-filter-muscle"
-                />
-                <FilterChip
-                  label="Equipment"
-                  count={selectedEquipment.length}
-                  expanded={equipmentExpanded}
-                  onToggle={() => setEquipmentExpanded((p) => !p)}
-                  onClear={clearEquipment}
-                  testID="browse-filter-equipment"
-                />
-              </View>
+          <FilterChipRow>
+            <FilterChip
+              label="Muscles"
+              count={selectedMuscles.length}
+              expanded={muscleExpanded}
+              onToggle={() => setMuscleExpanded((p) => !p)}
+              onClear={clearMuscles}
+              testID="browse-filter-muscle"
+            />
+            <FilterChip
+              label="Equipment"
+              count={selectedEquipment.length}
+              expanded={equipmentExpanded}
+              onToggle={() => setEquipmentExpanded((p) => !p)}
+              onClear={clearEquipment}
+              testID="browse-filter-equipment"
+            />
+          </FilterChipRow>
+          {muscleExpanded || equipmentExpanded ? (
+            <ScrollView
+              style={{ maxHeight: gridMaxHeight }}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+            >
               {muscleExpanded ? (
                 <TaxonomyFilterGrid
                   mode="muscle"
@@ -339,8 +292,11 @@ export default function BrowseExercisesScreen(): JSX.Element {
                   onToggle={toggleEquipment}
                 />
               ) : null}
-            </View>
-          }
+            </ScrollView>
+          ) : null}
+        </View>
+        <SectionList
+          contentContainerStyle={{ paddingBottom: tabBarSpace }}
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
@@ -380,14 +336,5 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
   },
 });

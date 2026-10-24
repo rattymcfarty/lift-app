@@ -2,10 +2,76 @@
 
 ## Unreleased (addendum)
 
+- **Full-Body and Olympic are 3D renders too.** They were the last two vector muscle icons —
+  visibly the odd ones out in the taxonomy grid. Both are now baked from the same mannequin
+  as the rest: Full-Body lights all seven front-facing muscles at once; Olympic is the same
+  figure with a loaded barbell at the thighs (steel shaft, dark plates, collar) so the two
+  never read as the same tile at 40 pt. That is 20 renders × 2 themes, all through the same
+  numeric QA gate — `body_coverage` now has a documented 0.14 floor for whole-figure icons,
+  because a head-to-feet figure cannot fill a square frame the way a cropped muscle can.
+  `scripts/render/build-icons.py` gained `--only` (re-bake one icon, keep the other verified
+  hashes), and `render-all.sh` now defaults to the shipped purple rather than the old orange.
+  `test:icons` (232 assertions) covers the new PNGs and their hashes.
+
+- **RPE explains itself where you enter it.** RPE was the one field in the set table a
+  beginner could not read off the label. Tapping the RPE column header (now accent, with an
+  ⓘ) opens a sheet with the scale worked out: levels 6–10 and the reps each one leaves in the
+  tank, a real program line (“Bench Press — 3 sets × 10 reps @ RPE 8”) read apart, the
+  distinction that it measures effort and not load, and the 7–9 range most programs target.
+  With the companion on, Pip sits at the top and says the one-line summary in its own voice;
+  with the companion off, a neutral 1–10 badge and plain copy — the explanation never depends
+  on the companion being enabled. The same sheet opens from the RPE label in a plan's target
+  editor (`NumberInput` gained an optional label button). `scripts/test-rpe.mjs` (38
+  assertions) pins the scale, the copy and that both entry points stay wired;
+  `.maestro/workout-flow.yaml` and `plan-picker.yaml` open the sheet on device.
+
+- **Android Expo Go opens again.** `expo-notifications` 58.1.6 imports
+  `ExpoTopicSubscriptionModule` at module load, and the SDK 58 Expo Go for Android
+  (58.0.5) was built before that module existed — so the import threw while the router
+  was evaluating `app/_layout.tsx` and the app died on launch ("Cannot find native
+  module 'ExpoTopicSubscriptionModule'"). The iOS build had a newer Expo Go and never
+  hit it. `expo-notifications` is now loaded on demand through
+  `src/notifications/native.ts`: if the native module is absent, local notifications
+  no-op (and Settings says why) instead of taking down the app. Development builds and
+  the release APK bundle the module, so they behave exactly as before.
+  `scripts/test-notifications.mjs` (8 assertions) pins both halves: without the module
+  the loader returns null and does not throw; with it, the real API comes back.
+
+- **One computed type size per group, app-wide — `adjustsFontSizeToFit` is gone from every
+  row of peers.** Per-label shrink-to-fit was the root cause of text that looked subtly
+  uneven: the two filter chips at different sizes, one stat tile smaller than its neighbour,
+  “Train” and “History” at different sizes in the same title. The new
+  `src/theme/adaptive.ts` does what the filter grid and the set table already did — derive
+  one size from the width available and the longest label, then give that size to everyone
+  in the group. Applied to the analytics tiles, the readiness options, the post-workout
+  summary numbers, the segmented screen titles, the settings segments, the set-table numbers
+  and its column headers, and the workout toolbar. The typography gate now fails on
+  `adjustsFontSizeToFit` outside three lone dynamic headings (screen title, program name,
+  onboarding title), which have no peers to mismatch with. `scripts/test-adaptive.mjs`
+  (55 assertions) pins purity, bounds, monotonicity and the real design-width results;
+  `test:filters` still passes unchanged, since the grid now uses the same primitive.
+
+- **Browse Exercises keeps its controls on screen.** The search field and the muscle/equipment
+  chips moved out of the list header into a pinned block, so they stay put while the results
+  scroll and a filter is always one tap away. The filter grids open in place inside a bounded,
+  scrollable area (42% of the window, 180–320 pt) instead of pushing the list off screen.
+  `.maestro/exercise-browse.yaml` scrolls deep into the library, then asserts the controls are
+  still there, filters by muscle, clears it, and searches from the scrolled position.
+- **One filter chip everywhere.** Browse carried a private copy of `FilterChip` and Swap
+  hand-rolled its own; the copies drifted (no clear button in Swap, different shrink rules).
+  All four pickers now use `FilterChip` + `FilterChipRow`. The label has a single size and no
+  longer autoshrinks, which was the visible bug: “All Muscles” stayed at 12 pt while “All
+  Equipment” shrank toward 8 pt on the same row. The two chips now keep one size on one line
+  (a long label truncates rather than shrinking its neighbour), and the taxonomy grid labels
+  follow the same rule.
+- **Exercise guide → Progression no longer spills out of its card.** “Regress to:” / “Progress
+  to:” / “Loading guidance:” sat in single rows with no wrap and no shrink, so a long exercise
+  name ran past the card edge. Each line is now a label above its value, both full width and
+  free to wrap, matching the Overview/Why/How-to cards.
 - **Icon highlight is the app's accent purple** (`#a073f0` dark, `#6c3fd1` light), not the
-  warm orange and not the blue. The 18 muscle renders were re-baked with the accent in the
+  warm orange and not the blue. The 20 muscle renders were re-baked with the accent in the
   muscle material, so the lit result is still a form (median `#966cde` / `#663ec3`) rather
-  than a flat fill; the vector fallbacks (`All`, `Olympic`, `Full-Body`) and **every equipment
+  than a flat fill; the vector fallbacks (`All`, `Other`) and **every equipment
   icon** now take `theme.colors.accent` directly, so the two halves of the set read as one
   family. `scripts/render-icons.mjs` and `test:icons` follow the same tokens. `--color orange`
   and `--color red` remain in the renderer for comparison. The QA gate had to change with

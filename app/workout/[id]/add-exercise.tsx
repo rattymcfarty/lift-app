@@ -32,7 +32,7 @@ import { EXERCISE_CATEGORIES, type ExerciseCategory } from '../../../src/db/sche
 import { useTheme } from '../../../src/theme';
 import { EmptyState, ScreenHeader, Button } from '../../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
-import { FilterChip } from '../../../src/components/workout/FilterChip';
+import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { RecentExercises } from '../../../src/components/workout/RecentExercises';
@@ -364,7 +364,7 @@ export default function AddExerciseScreen(): JSX.Element {
                 <Text style={{ color: theme.colors.danger, fontSize: t.size.caption }}>{error}</Text>
               ) : null}
 
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+              <FilterChipRow>
                 <FilterChip
                   label="Muscles"
                   count={selectedMuscles.length}
@@ -381,7 +381,7 @@ export default function AddExerciseScreen(): JSX.Element {
                   onClear={clearEquipment}
                   testID="picker-filter-equipment"
                 />
-              </View>
+              </FilterChipRow>
               {muscleExpanded ? (
                 <TaxonomyFilterGrid
                   mode="muscle"

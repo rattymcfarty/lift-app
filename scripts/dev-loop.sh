@@ -14,6 +14,9 @@ check "typecheck" "npm run typecheck"
 check "test:kb" "npm run test:kb"
 check "test:p7" "npm run test:p7"
 check "test:ui" "npm run test:ui"
+check "test:filters" "npm run test:filters"
+check "test:adaptive" "npm run test:adaptive"
+check "test:notifications" "npm run test:notifications"
 check "test:plan" "npm run test:plan"
 check "test:lifecycle" "npm run test:lifecycle"
 # Invoked directly: same package.json-edit sandbox constraint as planned-sets.
@@ -52,5 +55,6 @@ check "test:stats" "npm run test:stats"
 # matching "test:icons" npm script is pending (one line next to test:lifecycle
 # in package.json).
 check "test:icons" "node scripts/test-icons.mjs"
+check "test:rpe" "npm run test:rpe"
 check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi
