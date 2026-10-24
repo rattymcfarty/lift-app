@@ -480,20 +480,18 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
     4. **A new guided quiz that generates a fresh Program (and its Plans).** A step-by-step
        interview that (re)builds the persona, explains each question, then produces a
        multi-week program with plans inside it through the existing generator/builder — and
-       shows the result for review before saving. **Constraint to state up front:** LIFT is
-       local-first and offline; "intelligent" here must be deterministic and explainable
-       (rule-based questions + the existing generator), NOT a cloud/LLM call — no new SDK,
-       no network. If the owner wants LLM-authored programs, that is a product decision
-       (docs/release/DECISIONS.md) and conflicts with the privacy non-negotiable.
+       shows the result for review before saving. **Constraint (decided, see §4):** LIFT is
+       local-first and offline; "intelligent" here is a deterministic, explainable interview
+       over the existing generator — NOT a cloud/LLM call. No new SDK, no network.
     - Also found on the device run (same pass): the muscle/equipment filter chips show a
       caret ▲ on the *equipment* chip while the *muscle* grid is open (screenshot in the
       2026-10-24 session notes) — the open/collapsed indicator should track the grid that is
       actually open.
-    - Header shape, fixed partially on 2026-10-24: Train still uses its segments AS the
-      title ("Train | History") while Programs is now title + switcher ("Programs" above
-      "Explore | Library"). Both name their section and their titles align, but the shapes
-      differ. Optional unification (owner's call, changes copy): give Train the same
-      title + switcher shape, with the first segment renamed "Today".
+    - Header shape, fixed 2026-10-24: Train used its segments AS the title ("Train |
+      History") while Programs became title + switcher ("Programs" above "Explore |
+      Library"). **Owner decision (2026-10-24): unify them** — Train now renders the title
+      "Train" with the switcher "**Today** | History" beneath it, so all four sections have
+      the same header shape and every one of them names itself.
 
 2c. **Adaptive-type audit, app-wide — owner request 2026-10-24.** The owner wants the
     "one size computed once from the available width" rule (never per-label
@@ -528,7 +526,7 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
     the value in a highlighted band with its unit beside it — rather than typing on a
     numeric pad that covers half the screen mid-workout.
 
-    Shipped as a first increment (2026-10-24, uncommitted→ see §6): a hand-rolled
+    Shipped as a first increment (2026-10-24 — see §6): a hand-rolled
     `WheelPicker` (no new dependency — a clock module would cost the Expo Go story),
     `wheelModel.ts` (rows, snapping, nearest-value, looping) with `test:wheel` (53), and
     `WheelSheet` (drum + unit + optional field tabs). Opened from the **set number** in a
@@ -549,6 +547,76 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
        `wheelFields.ts`).
     4. Consider whether the *keyboard* should stay the default for reps (small range, fast to
        type) — an owner call once they have felt both.
+
+2e. **Exercise info mid-workout — from the exercise title (owner request 2026-10-24).** The
+    RPE explainer's sibling: while a set is in progress, tapping the exercise's name should
+    show the same kind of sheet about *that exercise*. Not in the queue before now; the only
+    path today is buried — the card's ⋯ actions sheet → "View Demo & History" → pushes the
+    full `/exercises/<id>` screen, which takes the user out of the workout. The title itself
+    does nothing (it was only ever a label; it got its adaptive size on 2026-10-24).
+
+    Recommendations:
+    - **Same shape as the RPE sheet** (`BottomSheet` + a pure content module + a Pip line),
+      not a new pattern: `ExerciseInfoSheet.tsx` + `exerciseInfo.ts` (pure — picks and trims
+      the fields that exist, so a thin KB page degrades instead of showing empty headers).
+    - **Trigger:** the title becomes a button (accent + a small `info` glyph, exactly like
+      the RPE column header) with role/label "About <exercise>"; the collapse chevron keeps
+      its own job. Do not make the whole header row pressable — mid-set mis-taps would open
+      a sheet instead of collapsing the card.
+    - **Content, in the order a lifter needs it mid-set** (not the whole guide):
+      1. name, primary muscles (taxonomy icons), equipment;
+      2. **three to five key cues** from the KB (`cues`) — the one-screen answer to "am I
+         doing this right?";
+      3. **the safety stop line** (`safetyNotes`) — "when to stop" is the piece that matters
+         mid-set;
+      4. the plan's **rest + target** for this exercise when it came from a plan;
+      5. **last time** for this exercise (sets × reps @ kg/RPE) — the most useful in-session
+         fact and already on the row (`previous`);
+      6. one longevity line (`longevityNotes`).
+      Footer: **Open full guide** → the existing `/exercises/<id>` (Guide tab), and Close.
+      The sheet caps at ~0.85 of the screen so 1–3 are visible with no scrolling.
+    - **Offline and free:** every field is already on the exercise row / KB detail JSON;
+      cache the derived object per exercise id in a module map instead of re-parsing JSON on
+      each open. No new fetch, no new SDK.
+    - **Companion, two voices as before:** on → Pip says the one-liner ("Chest and triceps —
+      three cues, 90 s rest"); off → neutral header with the muscle icons.
+    - **Reuse it afterwards** (`ExerciseInfoSheet` is generic): plan/program exercise rows,
+      history detail, the post-workout summary, and Browse (its ⓘ currently pushes the screen
+      directly; the sheet + "full guide" is the nicer two-step).
+    - **Gates:** `scripts/test-exercise-info.mjs` for the pure module (missing fields, the
+      safety line first, cue trimming) wired into `dev-loop.sh`; a Maestro flow that taps the
+      title in a workout, asserts the cues, opens the full guide and returns to the workout
+      with the pending set intact; typography/adaptive rules apply to the title button.
+    - **Watch out:** keep the title's tap target ≥44 dp (hitSlop), and never navigate on the
+      title tap — that is the current behaviour we are replacing.
+
+2f. **Chrome on every page — the floating buttons never disappear (owner request
+    2026-10-24).** The owner: some pages (e.g. the exercise guide) take the whole screen and
+    the top floating buttons vanish; the left (panel) and right (settings) buttons should
+    always stay visible across the app, like the companion. The in-page back arrow stays.
+
+    Done now: `TopBar` draws both buttons on every route that shows the chrome (only
+    onboarding and PAR-Q+ stay bare), so all three anchors — menu, companion, settings — are
+    present everywhere and the page's own back/close control sits below them in the page
+    header (it pads past `TOP_BAR_HEIGHT`, so they cannot overlap). `isTopLevelRoute` was
+    left the codebase as dead weight and is gone; `exercise-browse.yaml` now asserts the two
+    buttons on the exercise guide and that the panel opens/closes from there.
+
+    Still to do — the "equal experience" half of the request, page by page:
+    1. **Audit the eight screens that do not use `ScreenHeader`** (21 of 29 do): they
+       hand-roll a back control (`app/programs/[id].tsx` still has its own `header-back`
+       Pressable), which now sits next to a floating menu button. Unify them onto
+       `ScreenHeader` (or a shared header) so title size, top padding, back glyph and the
+       gap under the chrome are identical everywhere.
+    2. **Decide per screen whether back goes to the left of the title or floats**: full-screen
+       flows (add-exercise pickers, the workout) may deserve a back/close affordance in the
+       *chrome* row as well, so the eye finds it in the same place every time — worth an
+       owner look once the audit is done.
+    3. **Check taps under the chrome:** anything a page drew in the top 60 dp (a page that
+       skipped `useTopBarInset`) is now covered by a button; grep for screens that render
+       their own top row without the header component.
+    4. Re-run the affected flows on a device (`exercise-browse`, `panels`, `exercise-menu`,
+       `tabs`, `workout-flow`) — the chrome is in every screenshot.
 
 3. **Exercise content quality:** enrich the thin entries (list: live exercises with
    fewer than 4 instruction steps); add real safety notes for neck, behind-the-neck,
@@ -582,6 +650,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - Two brand colors only: purple `accent`, blue `highlight` (see tokens.ts rules).
 - Rule-based plan generation (explainable, offline) — not an opaque model. Starting
   loads are conservative bodyweight ratios, labelled as estimates.
+- **No LLM in the loop, ever (owner-confirmed 2026-10-24).** The "intelligent quiz" that
+  rebuilds a program will be a deterministic, explainable interview over the existing
+  generator: an LLM-authored program would need a network/AI call and break the privacy
+  non-negotiable. Parked as a decision, not a to-do.
+- Section headers: every section names itself, and the page title + sub-view switcher shape
+  is shared (Train "Train" + "Today | History", Programs "Programs" + "Explore | Library").
 - KB IDs are permanent; dedupe = deprecate + `replacedBy`.
 - Device config in AsyncStorage, included in backups via whitelisted `appData`.
 - Media (exercise images) is **parked**; all exercises use the placeholder image.
@@ -639,6 +713,14 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   pending row (`edit-set-<n>`); a tap on a value pill still opens the keypad, so no existing
   flow or habit broke. The remaining rollout (flip the default, other fields) is queue 2d.
   **Not yet seen on a device** — the Android APK has to be rebuilt for a JS change.
+- **Device found a real bug in the wheel** (worth remembering): `Animated.event(...,
+  { useNativeDriver: true })` on a plain `FlatList` throws — "Components based on
+  VirtualizedList must be wrapped with Animated.createAnimatedComponent to support native
+  onScroll events with useNativeDriver" — and it took the workout screen to the
+  "Couldn't start LIFT" boundary as soon as the sheet rendered. The drum is now JS-driven
+  (`onScroll` sets the `Animated.Value` directly, which a five-row drum can afford), and a
+  flick keeps its momentum: settling on `onScrollEndDrag` would have cancelled the fling, so
+  the drag end only arms a 260 ms fallback timer and `onMomentumScrollBegin` cancels it.
 
 ### 2026-10-24 — RPE explainer, the last two 3D icons, UI round 3 (opencode)
 

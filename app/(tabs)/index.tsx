@@ -234,8 +234,9 @@ export default function TrainScreen(): JSX.Element {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <SegmentedTitle
+        title="Train"
         segments={[
-          { key: 'train', label: 'Train', testID: 'train-segment-train' },
+          { key: 'train', label: 'Today', testID: 'train-segment-train' },
           { key: 'history', label: 'History', testID: 'train-segment-history' },
         ]}
         active={segment}

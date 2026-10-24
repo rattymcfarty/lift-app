@@ -71,6 +71,8 @@ export function WheelPicker({
   const startIndex = loop ? loopIndex(index, count) : Math.min(Math.max(index, 0), Math.max(count - 1, 0));
   const listRef = useRef<FlatList<number>>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const offsetRef = useRef(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** The logical (0..count-1) row under the band. */
   const [selected, setSelected] = useState(() => (count > 0 ? ((index % count) + count) % count : 0));
   const selectedRef = useRef(selected);
@@ -88,9 +90,9 @@ export function WheelPicker({
   }, [index, count, it, loop]);
 
   const settle = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (offsetY: number) => {
       if (count === 0) return;
-      const landed = snapIndex(e.nativeEvent.contentOffset.y, it);
+      const landed = snapIndex(offsetY, it);
       let physical = landed;
       if (loop) {
         const target = loopIndex(landed, count);
@@ -112,24 +114,38 @@ export function WheelPicker({
   // when the centred row actually changes).
   const trackBand = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = e.nativeEvent.contentOffset.y;
+      offsetRef.current = y;
+      // JS-driven on purpose: `Animated.event` with useNativeDriver on a plain
+      // FlatList throws ("components based on VirtualizedList must be wrapped
+      // with Animated.createAnimatedComponent") and took the workout screen down
+      // on device. A five-row drum does not need the UI thread.
+      scrollY.setValue(y);
       if (count === 0) return;
-      const logical = ((snapIndex(e.nativeEvent.contentOffset.y, it) % count) + count) % count;
+      const logical = ((snapIndex(y, it) % count) + count) % count;
       if (logical !== selectedRef.current) {
         setSelected(logical);
         selectedRef.current = logical;
       }
     },
-    [count, it],
+    [count, it, scrollY],
   );
 
-  const onScroll = useMemo(
-    () =>
-      Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-        useNativeDriver: true,
-        listener: trackBand,
-      }),
-    [scrollY, trackBand],
-  );
+  /**
+   * A flick must keep its momentum: settling on `onScrollEndDrag` would call
+   * `scrollToOffset` mid-fling and stop the drum dead. So the drag end only
+   * arms a fallback timer (a slow release that never produces momentum still has
+   * to commit its row), and `onMomentumScrollBegin` cancels it.
+   */
+  const armSettle = useCallback(() => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => settle(offsetRef.current), 260);
+  }, [settle]);
+  const cancelSettle = useCallback(() => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = null;
+  }, []);
+  useEffect(() => cancelSettle, [cancelSettle]);
 
   const renderItem = useCallback(
     ({ item: physical }: { item: number }) => {
@@ -177,13 +193,18 @@ export function WheelPicker({
         getItemLayout={(_, i) => ({ length: it, offset: it * i, index: i })}
         initialScrollIndex={startIndex}
         contentContainerStyle={{ paddingTop: pad, paddingBottom: pad }}
-        onScroll={onScroll}
+        onScroll={trackBand}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={settle}
-        onScrollEndDrag={settle}
+        onMomentumScrollBegin={cancelSettle}
+        onMomentumScrollEnd={(e) => {
+          cancelSettle();
+          settle(e.nativeEvent.contentOffset.y);
+        }}
+        onScrollEndDrag={armSettle}
         snapToInterval={it}
         snapToAlignment="start"
         decelerationRate="fast"
+        nestedScrollEnabled
         showsVerticalScrollIndicator={false}
         bounces={false}
         initialNumToRender={visibleRows + 2}

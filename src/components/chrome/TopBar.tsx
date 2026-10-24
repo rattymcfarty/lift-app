@@ -17,11 +17,11 @@
 import type { JSX, ReactNode } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, usePathname, useSegments } from 'expo-router';
+import { usePathname, useSegments } from 'expo-router';
 import { GlassButton } from '../ui/Glass';
 import { Companion } from '../../companion/Companion';
 import { usePanels } from '../../chrome/panels';
-import { isCompanionHiddenRoute, isTopLevelRoute } from '../../companion/placement';
+import { isCompanionHiddenRoute } from '../../companion/placement';
 
 /** Top bar height: 44dp content + 2*8dp vertical padding = 60dp. */
 export const TOP_BAR_HEIGHT = 60;
@@ -46,40 +46,20 @@ export function useTopBarVisible(): boolean {
  * TopBar component.
  */
 export function TopBar(): JSX.Element | null {
-  const router = useRouter();
   const pathname = usePathname();
   const segments = useSegments();
   const { openPanel } = usePanels();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  // Hide on onboarding and PAR-Q routes
-  const hidden = isCompanionHiddenRoute(pathname, segments);
-  if (hidden) return null;
+  // Hide on onboarding and PAR-Q routes only.
+  if (isCompanionHiddenRoute(pathname, segments)) return null;
 
-  const topLevel = isTopLevelRoute(pathname, segments);
-
-  // Left button: the panel opener on the four main screens. Inner screens keep
-  // their own back/close button in the header (it may close a modal or confirm).
-  const leftButton = topLevel ? (
-    <GlassButton
-      testID="topbar-panel"
-      icon={<PanelIcon />}
-      accessibilityLabel="Open menu"
-      onPress={() => openPanel('left')}
-    />
-  ) : null;
-
-  // Right button: settings (top-level only)
-  const rightButton = topLevel ? (
-    <GlassButton
-      testID="topbar-settings"
-      icon={<SlidersIcon />}
-      accessibilityLabel="Settings"
-      onPress={() => openPanel('right')}
-    />
-  ) : null;
-
+  // Both floating buttons are drawn on EVERY route that shows the chrome (owner
+  // decision 2026-10-24): the panel on the left, settings on the right, beside
+  // the companion — the same three anchors everywhere. Inner screens keep their
+  // own back/close control in the page header, which sits below this bar (the
+  // header pads past `TOP_BAR_HEIGHT`), so the two never overlap.
   return (
     <View
       style={[
@@ -89,11 +69,25 @@ export function TopBar(): JSX.Element | null {
       pointerEvents="box-none"
     >
       <View style={styles.row}>
-        <View style={styles.leftSlot}>{leftButton}</View>
+        <View style={styles.leftSlot}>
+          <GlassButton
+            testID="topbar-panel"
+            icon={<PanelIcon />}
+            accessibilityLabel="Open menu"
+            onPress={() => openPanel('left')}
+          />
+        </View>
         <View style={styles.centerSlot}>
           <Companion />
         </View>
-        <View style={styles.rightSlot}>{rightButton}</View>
+        <View style={styles.rightSlot}>
+          <GlassButton
+            testID="topbar-settings"
+            icon={<SlidersIcon />}
+            accessibilityLabel="Settings"
+            onPress={() => openPanel('right')}
+          />
+        </View>
       </View>
     </View>
   );
@@ -106,16 +100,6 @@ function PanelIcon(): JSX.Element {
     <SvgIcon>
       <Line x1={6} y1={10} x2={18} y2={10} {...strokeProps(theme.colors.text)} />
       <Line x1={6} y1={14} x2={14} y2={14} {...strokeProps(theme.colors.text)} />
-    </SvgIcon>
-  );
-}
-
-/** Back icon: chevron left. */
-function BackIcon(): JSX.Element {
-  const { theme } = useTheme();
-  return (
-    <SvgIcon>
-      <Polyline points="15 6 9 12 15 18" {...strokeProps(theme.colors.text)} />
     </SvgIcon>
   );
 }

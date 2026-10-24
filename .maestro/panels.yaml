@@ -4,9 +4,9 @@
 # tapping a section jumps to it; the close button and a tap on the scrim dismiss
 # the panel; a "More" item navigates and dismisses it.
 #
-# Note the order: the top bar shows the panel button only on the four section
-# screens (inner screens show a back button instead), so the "More" step — which
-# lands on History — comes last.
+# Note the order: the "More" step leaves the tab routes, so it comes last. (The
+# panel button itself is on every route since 2026-10-24, alongside the page's
+# own back arrow.)
 #
 # Run: maestro test .maestro/panels.yaml
 appId: app.lift.mobile

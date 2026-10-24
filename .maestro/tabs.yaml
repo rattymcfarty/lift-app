@@ -21,6 +21,8 @@ appId: app.lift.mobile
     id: "tab-exercises"
 - tapOn:
     id: "tab-programs"
+# The section title (added 2026-10-24) plus the sub-view switcher.
+- assertVisible: "Programs"
 - assertVisible: "Explore"
 - tapOn:
     id: "programs-segment-explore"
@@ -33,6 +35,10 @@ appId: app.lift.mobile
 - assertVisible: "Browse Exercises"
 - tapOn:
     id: "tab-train"
+# The section title names the tab, and the first segment names the sub-view
+# ("Today", renamed from "Train" when Programs got the same header shape).
+- assertVisible: "Train"
+- assertVisible: "Today"
 - tapOn:
     id: "train-segment-history"
 - assertVisible: "No workouts yet."

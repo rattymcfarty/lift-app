@@ -23,7 +23,9 @@
   (“Programs”, with the segments stepping down to a switcher beneath), and the tab screens
   stopped adding their own `useTopBarInset()` spacer on top of a header that already
   reserves the top bar. `ScreenHeader` and `SegmentedTitle` now own that allowance, so
-  Train, Programs, Analytics and Browse Exercises all start their title at the same y.
+  Train, Programs, Analytics and Browse Exercises all start their title at the same y, and
+  Train’s first segment is renamed **Today** (owner decision) so both tabs with sub-views
+  share one title + switcher shape.
   Documented in `docs/design/TYPE.md` (“Headers: exactly one top-bar allowance”).
 
 - **Exercise titles in a workout no longer clip on a Display-Zoomed iPhone.** The card

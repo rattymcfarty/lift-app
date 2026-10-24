@@ -10,7 +10,7 @@
  * for flicking to a number; the keypad is for jumping straight to one.
  */
 import type { JSX } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useTheme } from '../../theme';
 import { Button } from '../workout/ui';
 import { BottomSheet } from './BottomSheet';
@@ -59,7 +59,11 @@ export function WheelSheet({
   const t = theme.typography;
   return (
     <BottomSheet visible={visible} onClose={onClose} title={title} subtitle={subtitle} testID={testID}>
-      <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={{ paddingBottom: theme.spacing.lg }}>
+      {/* Deliberately NOT a ScrollView: the drum is a scrollable itself, and a
+          vertical ScrollView around it swallows the drag on Android (the wheel
+          would not move at all). The content is a fixed height — tabs, drum,
+          buttons — so nothing needs to scroll here. */}
+      <View style={{ paddingBottom: theme.spacing.lg }}>
         {tabs && tabs.length > 1 ? (
           <View
             style={{
@@ -135,7 +139,7 @@ export function WheelSheet({
             <Button title="Done" testID={`${testID}-done`} onPress={onClose} />
           </View>
         </View>
-      </ScrollView>
+      </View>
     </BottomSheet>
   );
 }

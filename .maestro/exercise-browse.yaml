@@ -55,3 +55,24 @@ appId: app.lift.mobile
 - assertVisible:
     id: "browse-exercise-row-.*"
     index: 0
+
+# The floating chrome is everywhere (owner decision 2026-10-24): an inner screen
+# like the exercise guide keeps the panel and settings buttons, alongside its own
+# back arrow.
+- tapOn:
+    id: "browse-exercise-row-.*"
+    index: 0
+- assertVisible: "Guide"
+- assertVisible:
+    id: "topbar-panel"
+- assertVisible:
+    id: "topbar-settings"
+- tapOn:
+    id: "topbar-panel"
+- assertVisible:
+    id: "panel-tab-programs"
+- tapOn:
+    point: "95%, 50%"
+- assertNotVisible:
+    id: "panel-tab-programs"
+- assertVisible: "Guide"

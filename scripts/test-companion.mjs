@@ -220,11 +220,6 @@ const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   ok(!P.isCompanionHiddenRoute('/settings', ['settings']), 'settings show the companion');
 
   // Top-level (tab) routes show the panel/settings buttons; inner screens do not.
-  ok(P.isTopLevelRoute('/', ['(tabs)']), 'the Train tab (group index) is top level');
-  ok(P.isTopLevelRoute('/programs', ['(tabs)', 'programs']), 'Programs is top level');
-  ok(P.isTopLevelRoute('/exercises', ['(tabs)', 'exercises']), 'Exercises is top level');
-  ok(!P.isTopLevelRoute('/workout/abc', ['workout', '[id]']), 'a workout screen is not top level');
-  ok(!P.isTopLevelRoute('/settings', ['settings']), 'settings is not top level');
 }
 
 console.log(`companion queue + skins + routes: ${n} assertions passed`);
