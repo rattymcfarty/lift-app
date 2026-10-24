@@ -7,8 +7,13 @@
 
 ## 0. In-flight work (update before every commit)
 
-- [opencode] **RPE explainer + the last two 3D icons — 2026-10-24 (uncommitted at the time
-  of writing).** Two independent pieces from the same session:
+> Nothing uncommitted as of 2026-10-24: the round below is committed and pushed (`git log -1`),
+> `npm run verify` is ALL GREEN, and the only thing outstanding is the **device re-run** of the
+> two new icons and the RPE sheet (see the last line of this section). The durable record of
+> the round is §6 (session log).
+
+- [opencode] **RPE explainer + the last two 3D icons — 2026-10-24 (committed).** Two
+  independent pieces from the same session:
 
   1. **`Full-Body` and `Olympic` are 3D renders** (`assets/icons-3d/{dark,light}/`,
      20 renders × 2 themes). Full-Body lights all seven front-facing muscles from the
@@ -33,11 +38,13 @@
      `scripts/test-rpe.mjs` (38 assertions). Flows: `.maestro/workout-flow.yaml` (after
      set 1) and `.maestro/plan-picker.yaml` (after adding an exercise).
 
-  Gate: `npm run verify` ALL GREEN. Device re-run pending for the two icons + RPE sheet.
+  Gate: `npm run verify` ALL GREEN (icon commit `ffe3667`→`be2f51c`). **Still pending: the
+  device re-run of the two icons + the RPE sheet** — `workout-flow` (opens the sheet,
+  `shot-rpe-sheet`) and `plan-picker` on a fresh release APK.
 
 - [opencode] **UI polish round 3: pinned browse controls, uniform filters, adaptive type —
-  2026-10-24 (uncommitted at the time of writing).** Three things the owner saw on the
-  iPhone, plus the concept applied across the app:
+  2026-10-24 (committed).** Three things the owner saw on the iPhone, plus the concept
+  applied across the app:
 
   1. **Browse Exercises keeps its controls.** Search + the two filter chips moved out of
      the `SectionList` header into a pinned block above it; a filter grid opens in place
@@ -467,6 +474,40 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-24 — RPE explainer, the last two 3D icons, UI round 3 (opencode)
+
+- **Full-Body and Olympic are 3D renders** (20 renders × 2 themes), from the same mannequin
+  as the rest of the set: Full-Body lights all seven front-facing muscles; Olympic is the
+  same figure with a rendered barbell at the thighs (steel shaft, dark plates, collar) so the
+  two tiles stay distinct at 40 pt. `qa.py` gives whole-figure icons a documented 0.14
+  `body_coverage` floor — a head-to-feet figure cannot fill a square frame the way a cropped
+  muscle can; it stays a soft check and all 20 PASS. `build-icons.py --only` re-bakes a single
+  icon while the other 19 keep their verified hashes; `render-all.sh` defaults to the shipped
+  purple now (the old default was orange, a footgun for a full re-run). `test:icons` 232.
+- **RPE explains itself where it is entered.** `src/components/workout/rpeGuide.ts` holds the
+  copy (levels 6–10 with the reps left at each level, a worked program line, effort ≠ load,
+  the 7–9 range most programs use); `RpeSheet.tsx` renders it in a `BottomSheet`. Two entry
+  points: the set table's **RPE column header** (now accent with a new `info` ActionIcon,
+  `testID="rpe-help"`, `ExerciseCard.onRpeHelp`) and the **RPE label** in a plan's target
+  editor (`NumberInput` gained optional `onLabelPress`/`labelTestID` → `plan-rpe-help`).
+  Companion on → Pip's avatar (same framing as the top-bar ring) says the one-line summary;
+  companion off → a neutral “1–10 effort” badge and plain copy, so the sheet never depends on
+  the companion. `test:rpe` (38) pins the scale, both voices and that both entry points stay
+  wired.
+- **UI round 3** (same batch, see §0 history): `src/theme/adaptive.ts` gives every group of
+  peers ONE size computed from the width available and its longest label; Browse pins its
+  search + chips; one `FilterChip` everywhere; the guide's Progression card wraps.
+  `adjustsFontSizeToFit` survives on three lone dynamic headings only, enforced by
+  `scripts/check-typography.mjs`. Tests: `test:adaptive` (55), `test:filters` (71);
+  rule and width table in `docs/design/TYPE.md`.
+- **Android Expo Go starts again**: `expo-notifications` is now loaded on demand
+  (`src/notifications/native.ts`), so Expo Go 58.0.5 (which predates
+  `ExpoTopicSubscriptionModule`) no-ops instead of dying at launch. `test:notifications` (8).
+- Gate: `npm run verify` ALL GREEN; `test:rpe` registered in `package.json` + `dev-loop.sh`.
+  **Device re-run pending** at the time of writing: `workout-flow` (opens the RPE sheet,
+  `shot-rpe-sheet`) and `plan-picker` (opens it from the target field) on a fresh release
+  APK, plus a look at the browse muscle grid for the two new icons.
 
 ### 2026-10-24 — icons recoloured to the app accent (opencode)
 
