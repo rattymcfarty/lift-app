@@ -303,6 +303,9 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 - `npm run verify` ALL GREEN; `expo-doctor` 20/20 on SDK 58. Device: `onboarding`, `tabs` and
   `exercise-menu` PASS on a **release** build of SDK 58 (`/tmp/lift-e2e-104711`) — the tab bar
   rewrite and the 3D icon assets are both covered by those flows.
+- Purple icon set: `same gate` — `exercise-menu` and `exercise-detail` PASS on a release build
+  (`/tmp/lift-e2e-120444`); `qa.py` 18/18 on the new renders, and 18/18 on the old orange set
+  under the same (changed) metric.
 - Earlier (2026-10-22): `exercise-menu` PASS on a release build (`/tmp/lift-e2e-082213`);
   before that `exercise-detail`, `sheets`, `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
@@ -391,6 +394,29 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-24 — icons recoloured to the app accent (opencode)
+
+- Owner's call after seeing the set on iOS: the highlight should be the app's purple, not
+  the warm orange, and the equipment icons should follow it so the whole library matches.
+- The 18 muscle renders were re-baked with the accent in the muscle material (dark
+  `#a073f0`, light `#6c3fd1`). The lit result lands a step darker — median `#966cde` /
+  `#663ec3` — which is intended: a flat fill would look painted on, the render keeps the
+  form. `TaxonomyIcon` passes `theme.colors.accent` to the vector muscle fallbacks *and* to
+  every equipment icon; `scripts/render-icons.mjs` and `test:icons` follow the same tokens.
+- **The QA gate had to change with the colour, and that needed care.** It recovered the
+  painted area from raw RGB distance, which collapses in shadow: shadowed purple sat close
+  to grey skin, so 67 % of the "soft" pixels lay deep inside the muscle and 14/18 icons
+  failed `soft_edge` at 13–35 px. Measuring distance in chromaticity (each channel over the
+  pixel sum) fixed it; the band was re-calibrated to 0.25–4.0 px, where the sharp set scores
+  0.3–2.3, a 6 px haze 4.8 and a 10 px haze 7.4. That is stricter than the old 1–10 px.
+  Both the new purple set and the old orange set pass 18/18 under the new metric.
+- `--color orange` and `--color red` stay in the renderer for comparison.
+- Gate: `qa.py` 18/18; `npm run verify` ALL GREEN; release-build flows `exercise-menu` and
+  `exercise-detail` PASS (`/tmp/lift-e2e-120444`). The light theme is the softer of the two —
+  purple on the tinted grey figure carries less luminance contrast than the orange did, though
+  the shape still holds at 44 pt; that is the trade the owner chose, not a defect to "fix" by
+  brightening the accent.
 
 ### 2026-10-24 — Expo SDK 58 migration (opencode)
 
