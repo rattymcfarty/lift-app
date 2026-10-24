@@ -230,7 +230,7 @@ try {
   if (existsSync(qaPath)) {
     const qa = JSON.parse(readFileSync(qaPath, 'utf8'));
     const slugs = Object.keys(qa.icons ?? {});
-    eq('18 muscle renders are registered', slugs.length, 18);
+    eq('20 muscle renders are registered', slugs.length, 20);
     eq('every render passed the numeric gate', slugs.filter((s) => qa.icons[s].qa !== 'PASS'), []);
     for (const slug of slugs) {
       for (const mode of ['dark', 'light']) {

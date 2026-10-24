@@ -11,6 +11,11 @@ import sys
 from PIL import Image
 
 # thresholds: (low, high); hard = fails the run
+# A whole-figure icon is tall and thin inside a square frame: head to feet can
+# only fill ~0.17 of it, whereas a cropped muscle icon fills ~0.3-0.6. The floor
+# is about "not lost in the frame", so it follows the framing, not the code.
+COVERAGE_FLOOR = {"full-body": 0.14, "olympic": 0.14}
+
 CHECKS = {
     "body_coverage": (0.22, 0.90, False),  # fraction of the tile the figure fills
     "mask_ratio": (0.03, 0.62, True),      # muscle area / body area
@@ -83,6 +88,7 @@ def difference_mask(body, muscle, lo=0.02, hi=0.06):
 
 
 def check(body_path, mask_path):
+    icon_name = body_path.split("/")[-1].replace("-body.png", "")
     body = Image.open(body_path).convert("RGBA")
     mask = Image.open(mask_path).convert("RGBA")
     m = difference_mask(body, mask)
@@ -141,6 +147,8 @@ def check(body_path, mask_path):
     fails = []
     for name, (lo, hi, hard) in CHECKS.items():
         v = res[name]
+        if name == "body_coverage":
+            lo = COVERAGE_FLOOR.get(icon_name, lo)
         if not (lo <= v <= hi):
             fails.append((name, v, lo, hi, hard))
     return res, fails

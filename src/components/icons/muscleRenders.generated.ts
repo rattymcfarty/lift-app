@@ -32,4 +32,6 @@ export const MUSCLE_RENDERS: Record<string, MuscleRender> = {
   Abductors: { dark: require('../../../assets/icons-3d/dark/abductors.png'), light: require('../../../assets/icons-3d/light/abductors.png') },
   Adductors: { dark: require('../../../assets/icons-3d/dark/adductors.png'), light: require('../../../assets/icons-3d/light/adductors.png') },
   Neck: { dark: require('../../../assets/icons-3d/dark/neck.png'), light: require('../../../assets/icons-3d/light/neck.png') },
+  'Full-Body': { dark: require('../../../assets/icons-3d/dark/full-body.png'), light: require('../../../assets/icons-3d/light/full-body.png') },
+  Olympic: { dark: require('../../../assets/icons-3d/dark/olympic.png'), light: require('../../../assets/icons-3d/light/olympic.png') },
 };

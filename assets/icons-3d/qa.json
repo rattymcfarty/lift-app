@@ -1,5 +1,5 @@
 {
-  "iconCount": 18,
+  "iconCount": 20,
   "icons": {
     "abductors": {
       "dark": "2786e6601f00e751cbe2e9185c54426149a4684ed095ae95b316bcf47980b63a",
@@ -41,6 +41,11 @@
       "light": "2e1e297631177df6e721c80620a9847fc6fdd45ad486d23b77a635c30f7b64ac",
       "qa": "PASS"
     },
+    "full-body": {
+      "dark": "da223625c51ec970743fac7c77d4022726c2c9f28b4d3980a75f12a93b19645b",
+      "light": "e8b632029b0db8c73b8b678a055180e6f0642f4dfa6c5cd98ed3f390e22d4ea2",
+      "qa": "PASS"
+    },
     "glutes": {
       "dark": "1a523be02372da598f52e9ef784e228c9a983d27bcae741bab4d26d8c9e8a610",
       "light": "82c1de823b3ca9eaecfe2fc1d81f9ec3511ec6207fe0a235802a23ef8c0a582e",
@@ -69,6 +74,11 @@
     "neck": {
       "dark": "868331445cdb7a15080985acc9c7722587482fd6e70af473ca43358acfafc769",
       "light": "5a97484925fc0b50d8ba6633a964926d05bf842440590c2f6044d4f8762fd5d4",
+      "qa": "PASS"
+    },
+    "olympic": {
+      "dark": "beea580fbb17edc7deb532f3726b75fec2f54029cee1ecf866638c39ee27740f",
+      "light": "f1ddff6e29846b2156cce42f38853ccb1b05e04911786d0c721f4088a8446e7b",
       "qa": "PASS"
     },
     "quadriceps": {
@@ -102,12 +112,14 @@
     "chest": "PASS",
     "forearms": "PASS",
     "front-delts": "PASS",
+    "full-body": "PASS",
     "glutes": "PASS",
     "hamstrings": "PASS",
     "lats": "PASS",
     "lower-back": "PASS",
     "middle-delts": "PASS",
     "neck": "PASS",
+    "olympic": "PASS",
     "quadriceps": "PASS",
     "rear-delts": "PASS",
     "triceps": "PASS",

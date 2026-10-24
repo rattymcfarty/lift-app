@@ -2,7 +2,7 @@
 # Render, gate and package the 3D muscle icons.
 #
 #   scripts/render/render-all.sh                 # full production pass
-#   COLOUR=red scripts/render/render-all.sh      # the red variant
+#   COLOUR=orange scripts/render/render-all.sh   # the comparison variant
 #   RES=512 SAMPLES=128 scripts/render/render-all.sh   # quick look
 #
 # Needs Blender 4.5 LTS and LIFT_BASE_MESH pointing at the CC0 base mesh
@@ -13,7 +13,7 @@ cd "$(dirname "$0")/../.."
 
 BLENDER="${BLENDER:-$HOME/tools/blender-4.5.15-linux-x64/blender}"
 OUT="${OUT:-/tmp/lift-icons}"
-COLOUR="${COLOUR:-orange}"
+COLOUR="${COLOUR:-purple}"
 RES="${RES:-640}"
 SAMPLES="${SAMPLES:-320}"
 
@@ -21,6 +21,7 @@ IDS=(
   "Chest" "Abs" "Quadriceps" "Middle Delts" "Front Delts" "Rear Delts"
   "Biceps" "Triceps" "Forearms" "Lats" "Upper Back" "Lower Back"
   "Glutes" "Hamstrings" "Calves" "Abductors" "Adductors" "Neck"
+  "Full-Body" "Olympic"
 )
 
 slug_of() { echo "$1" | tr ' A-Z' '-a-z'; }

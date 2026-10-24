@@ -49,6 +49,8 @@ ICONS = {
     "abductors": "Abductors",
     "adductors": "Adductors",
     "neck": "Neck",
+    "full-body": "Full-Body",
+    "olympic": "Olympic",
 }
 SLUGS = list(ICONS)
 TS_MAP = os.path.join(APP, "src", "components", "icons", "muscleRenders.generated.ts")
@@ -158,16 +160,37 @@ def main() -> int:
                     help="qa.py transcript to fold into qa.json (default: <src>/qa.txt)")
     ap.add_argument("--check", action="store_true",
                     help="verify the shipped assets against qa.json instead of writing")
+    ap.add_argument("--only", default=None,
+                    help="rebuild only these slugs (comma separated); the rest keep "
+                         "their verified files and hashes")
     args = ap.parse_args()
 
     if args.check:
         return check()
 
+    only = set(args.only.split(",")) if args.only else set(SLUGS)
+    unknown = only - set(SLUGS)
+    if unknown:
+        print(f"unknown slug(s): {', '.join(sorted(unknown))}", file=sys.stderr)
+        return 1
+
     qa_txt = args.qa or os.path.join(args.src, "qa.txt")
     verdicts = parse_qa(qa_txt)
 
-    report = {"size": SIZE, "iconCount": len(SLUGS), "icons": {}, "verdicts": verdicts}
+    # Keep the verified entries for icons that were not re-rendered: their PNGs
+    # are byte-identical and still gated by the same hashes.
+    qa_path = os.path.join(OUT, "qa.json")
+    report = {"size": SIZE, "iconCount": len(SLUGS), "icons": {}, "verdicts": {}}
+    if os.path.exists(qa_path):
+        with open(qa_path) as fh:
+            old_report = json.load(fh)
+        report["icons"] = old_report.get("icons", {})
+        report["verdicts"] = old_report.get("verdicts", {})
+    report["verdicts"].update(verdicts)
+
     for slug in SLUGS:
+        if slug not in only:
+            continue
         body_p = os.path.join(args.src, f"{slug}-body.png")
         dark_p = os.path.join(args.src, f"{slug}-muscle-dark.png")
         light_p = os.path.join(args.src, f"{slug}-muscle-light.png")
@@ -195,6 +218,12 @@ def main() -> int:
             "qa": verdicts.get(slug, "MISSING"),
         }
         print(f"{slug:14s} {report['icons'][slug]['qa']}")
+
+    absent = [s for s in SLUGS if s not in report["icons"]]
+    if absent:
+        print(f"no verified entry for: {', '.join(absent)} — run a full pass first",
+              file=sys.stderr)
+        return 1
 
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "qa.json"), "w") as fh:

@@ -5,7 +5,10 @@ build time. Each icon ships two files — the muscle is a lit pass, not a tint, 
 the dark and light themes are rendered separately.
 
 The vector artwork in `assets/icons-src/muscle/` is still the fallback for ids
-with no render (`All`, `Olympic`, `Full-Body`, `Other`) and for equipment.
+with no render (`All`, `Other`) and for equipment. `Full-Body` and `Olympic` are
+renders too: Full-Body lights every front-facing muscle at once, Olympic is the
+same figure with a loaded barbell at the thighs (steel shaft, dark plates) so it
+reads as a lift at 40 pt.
 
 ## What produces the art
 
@@ -14,7 +17,7 @@ with no render (`All`, `Olympic`, `Full-Body`, `Other`) and for equipment.
 | Renderer | `render-muscle.py` | Blender/Cycles. Prepares the body, projects the masks, paints the muscle, writes three PNGs per icon. |
 | Gate | `qa.py` | Objective checks on the renders (see below). Fails the build. |
 | Packager | `build-icons.py` | Trims, downsamples to 288 px, tints the light-theme skin, writes `assets/icons-3d/` and the generated TS map. |
-| Driver | `render-all.sh` | Runs all 18 icons, then the gate, then the packager. |
+| Driver | `render-all.sh` | Runs all 20 icons, then the gate, then the packager. |
 
 ### The body
 
@@ -71,7 +74,7 @@ a wide feather. Hue survives shadow, so both accents measure the same.
 
 | Check | Meaning | Bounds |
 | --- | --- | --- |
-| `body_coverage` | share of the frame the figure fills | 0.22–0.90 |
+| `body_coverage` | share of the frame the figure fills | 0.22–0.90 (0.14 for the two whole-figure icons) |
 | `mask_ratio` | painted area / body area | 0.03–0.62 |
 | `mask_outside` | painted pixels with no body under them | ≤ 0.002 |
 | `soft_edge` | mean feather width, px | 0.25–4.0 |
@@ -91,7 +94,8 @@ themes plus 96 px and 48 px, next to the owner's reference tiles.
 
 ```bash
 export LIFT_BASE_MESH=/path/to/human_base_meshes_bundle.blend
-scripts/render/render-all.sh          # ≈50 min on a 16-core CPU at 640 px / 320 spp
+scripts/render/render-all.sh          # ≈55 min on a 16-core CPU at 640 px / 320 spp
+# the default accent is purple; COLOUR=orange|red is for comparisons
 ```
 
 Then `scripts/test-icons.mjs` (part of `npm run verify`) checks that the shipped

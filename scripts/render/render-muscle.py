@@ -278,8 +278,22 @@ FIBRE_AXIS = {
     "Front Delts": "x", "Rear Delts": "x", "Biceps": "z", "Triceps": "z",
     "Forearms": "z", "Lats": "z", "Upper Back": "x", "Lower Back": "z",
     "Glutes": "x", "Hamstrings": "z", "Calves": "z", "Abductors": "x",
-    "Adductors": "z", "Neck": "z", "Full-Body": "z",
+    "Adductors": "z", "Neck": "z", "Full-Body": "z", "Olympic": "z",
 }
+
+# Full-Body lights every front-facing muscle at once — the same seven the old
+# vector composited (chest, front delts, biceps, forearms, abs, quads, calves).
+# It is a union of the individual masks, not a new outline: one render pass,
+# one size, exactly like a single-muscle icon.
+FULL_BODY_PARTS = (
+    REGIONS["Chest"] + REGIONS["Front Delts"] + REGIONS["Biceps"]
+    + REGIONS["Forearms"] + REGIONS["Abs"] + REGIONS["Quadriceps"]
+    + REGIONS["Calves"]
+)
+REGIONS["Full-Body"] = FULL_BODY_PARTS
+# Olympic is the same full-body effort plus the bar: the barbell is the part
+# that makes it readable as a lift at 40 pt, exactly as the vector did.
+REGIONS["Olympic"] = FULL_BODY_PARTS
 
 FRAMING = {
     "Chest": (1.360, 0.960, "front"),
@@ -301,6 +315,7 @@ FRAMING = {
     "Adductors": (0.720, 0.720, "front"),
     "Neck": (1.550, 0.560, "front"),
     "Full-Body": (0.900, 1.900, "front"),
+    "Olympic": (0.900, 1.900, "front"),
 }
 
 parts = REGIONS[ICON]
@@ -477,6 +492,56 @@ if view == "front":
     cam.location, cam.rotation_euler = (0.0, -4.0, z), (math.radians(90), 0, 0)
 else:
     cam.location, cam.rotation_euler = (0.0, 4.0, z), (math.radians(90), 0, math.radians(180))
+
+
+def prop_mat(name, rgb, metallic, rough):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (*rgb, 1.0)
+    b.inputs["Metallic"].default_value = metallic
+    b.inputs["Roughness"].default_value = rough
+    return m
+
+
+def cylinder(name, radius, depth, loc, axis_x=True, verts=64):
+    bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=depth, vertices=verts, location=loc)
+    o = bpy.context.object
+    o.name = name
+    if axis_x:
+        o.rotation_euler = (0.0, math.radians(90), 0.0)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    bpy.ops.object.shade_smooth()
+    return o
+
+
+def barbell(z=0.88, y=-0.20):
+    """A loaded bar in front of the thighs: steel shaft, dark plates.
+
+    Proportions are real (2.2 m bar, 45 cm plates). It sits just in front of the
+    hands so the A-pose reads as gripping it, without faking a pose.
+    """
+    steel = prop_mat("BarSteel", (0.62, 0.63, 0.65), 0.95, 0.22)
+    plate_mat = prop_mat("Plate", (0.055, 0.055, 0.062), 0.35, 0.42)
+    collar_mat = prop_mat("Collar", (0.38, 0.39, 0.41), 0.85, 0.30)
+
+    shaft = cylinder("Bar", 0.0135, 1.46, (0.0, y, z), verts=48)
+    shaft.data.materials.append(steel)
+    for side in (-1, 1):
+        # sleeve + one plate + collar per side
+        sleeve = cylinder("Sleeve", 0.026, 0.20, (side * 0.60, y, z), verts=48)
+        sleeve.data.materials.append(steel)
+        plate = cylinder("Plate", 0.225, 0.055, (side * 0.665, y, z), verts=96)
+        plate.data.materials.append(plate_mat)
+        bevel = plate.modifiers.new("bevel", "BEVEL")
+        bevel.width = 0.006
+        bevel.segments = 2
+        collar = cylinder("Collar", 0.036, 0.045, (side * 0.712, y, z), verts=48)
+        collar.data.materials.append(collar_mat)
+
+
+if ICON == "Olympic":
+    barbell()
 
 
 def render(mat_index, path):
