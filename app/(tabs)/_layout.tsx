@@ -18,13 +18,15 @@ import { useTheme } from '../../src/theme';
 import { TabBar } from '../../src/components/nav/TabBar';
 import { APP_TABS } from '../../src/nav/tabs';
 
+/** Opening route of the tab group (expo-router 58 moved this off the Tabs prop). */
+export const unstable_settings = { anchor: 'index' };
+
 export default function TabsLayout(): JSX.Element {
   const { theme } = useTheme();
   const c = theme.colors;
 
   return (
     <Tabs
-      initialRouteName="index"
       tabBar={(props) => <TabBar {...props} tabs={APP_TABS} />}
       screenOptions={{
         headerShown: false,

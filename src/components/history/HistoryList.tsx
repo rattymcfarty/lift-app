@@ -159,7 +159,7 @@ export function HistoryList({ bottomPadding = 0 }: { bottomPadding?: number }): 
                   onPress={() => void loadMore()}
                 />
               </View>
-            ) : null
+            ) : undefined
           }
         />
       )}

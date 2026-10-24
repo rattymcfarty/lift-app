@@ -22,6 +22,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -186,7 +187,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
   const t = theme.typography;
   const tabBarSpace = useTabBarSpace();
   const params = useLocalSearchParams<{ focus?: string }>();
-  const searchRef = useRef<TextInput>(null);
+  const searchRef = useRef<TextInputInstance>(null);
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Exercise[]>([]);
@@ -350,7 +351,7 @@ export default function BrowseExercisesScreen(): JSX.Element {
             <SectionHeader title={section.title} testID={`browse-section-${section.key}`} />
           )}
           ListEmptyComponent={
-            searching ? null : (
+            searching ? undefined : (
               <EmptyState
                 message={
                   query.trim()

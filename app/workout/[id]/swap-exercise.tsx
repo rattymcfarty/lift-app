@@ -281,7 +281,7 @@ export default function SwapExerciseScreen(): JSX.Element {
             />
           )}
           ListEmptyComponent={
-            searching ? null : (
+            searching ? undefined : (
               <EmptyState
                 message={
                   query.trim()

@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -139,7 +140,7 @@ export default function AddExerciseScreen(): JSX.Element {
   const [recent, setRecent] = useState<ExerciseHistoryOption[]>([]);
   // Refs for the header "Create New" action: scroll to the custom composer + focus it.
   const listRef = useRef<FlatList<Exercise>>(null);
-  const customNameRef = useRef<TextInput>(null);
+  const customNameRef = useRef<TextInputInstance>(null);
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -419,7 +420,7 @@ export default function AddExerciseScreen(): JSX.Element {
             />
           )}
           ListEmptyComponent={
-            searching ? null : (
+            searching ? undefined : (
               <EmptyState
                 message={
                   query.trim()

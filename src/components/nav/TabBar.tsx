@@ -83,7 +83,7 @@ function useKeyboardShown(): boolean {
 }
 
 /** The floating bar itself. Rendered from `Tabs`' `tabBar` prop. */
-export function TabBar({ state, navigation, tabs, insets }: TabBarProps): JSX.Element {
+export function TabBar({ state, emitter, navigateToTab, tabs, insets }: TabBarProps): JSX.Element {
   const { theme } = useTheme();
   const c = theme.colors;
   const { width } = useWindowDimensions();
@@ -141,15 +141,15 @@ export function TabBar({ state, navigation, tabs, insets }: TabBarProps): JSX.El
           const focused = route.name === focusedName;
           const onPress = (): void => {
             Haptics.selectionAsync();
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+            const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigateToTab(route.key);
           };
           return (
             <Pressable
               key={tab.key}
               testID={tab.testID}
               onPress={onPress}
-              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+              onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
               accessibilityRole="tab"
               accessibilityLabel={tab.title}
               accessibilityState={{ selected: focused }}

@@ -2,6 +2,14 @@
 
 ## Unreleased (addendum)
 
+- **Expo SDK 58** (React Native 0.88, React 19.3): the owner's iPhone could no longer open the
+  app — Expo Go on iOS only loads the newest SDK, and it cannot be rolled back — so the project
+  moved up a release. Only four code changes were needed: the custom tab bar now takes
+  `navigateToTab(route.key)` and `emitter` instead of `navigation`, the tab group sets
+  `unstable_settings.anchor = 'index'` (the prop left `Tabs`), list slots return `undefined`
+  instead of `null`, and `TextInput` refs are typed `TextInputInstance`. `expo-doctor` 20/20,
+  `npm run verify` ALL GREEN, device flows `onboarding`, `tabs`, `exercise-menu` PASS on a
+  release build (`/tmp/lift-e2e-104711`).
 - Muscle icons are **3D mannequin renders** now, not vectors: each of the 18 groups ships as a
   288 px PNG per theme (`assets/icons-3d/{dark,light}/`, 1.7 MB total) rendered from Blender's
   CC0 *Human Base Meshes* body at 640 px / 320 spp with the muscle baked as an opaque lit pass

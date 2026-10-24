@@ -14,6 +14,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -109,7 +110,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
   };
   // Refs for the header "Create New" action: scroll to the custom composer + focus it.
   const listRef = useRef<FlatList<Exercise>>(null);
-  const customNameRef = useRef<TextInput>(null);
+  const customNameRef = useRef<TextInputInstance>(null);
   const handleCreateNew = () => {
     listRef.current?.scrollToEnd({ animated: true });
     setTimeout(() => customNameRef.current?.focus(), 350);
@@ -302,7 +303,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
             </View>
           }
           ListEmptyComponent={
-            searching ? null : (
+            searching ? undefined : (
               <EmptyState
                 message={
                   query.trim()
