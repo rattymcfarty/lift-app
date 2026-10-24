@@ -2,8 +2,8 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-23, after the 3D muscle-icon renders shipped. Repo HEAD at
-> the time: see `git log -1`.
+> Last updated: 2026-10-24, after the SDK 58 migration. Repo HEAD at the time:
+> see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -37,14 +37,21 @@
   is a straight cut across the clavicle, and the three deltoid heads aren't separated. Arm
   regions crop the arms at the frame edge by design.
 
-- [opencode] **Open decision: the owner's iPhone cannot open the app — Expo Go is SDK 58,
-  the project is SDK 57 (2026-10-23).** Expo Go on iOS only ever ships the newest SDK and an
-  older one cannot be installed on a physical device, so the error "Project is incompatible
-  with this version of Expo Go" has no project-side workaround. Two paths: (a) migrate the app
-  to SDK 58 as its own task — `expo` plus the whole `expo-*` family and React Native, then
-  regenerate `android/` and re-run `npm run verify` + the device flows; expect real breakage in
-  sqlite/notifications/router; or (b) keep testing on Android (release APK). Do not fold the
-  migration into an unrelated change.
+- [opencode] **Expo SDK 58 — done 2026-10-24.** The owner's iPhone could not open the app:
+  Expo Go on iOS only loads SDK 58 and cannot be rolled back, so the project moved from 57.
+  Versions came from Expo's own `bundledNativeModules.json` for `sdk-58`, not from guesswork:
+  `expo` 58.0.19, React Native 0.88.0, React 19.3.0, 16 `expo-*` packages bumped. Four code
+  changes covered the whole API delta — custom `TabBar` now takes `navigateToTab(route.key)`
+  + `emitter` instead of `navigation`; `Tabs` lost `initialRouteName` (now
+  `unstable_settings = { anchor: 'index' }`); list slots return `undefined` not `null`;
+  `TextInput` refs are `TextInputInstance`.
+  Gate: `expo-doctor` 20/20, `npm run verify` ALL GREEN, release-build flows `onboarding`,
+  `tabs`, `exercise-menu` PASS (`/tmp/lift-e2e-104711`). If the owner still sees a mismatch,
+  the cause is the phone caching an old manifest — reload Expo Go, do not touch the SDK.
+
+  **Not verified on iOS:** everything above ran on Android. Expo Go 58 on the iPhone is the
+  first iOS run of SDK 58 in this project; watch notifications (rest timer), sqlite
+  migrations and the share sheet before trusting a release.
 
 - [opencode] **Icons: two-step shadow — done 2026-10-22** (`f7dbaa2`). Owner asked for a
   softer falloff, so a sixth authoring colour was added: `#6a6a6a` SHADOW_SOFT →
@@ -292,10 +299,10 @@ iOS via Expo Go only (iOS native build needs macOS/Xcode or EAS — not availabl
 
 Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
-### Verified at last session (2026-10-23)
-- `npm run verify` ALL GREEN. Device: `exercise-menu` PASS on a **release** build carrying the
-  3D icons (`/tmp/lift-e2e-163516`), so the packaged PNGs and the generated map are what the
-  flow exercised.
+### Verified at last session (2026-10-24)
+- `npm run verify` ALL GREEN; `expo-doctor` 20/20 on SDK 58. Device: `onboarding`, `tabs` and
+  `exercise-menu` PASS on a **release** build of SDK 58 (`/tmp/lift-e2e-104711`) — the tab bar
+  rewrite and the 3D icon assets are both covered by those flows.
 - Earlier (2026-10-22): `exercise-menu` PASS on a release build (`/tmp/lift-e2e-082213`);
   before that `exercise-detail`, `sheets`, `workout-flow` and `program-builder` passed.
 - Not verified on a physical device: iOS layout/haptics/share sheet/notifications,
@@ -384,6 +391,24 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-24 — Expo SDK 58 migration (opencode)
+
+- The owner's iPhone stopped loading the app: Expo Go on iOS ships only the newest SDK and an
+  older build cannot be installed on a device, so an SDK 57 project is refused before any of
+  our code runs. Restarting Metro cannot fix that — useful to know before debugging a
+  "connection" problem that is really an SDK mismatch.
+- Bumped straight to Expo's `sdk-58` `bundledNativeModules.json` (never guessed versions):
+  `expo` 58.0.19, React Native 0.88.0, React 19.3.0, router 58.0.25, screens 4.30, svg 15.16,
+  plus the 16 `expo-*` packages. `node_modules` and the lockfile were rebuilt from scratch.
+- The whole API delta was four things: the custom `TabBar` gets `navigateToTab(route.key)` +
+  `emitter` instead of `navigation`; `Tabs` no longer accepts `initialRouteName` (use
+  `unstable_settings = { anchor: 'index' }`); list slots reject `null` (use `undefined`);
+  `TextInput` refs are `TextInputInstance`.
+- Gate: `expo-doctor` 20/20, `npm run verify` ALL GREEN, release-build flows `onboarding`,
+  `tabs`, `exercise-menu` PASS (`/tmp/lift-e2e-104711`).
+- iOS is still unproven: those flows are Android. The owner's phone is the first iOS run of
+  SDK 58 here — watch notifications, sqlite migrations and the share sheet.
 
 ### 2026-10-23 — 3D muscle icons: production renders, warm accent (opencode)
 
