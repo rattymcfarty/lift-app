@@ -33,9 +33,29 @@ export PATH=$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$HOME/.maestro/bin:$HOME
 ```
 
 ## Project pins (see `package-lock.json` — committed, use `npm ci`)
-Expo SDK 57 (`expo ~57.0.x`), React Native 0.86.3, React 19.2.3, TypeScript ~6.0.3,
-expo-router ~57.0.x, expo-sqlite ~57.0.x, Drizzle ORM ^0.44, drizzle-kit ^0.31.
-Expo Go on the iPhone must be the version that supports SDK 57.
+Expo SDK 58 (`expo ~58.0.19`), React Native 0.88.0, React 19.3.0, TypeScript ~6.0.3,
+expo-router ~58.0.25, expo-sqlite ~58.0.13, Drizzle ORM ^0.44, drizzle-kit ^0.31.
+
+**Expo Go must be the SDK 58 build on both phones.** iOS updates automatically and
+cannot be rolled back, which is why the project moved to 58. On Android the Play
+Store build can still be an older SDK (it was 57 when this was written): Play cannot
+update it to a version that does not exist there yet, and the client refuses an SDK
+mismatch with a generic "something went wrong" screen. The server is not at fault —
+the SDK 58 manifest and bundle serve fine (`curl -H 'expo-platform: android'
+http://<lan-ip>:8081`). Install the SDK 58 Expo Go APK from
+<https://expo.dev/go?sdkVersion=58&platform=android&device=true>
+(`Expo-Go-58.0.5.apk` at the time of writing). If Android refuses the install
+because the Play build is signed by a different key, uninstall the Play version
+first. Verify with `adb shell dumpsys package host.exp.exponent | grep versionName`
+— it must be a 58.x build.
+
+Expo Go's native modules are frozen when each Expo Go build is published, and the
+JavaScript packages keep moving: `expo-notifications` 58.1.6 needs
+`ExpoTopicSubscriptionModule`, which Expo Go 58.0.5 for Android does not have. It is
+loaded through `src/notifications/native.ts` for exactly this reason — the app starts
+and everything except local notifications works there. To exercise notifications,
+install a development build (`npx expo run:android`) or the release APK, which bundle
+the module.
 
 ## Ports and URLs
 - Metro / Expo Go: `8081` (LAN). Use the rig's LAN IP: `exp://<lan-ip>:8081`

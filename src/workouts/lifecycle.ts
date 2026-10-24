@@ -10,8 +10,7 @@
  * "now", so history and durations stay honest.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
-import { SchedulableTriggerInputTypes } from 'expo-notifications';
+import { notifications } from '../notifications/native';
 import {
   finishWorkout,
   listOpenWorkouts,
@@ -149,7 +148,8 @@ async function cancelAlerts(): Promise<void> {
   try {
     const raw = await AsyncStorage.getItem(ALERT_IDS_KEY);
     const ids = raw ? (JSON.parse(raw) as string[]) : [];
-    await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined)));
+    const N = notifications();
+    if (N) await Promise.all(ids.map((id) => N.cancelScheduledNotificationAsync(id).catch(() => undefined)));
     await AsyncStorage.removeItem(ALERT_IDS_KEY);
   } catch {
     // ignore
@@ -169,16 +169,17 @@ export async function syncIdleAlerts(
   await cancelAlerts();
   if (!current) return;
   const ready = await prepareLocalAlerts().catch(() => null);
-  if (!ready) return;
+  const N = notifications();
+  if (!ready || !N) return;
   const now = Date.now();
   const { checkInAt, finishWarnAt } = alertTimes(current.lastActivityAt, policy);
   const ids: string[] = [];
   const schedule = async (at: number, title: string, body: string): Promise<void> => {
     if (at <= now + 5_000) return;
     try {
-      const id = await Notifications.scheduleNotificationAsync({
+      const id = await N.scheduleNotificationAsync({
         content: { title, body, data: { kind: ALERT_KIND } },
-        trigger: { type: SchedulableTriggerInputTypes.DATE, date: at, channelId: ready.channelId },
+        trigger: { type: N.SchedulableTriggerInputTypes.DATE, date: at, channelId: ready.channelId },
       });
       ids.push(id);
     } catch {

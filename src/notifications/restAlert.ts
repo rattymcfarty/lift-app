@@ -24,8 +24,7 @@
  */
 
 import { AppState, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import { SchedulableTriggerInputTypes } from 'expo-notifications';
+import { notifications } from './native';
 
 const CHANNEL_ID = 'lift-rest-timer';
 
@@ -34,8 +33,10 @@ let handlerInstalled = false;
 /** Install the foreground handler once per app lifetime. */
 function ensureHandler(): void {
   if (handlerInstalled) return;
+  const N = notifications();
+  if (!N) return; // Expo Go built before the module existed — stay silent.
   handlerInstalled = true;
-  Notifications.setNotificationHandler({
+  N.setNotificationHandler({
     handleNotification: async () => {
       // When the app is open the timer UI + haptics already announce
       // completion — only banner when the user isn't looking.
@@ -52,10 +53,12 @@ function ensureHandler(): void {
 
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
+  const N = notifications();
+  if (!N) return;
   try {
-    await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    await N.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Rest timer',
-      importance: Notifications.AndroidImportance.HIGH,
+      importance: N.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       sound: 'default',
     });
@@ -72,11 +75,13 @@ async function ensureAndroidChannel(): Promise<void> {
  * current status is re-read each time.
  */
 async function canAlert(): Promise<boolean> {
+  const N = notifications();
+  if (!N) return false;
   try {
-    const existing = await Notifications.getPermissionsAsync();
+    const existing = await N.getPermissionsAsync();
     if (existing.granted) return true;
     if (!existing.canAskAgain) return false;
-    const requested = await Notifications.requestPermissionsAsync();
+    const requested = await N.requestPermissionsAsync();
     return requested.granted;
   } catch {
     return false;
@@ -98,19 +103,21 @@ export async function scheduleRestAlert(
   content: RestAlertContent,
 ): Promise<string | null> {
   if (atTimestamp <= Date.now()) return null;
+  const N = notifications();
+  if (!N) return null;
   ensureHandler();
   // Channel first: on Android 13+ the POST_NOTIFICATIONS prompt is tied to
   // channel existence — asking before any channel exists never surfaces.
   await ensureAndroidChannel();
   if (!(await canAlert())) return null;
   try {
-    return await Notifications.scheduleNotificationAsync({
+    return await N.scheduleNotificationAsync({
       content: {
         title: content.title,
         body: content.body,
       },
       trigger: {
-        type: SchedulableTriggerInputTypes.DATE,
+        type: N.SchedulableTriggerInputTypes.DATE,
         date: atTimestamp,
         channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined,
       },
@@ -123,8 +130,10 @@ export async function scheduleRestAlert(
 /** Cancel a scheduled rest alert. Safe to call with null/unknown ids. */
 export async function cancelRestAlert(id: string | null): Promise<void> {
   if (!id) return;
+  const N = notifications();
+  if (!N) return;
   try {
-    await Notifications.cancelScheduledNotificationAsync(id);
+    await N.cancelScheduledNotificationAsync(id);
   } catch {
     // Already fired or already cancelled — nothing to do.
   }
@@ -136,6 +145,10 @@ export async function cancelRestAlert(id: string | null): Promise<void> {
  * asks for permission when it can. Returns the channel id when alerts may
  * be scheduled, or null when they may not.
  */
+/** Install at import time, so a notification that fires after a cold start is
+ * presented correctly without waiting for the first schedule call. */
+ensureHandler();
+
 export async function prepareLocalAlerts(): Promise<{ channelId: string | undefined } | null> {
   ensureHandler();
   await ensureAndroidChannel();

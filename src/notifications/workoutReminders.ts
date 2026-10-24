@@ -3,9 +3,8 @@
  * device. No server, no push token, nothing leaves the phone. The schedule
  * is stored in AsyncStorage and re-applied whenever the user changes it.
  */
-import * as Notifications from 'expo-notifications';
-import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { notifications } from './native';
 import { prepareLocalAlerts } from './restAlert';
 
 export interface ReminderSettings {
@@ -31,11 +30,13 @@ export async function getReminders(): Promise<ReminderSettings> {
 }
 
 async function cancelOurs(): Promise<void> {
-  const all = await Notifications.getAllScheduledNotificationsAsync();
+  const N = notifications();
+  if (!N) return;
+  const all = await N.getAllScheduledNotificationsAsync();
   await Promise.all(
     all
       .filter((n) => (n.content.data as { kind?: string } | null)?.kind === KIND)
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+      .map((n) => N.cancelScheduledNotificationAsync(n.identifier)),
   );
 }
 
@@ -60,12 +61,14 @@ export async function applyReminders(next: ReminderSettings): Promise<boolean> {
   if (!next.enabled || next.days.length === 0) return true;
   const ready = await prepareLocalAlerts();
   if (!ready) return false;
+  const N = notifications();
+  if (!N) return false;
   let i = 0;
   for (const day of next.days) {
-    await Notifications.scheduleNotificationAsync({
+    await N.scheduleNotificationAsync({
       content: { title: 'Time to train', body: MESSAGES[i++ % MESSAGES.length], data: { kind: KIND } },
       trigger: {
-        type: SchedulableTriggerInputTypes.WEEKLY,
+        type: N.SchedulableTriggerInputTypes.WEEKLY,
         weekday: day + 1, // expo: 1 = Sunday … 7 = Saturday
         hour: next.hour,
         minute: next.minute,
