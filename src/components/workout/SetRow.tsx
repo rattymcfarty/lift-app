@@ -42,6 +42,15 @@ import { Button, NumberInput } from './ui';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { GRID_FLEX, GRID_MAX_FONT_SCALE, gridMetrics } from './setGrid';
 import { SwipeableRow } from '../ui/SwipeableRow';
+import { WheelSheet } from '../ui/WheelSheet';
+import {
+  WHEEL_FIELDS,
+  wheelFieldLabel,
+  wheelFieldUnit,
+  wheelIndex,
+  wheelItems,
+  type WheelField,
+} from './wheelFields';
 
 export interface SetInputValues {
   reps?: number;
@@ -369,6 +378,12 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
   const [weightKg, setWeightState] = useState(initial.weightKg);
   const [rpe, setRpeState] = useState(initial.rpe);
   const [localError, setLocalError] = useState<string | null>(null);
+  /**
+   * The scroll wheel sheet: which field it is editing, or null when closed.
+   * Opened from the set number (`edit-set-<n>`) — tapping a value pill still
+   * focuses the keypad, so both ways of entering a number stay available.
+   */
+  const [wheelField, setWheelField] = useState<WheelField | null>(null);
 
   const report = (next: { reps: string; weightKg: string; rpe: string }): void => onValuesChange?.(next);
   const setReps = (v: string): void => { setRepsState(v); report({ reps: v, weightKg, rpe }); };
@@ -410,9 +425,22 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
         <View style={[styles.row, { minHeight: m.rowHeight }]}>
           <Col flex={GRID_FLEX.set}>
             {isWarmup ? <WarmupBadge theme={theme} setNumber={setNumber} size={m.fontHeader} /> : (
-              <Text style={{ color: theme.colors.muted, fontSize: m.fontBody, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={GRID_MAX_FONT_SCALE} numberOfLines={1}>
-                {setNumber}
-              </Text>
+              <Pressable
+                testID={`edit-set-${setNumber}`}
+                onPress={() => setWheelField('weight')}
+                accessibilityRole="button"
+                accessibilityLabel={`Enter set ${setNumber} with the wheel`}
+                accessibilityHint="Opens the scroll wheel for weight, reps and RPE"
+                hitSlop={6}
+                style={{ alignItems: 'center' }}
+              >
+                <Text style={{ color: theme.colors.muted, fontSize: m.fontBody, fontWeight: FONT_WEIGHT.bold }} maxFontSizeMultiplier={GRID_MAX_FONT_SCALE} numberOfLines={1}>
+                  {setNumber}
+                </Text>
+                <Text style={{ color: theme.colors.faint, fontSize: Math.max(8, m.fontHeader - 3), lineHeight: Math.max(8, m.fontHeader - 3) }} maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}>
+                  ⌃⌄
+                </Text>
+              </Pressable>
             )}
           </Col>
           <Prev
@@ -459,6 +487,31 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
           <Text style={{ color: theme.colors.danger, fontSize: m.fontHeader, paddingBottom: theme.spacing.xs }}>{shownError}</Text>
         ) : null}
       </View>
+
+      {/* The wheel sheet — one drum per field, opened from the set number. */}
+      <WheelSheet
+        visible={wheelField !== null}
+        onClose={() => setWheelField(null)}
+        title={wheelField ? wheelFieldLabel(wheelField) : 'Set value'}
+        subtitle={`Set ${setNumber}`}
+        tabs={WHEEL_FIELDS.map((f) => ({ key: f, label: wheelFieldLabel(f), testID: `wheel-tab-${f}` }))}
+        activeTab={wheelField ?? undefined}
+        onTabChange={(key) => setWheelField(key as WheelField)}
+        items={wheelField ? wheelItems(wheelField, displayUnit) : []}
+        index={wheelField ? wheelIndex(wheelItems(wheelField, displayUnit), wheelField === 'weight' ? weightKg : wheelField === 'reps' ? reps : rpe) : 0}
+        unit={wheelField ? wheelFieldUnit(wheelField, displayUnit) : undefined}
+        onSelect={(value) => {
+          if (wheelField === 'weight') setWeight(value);
+          else if (wheelField === 'reps') setReps(value);
+          else if (wheelField === 'rpe') setRpe(value);
+        }}
+        onClear={() => {
+          if (wheelField === 'weight') setWeight('');
+          else if (wheelField === 'reps') setReps('');
+          else if (wheelField === 'rpe') setRpe('');
+        }}
+        testID="wheel-sheet"
+      />
     </SwipeableRow>
   );
 }

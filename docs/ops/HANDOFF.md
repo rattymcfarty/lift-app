@@ -523,6 +523,33 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
     size for the whole workout's exercise titles, computed from the card's available width
     and the longest name in the workout.
 
+2d. **Scroll wheels for numeric entry — owner request 2026-10-24 ("instead of the numeric
+    keyboard").** The owner wants weights/reps/RPE picked by flicking an iOS-style drum —
+    the value in a highlighted band with its unit beside it — rather than typing on a
+    numeric pad that covers half the screen mid-workout.
+
+    Shipped as a first increment (2026-10-24, uncommitted→ see §6): a hand-rolled
+    `WheelPicker` (no new dependency — a clock module would cost the Expo Go story),
+    `wheelModel.ts` (rows, snapping, nearest-value, looping) with `test:wheel` (53), and
+    `WheelSheet` (drum + unit + optional field tabs). Opened from the **set number** in a
+    pending row (`edit-set-<n>`, hint glyph under the number) with Weight | Reps | RPE tabs;
+    tapping a value pill still focuses the keypad, so nothing that works today regressed.
+
+    Remaining, in order:
+    1. **Make the wheel the primary path** — tapping a value pill opens the wheel, with a
+       "Type" action for the keypad. That flips an interaction four Maestro flows depend on
+       (`workout-flow`, `exercise-menu`, `user-content`, `screenshots` all tap `set-reps-*` /
+       `set-weight-*` then type); each needs the extra step, and SetRow needs to re-focus the
+       input when "Type" is chosen. Do this only with the device available.
+    2. **Same wheel for the other numeric fields** — warm-up working weight, rest timer
+       (the owner's screenshot is literally the timer drums: min + sec), plate calculator
+       target weight, plan target sets/reps/weight/RPE, body measurements.
+    3. **Polish** — show the unit inside the band only when settled vs live, a "tap the band
+       to type" affordance, and per-field step rules (2.5 kg vs 5 lb is already in
+       `wheelFields.ts`).
+    4. Consider whether the *keyboard* should stay the default for reps (small range, fast to
+       type) — an owner call once they have felt both.
+
 3. **Exercise content quality:** enrich the thin entries (list: live exercises with
    fewer than 4 instruction steps); add real safety notes for neck, behind-the-neck,
    plyometrics, dragon flag, Nordic curl, handstand push-ups; coach review.
@@ -602,8 +629,16 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 - Gate: `npm run verify` ALL GREEN. Rules of record: `docs/design/TYPE.md`
   ("Headers: exactly one top-bar allowance" + the screen-by-screen audit table).
 - Owner's next requests are queued as 2a (Plan vs Program explainer), 2b (Programs section
-  review: persona editor, guided quiz, header/uniformity) and 2c (the app-wide adaptive-type
-  audit that the exercise-title fix belongs to).
+  review: persona editor, guided quiz, header/uniformity), 2c (the app-wide adaptive-type
+  audit that the exercise-title fix belongs to) and 2d (the scroll-wheel numeric entry).
+- **Scroll wheels (owner asked to replace the numeric keypad).** Shipped the first
+  increment: `src/components/ui/WheelPicker.tsx` (hand-rolled drum — `snapToInterval`, one
+  `Animated` value fading the rows, three copies + silent recentre so it loops forever),
+  `wheelModel.ts` (pure: rows/snapping/nearest/loop) with `test:wheel` (53), and
+  `WheelSheet.tsx` (band + unit + Weight | Reps | RPE tabs). Opened from the set number in a
+  pending row (`edit-set-<n>`); a tap on a value pill still opens the keypad, so no existing
+  flow or habit broke. The remaining rollout (flip the default, other fields) is queue 2d.
+  **Not yet seen on a device** — the Android APK has to be rebuilt for a JS change.
 
 ### 2026-10-24 — RPE explainer, the last two 3D icons, UI round 3 (opencode)
 

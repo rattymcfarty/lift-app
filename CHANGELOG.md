@@ -2,6 +2,20 @@
 
 ## Unreleased (addendum)
 
+- **Numeric entry gets a scroll wheel.** Weight, reps and RPE can be picked by flicking an
+  iOS-style drum — the value in a highlighted band with its unit beside it — instead of the
+  numeric keypad covering half the screen mid-workout. It opens from the set number in a
+  pending row, with Weight | Reps | RPE tabs; a tap on a value pill still opens the keypad,
+  so nothing that worked before changed. The drum is hand-rolled in plain React Native
+  (`src/components/ui/WheelPicker.tsx`) — no new dependency, because a native picker package
+  would cost the Expo Go compatibility story — and it is genuinely endless: three copies of
+  the rows with a silent recentre after every settle, so a flick never reaches an end. Steps
+  are gym-real (2.5 kg, 5 lb, half-point RPE) and a typed value opens the wheel on the
+  nearest row rather than row 0. Pure logic in `wheelModel.ts` + `workout/wheelFields.ts`,
+  pinned by `scripts/test-wheel.mjs` (53 assertions). The rest of the rollout — the other
+  numeric fields (warm-up weight, rest timer, plan targets, measurements) and flipping the
+  default to "wheel first, keypad on request" — is queued as 2d in `docs/ops/HANDOFF.md`.
+
 - **Every section now names itself, and all four headings sit at the same height.** The
   Programs tab led with “Explore | Library” and nothing else — no word anywhere said which
   section you were in — while the Analytics title floated ~60 dp lower than Train's and
