@@ -41,6 +41,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Plate calculator | ✅ | |
 | Feedback that feels good (haptics, motion) | ✅ P9 | Haptics on log, pop animation, PR celebration |
 | Previous performance visible | ✅ | "Prev" column |
+| Understand the RPE I'm asked to enter | ✅ | The set table's RPE header opens an explainer — the 6–10 scale with the reps left at each level, a worked program line, effort ≠ load, and the 7–9 range most programs target (`src/components/workout/RpeSheet.tsx`). Companion on → Pip says the one-liner; off → neutral copy. The plan target editor's RPE label opens the same sheet |
 | Progressive overload suggestions | ✅ | Progression engine |
 | Keep screen on | ❌ backlog (needs expo-keep-awake) | |
 | Forgot to finish? Idle detection, check-in prompt, auto-finish at last activity | ✅ P9 | `src/workouts/` |
@@ -73,7 +74,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Weekly pillars (strength sessions, cardio minutes) | ✅ | |
 | Program deloads + RPE caps | ✅ | |
 | Generated plans always include squat/hinge/push/pull/carry/core/mobility | ✅ P9 | The "movement vocabulary" for ageing well |
-| Effort guidance (stay 2–3 reps in reserve) | ✅ P9 | In generated plan notes + readiness advice |
+| Effort guidance (stay 2–3 reps in reserve) | ✅ P9 | In generated plan notes + readiness advice; the RPE explainer spells out what each number leaves in the tank |
 
 ## Backlog (not in this pass)
 Progress photos (permissions), Apple Health / Health Connect, Watch, cloud sync,
