@@ -72,24 +72,37 @@ export function WheelPicker({
   const listRef = useRef<FlatList<number>>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const offsetRef = useRef(0);
-  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** The logical (0..count-1) row under the band. */
   const [selected, setSelected] = useState(() => (count > 0 ? ((index % count) + count) % count : 0));
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
+  /**
+   * The last row REPORTED to the caller. Kept separate from `selected` (which the
+   * live band updates while the finger is still moving): settling on the row the
+   * band already shows is not the same as having reported it, and comparing
+   * against `selected` meant a flick updated the band and then reported nothing —
+   * the row kept its old value.
+   */
+  const committedRef = useRef(selected);
 
   // Keep the drum in step if the caller changes the value from outside (a typed
   // value, a swapped exercise's carry-over).
   useEffect(() => {
     if (count === 0) return;
     const logical = ((index % count) + count) % count;
+    committedRef.current = logical;
     if (logical === selectedRef.current) return;
     setSelected(logical);
     const target = loop ? loopIndex(logical, count) : logical;
     listRef.current?.scrollToOffset({ offset: target * it, animated: false });
   }, [index, count, it, loop]);
 
-  const settle = useCallback(
+  /**
+   * Commit whatever row the drum has settled on: snap, recentre the loop, report
+   * the value once, and tick.
+   */
+  const commitIndex = useCallback(
     (offsetY: number) => {
       if (count === 0) return;
       const landed = snapIndex(offsetY, it);
@@ -102,16 +115,33 @@ export function WheelPicker({
         }
       }
       const logical = ((physical % count) + count) % count;
-      if (logical === selectedRef.current) return;
-      setSelected(logical);
+      if (logical !== selectedRef.current) {
+        setSelected(logical);
+        selectedRef.current = logical;
+      }
+      // Report a row once. `selected` follows the finger, so comparing against it
+      // would treat "the band already shows it" as "already reported" and the row
+      // would keep its old value — the bug the first device pass caught.
+      if (logical === committedRef.current) return;
+      committedRef.current = logical;
       onChange(logical, items[logical]);
       void Haptics.selectionAsync().catch(() => undefined);
     },
     [count, it, loop, onChange, items],
   );
 
-  // Live band value while the drum is still moving (cheap: a state write only
-  // when the centred row actually changes).
+  const cancelCommit = useCallback(() => {
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    commitTimer.current = null;
+  }, []);
+  useEffect(() => cancelCommit, [cancelCommit]);
+
+  /**
+   * Live band value while the drum is still moving, plus a commit 200 ms after it
+   * stops. The timer is the important part: momentum-end events never arrive on a
+   * synthetic swipe (and a very slow release sends none either), so the value
+   * must not depend on them. `onMomentumScrollEnd` only commits sooner.
+   */
   const trackBand = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
@@ -121,31 +151,18 @@ export function WheelPicker({
       // with Animated.createAnimatedComponent") and took the workout screen down
       // on device. A five-row drum does not need the UI thread.
       scrollY.setValue(y);
-      if (count === 0) return;
-      const logical = ((snapIndex(y, it) % count) + count) % count;
-      if (logical !== selectedRef.current) {
-        setSelected(logical);
-        selectedRef.current = logical;
+      if (count > 0) {
+        const logical = ((snapIndex(y, it) % count) + count) % count;
+        if (logical !== selectedRef.current) {
+          setSelected(logical);
+          selectedRef.current = logical;
+        }
       }
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+      commitTimer.current = setTimeout(() => commitIndex(y), 200);
     },
-    [count, it, scrollY],
+    [count, it, scrollY, commitIndex],
   );
-
-  /**
-   * A flick must keep its momentum: settling on `onScrollEndDrag` would call
-   * `scrollToOffset` mid-fling and stop the drum dead. So the drag end only
-   * arms a fallback timer (a slow release that never produces momentum still has
-   * to commit its row), and `onMomentumScrollBegin` cancels it.
-   */
-  const armSettle = useCallback(() => {
-    if (settleTimer.current) clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(() => settle(offsetRef.current), 260);
-  }, [settle]);
-  const cancelSettle = useCallback(() => {
-    if (settleTimer.current) clearTimeout(settleTimer.current);
-    settleTimer.current = null;
-  }, []);
-  useEffect(() => cancelSettle, [cancelSettle]);
 
   const renderItem = useCallback(
     ({ item: physical }: { item: number }) => {
@@ -195,12 +212,11 @@ export function WheelPicker({
         contentContainerStyle={{ paddingTop: pad, paddingBottom: pad }}
         onScroll={trackBand}
         scrollEventThrottle={16}
-        onMomentumScrollBegin={cancelSettle}
+        onMomentumScrollBegin={cancelCommit}
         onMomentumScrollEnd={(e) => {
-          cancelSettle();
-          settle(e.nativeEvent.contentOffset.y);
+          cancelCommit();
+          commitIndex(e.nativeEvent.contentOffset.y);
         }}
-        onScrollEndDrag={armSettle}
         snapToInterval={it}
         snapToAlignment="start"
         decelerationRate="fast"

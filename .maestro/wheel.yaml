@@ -1,0 +1,71 @@
+# Scroll-wheel numeric entry (owner request): the set row's values are picked by
+# flicking a drum, in a sheet with the unit in the band and Weight | Reps | RPE
+# tabs. The key assertion is the FIRST ONE AFTER "Done": the value the drum
+# settled on must be written into the set row. The first device pass found it was
+# not (the live band made the commit think nothing had changed), which is exactly
+# what this flow guards.
+#
+# The swipe distance is calibrated to the test AVD (1080x2424, density 420):
+# the drum row is 40 dp = 105 px = 4.33% of the height, so 13% ≈ 3 rows, and the
+# weight drum steps 2.5 kg - 0 + 3 rows = 7.5 kg. The pure maths is unit-tested
+# in scripts/test-wheel.mjs; this flow only has to prove the wiring.
+# Run: maestro test .maestro/wheel.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- hideKeyboard
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+
+# The set number in a pending row opens the wheel.
+- tapOn:
+    id: "edit-set-1"
+- assertVisible:
+    id: "wheel-sheet"
+- assertVisible:
+    id: "wheel-sheet-wheel-value"
+- assertVisible:
+    id: "wheel-sheet-wheel-unit"
+
+# Flick the weight drum three rows (0 -> 7.5 kg), then close.
+- swipe:
+    start: "50%, 70%"
+    end: "50%, 57%"
+- tapOn:
+    id: "wheel-sheet-done"
+- assertNotVisible:
+    id: "wheel-sheet"
+- assertVisible:
+    id: "set-weight-1"
+    text: "7.5"
+
+# The tabs switch the field and its unit: reps, three rows (0 -> 3).
+- tapOn:
+    id: "edit-set-1"
+- tapOn:
+    id: "wheel-tab-reps"
+- assertVisible:
+    id: "wheel-sheet-wheel-unit"
+- swipe:
+    start: "50%, 70%"
+    end: "50%, 57%"
+- tapOn:
+    id: "wheel-sheet-done"
+- assertVisible:
+    id: "set-reps-1"
+    text: "3"

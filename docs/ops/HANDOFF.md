@@ -718,9 +718,18 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   VirtualizedList must be wrapped with Animated.createAnimatedComponent to support native
   onScroll events with useNativeDriver" — and it took the workout screen to the
   "Couldn't start LIFT" boundary as soon as the sheet rendered. The drum is now JS-driven
-  (`onScroll` sets the `Animated.Value` directly, which a five-row drum can afford), and a
-  flick keeps its momentum: settling on `onScrollEndDrag` would have cancelled the fling, so
-  the drag end only arms a 260 ms fallback timer and `onMomentumScrollBegin` cancels it.
+  (`onScroll` sets the `Animated.Value` directly, which a five-row drum can afford), and the
+  commit is driven by a 200 ms timer after the last scroll event (plus momentum-end when it
+  arrives) — settling on the drag end would have cancelled the fling instead.
+- **Second device pass (same day): the drum moved but the row kept its old value.** The
+  live band updates `selected` on every scroll frame, and the commit path compared against
+  `selected` — so "the band already shows 7.5" counted as "already reported" and `onChange`
+  never fired. Reporting now compares against a separate `committedRef`, and the commit is
+  driven by a 200 ms timer after the last scroll event rather than by momentum-end events
+  (a synthetic swipe sends none). `.maestro/wheel.yaml` asserts the written value, so this
+  cannot come back silently. Device: `wheel`, `exercise-browse` (floating chrome on an inner
+  screen), `tabs` (the Today segment + Programs title) and `workout-flow` all PASS on a
+  fresh release APK (`/tmp/lift-e2e-185310`, `/tmp/lift-e2e-192219`).
 
 ### 2026-10-24 — RPE explainer, the last two 3D icons, UI round 3 (opencode)
 

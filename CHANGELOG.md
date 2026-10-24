@@ -12,7 +12,11 @@
   the rows with a silent recentre after every settle, so a flick never reaches an end. Steps
   are gym-real (2.5 kg, 5 lb, half-point RPE) and a typed value opens the wheel on the
   nearest row rather than row 0. Pure logic in `wheelModel.ts` + `workout/wheelFields.ts`,
-  pinned by `scripts/test-wheel.mjs` (53 assertions). The rest of the rollout — the other
+  pinned by `scripts/test-wheel.mjs` (53 assertions) and by `.maestro/wheel.yaml`, which
+  flicks the drum three rows and asserts the row keeps the value the drum settled on. Two
+  bugs the device found, both now fixed: a native-driven `onScroll` on a plain `FlatList`
+  crashed the workout screen, and the live band made the commit think nothing had changed —
+  the drum moved and the row kept its old value. The rest of the rollout — the other
   numeric fields (warm-up weight, rest timer, plan targets, measurements) and flipping the
   default to "wheel first, keypad on request" — is queued as 2d in `docs/ops/HANDOFF.md`.
 

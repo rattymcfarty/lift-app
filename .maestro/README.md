@@ -27,6 +27,10 @@ maestro test .maestro/workout-flow.yaml
   explainer from the RPE column header (Pip's intro, levels, worked example) →
   more sets, a warm-up row, a swap, the picker filters and the exercise detail
   tabs → finish → verify the exercise appears on the summary screen.
+- `wheel.yaml` — the scroll drum: open it from a pending set's number, flick the
+  weight three rows and assert the row keeps the value the drum settled on (7.5),
+  then the reps tab (3). Guards the commit path: the first device pass showed the
+  band moving while the row kept its old value.
 - `workout-discard.yaml` — discard path: log a set → header Finish → the
   finish/discard sheet → Discard workout → confirm → back on Train with an
   empty History (the workout left no trace).
@@ -54,6 +58,8 @@ changes. Key testIDs:
 | `log-set-<n>` | Set row → Log button |
 | `rpe-help` | Set table → RPE column header (opens the RPE explainer) |
 | `plan-rpe-help` | Plan target editor → RPE field label (same explainer) |
+| `edit-set-<n>` | Pending set row → set number (opens the wheel sheet) |
+| `wheel-sheet`, `wheel-tab-<field>`, `wheel-sheet-done` | Wheel sheet, its field tabs and Done |
 | `workout-finish` | Active workout → footer Finish workout |
 | `workout-finish-bar` | Active workout → header Finish |
 | `finish-sheet` | Finish/discard bottom sheet surface |
