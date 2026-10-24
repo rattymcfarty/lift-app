@@ -194,14 +194,14 @@ try {
   const colorSrc = readFileSync('src/lib/iconColors.ts', 'utf8');
   const numberIn = (src, name) => Number(new RegExp(`\\b${name}\\s*=\\s*([0-9.]+)`).exec(src)?.[1]);
   for (const [theme, hexes] of [
-    ['light', ['#f2f2f7', '#5c5c60', '#1a69c8']],
-    ['dark', ['#1c1c1e', '#a1a1a6', '#4b98e8']],
+    ['light', ['#f2f2f7', '#5c5c60', '#6c3fd1']],
+    ['dark', ['#1c1c1e', '#a1a1a6', '#a073f0']],
   ]) {
     for (const hex of hexes) {
       check(`render sheet ${theme}: uses ${hex}`, sheetSrc.includes(hex));
     }
     check(
-      `render sheet ${theme}: muted/highlight are real theme tokens`,
+      `render sheet ${theme}: muted/accent are real theme tokens`,
       hexes.slice(1).every((hex) => tokenSrc.includes(`'${hex}'`)),
     );
   }
@@ -218,7 +218,7 @@ try {
     /mix\(t\.muted, 255, LINE_LIGHTEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.muted, 0, SHADOW_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
       /mix\(t\.muted, 0, SHADOW_SOFT_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')) &&
-      /mix\(t\.highlight, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
+      /mix\(t\.accent, 0, HI_LINE_DARKEN\)/.test(sheetSrc.replace(/\s+/g, ' ')),
   );
 
   /* ---- 5. the 3D muscle renders are the ones the gate passed ---- */

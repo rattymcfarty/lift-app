@@ -15,7 +15,7 @@ CHECKS = {
     "body_coverage": (0.22, 0.90, False),  # fraction of the tile the figure fills
     "mask_ratio": (0.03, 0.62, True),      # muscle area / body area
     "mask_outside": (0.0, 0.002, True),    # muscle pixels with no body under them
-    "soft_edge": (1.0, 10.0, True),         # mean feather width in px (perimeter-normalised)
+    "soft_edge": (0.25, 4.0, True),         # mean feather width in px (perimeter-normalised)
     "contrast48": (25.0, 999.0, True),     # RGB distance at 48 px
     "mask_clip": (0.0, 0.005, True),       # muscle cut off by the frame
 }
@@ -56,8 +56,15 @@ def composite(body, mask, size, hi):
     return tile.convert("RGB")
 
 
-def difference_mask(body, muscle, thr=90):
-    """The painted area, recovered from the rendered colour difference."""
+def difference_mask(body, muscle, lo=0.02, hi=0.06):
+    """The painted area, recovered from the rendered colour difference.
+
+    The distance is measured in chromaticity (each channel over that pixel's
+    sum), not raw RGB. Raw RGB distance collapses wherever the highlight is
+    dark: shadowed purple muscle sits close to grey skin, so a large part of the
+    muscle read as a half-tone and the feather metric counted shading. Hue
+    survives shadow, so a dark accent and a light one are measured the same way.
+    """
     bp = body.load()
     mp = muscle.load()
     out = Image.new("L", body.size, 0)
@@ -66,8 +73,12 @@ def difference_mask(body, muscle, thr=90):
         for x in range(body.width):
             if bp[x, y][3] < 32:
                 continue
-            d = max(abs(mp[x, y][i] - bp[x, y][i]) for i in range(3))
-            op[x, y] = 255 if d > thr else (int(d * 255 / thr) if d > 12 else 0)
+            b, m = bp[x, y], mp[x, y]
+            sb, sm = b[0] + b[1] + b[2], m[0] + m[1] + m[2]
+            if not sb or not sm:
+                continue
+            d = max(abs(m[i] / sm - b[i] / sb) for i in range(3))
+            op[x, y] = 255 if d > hi else (int((d - lo) / (hi - lo) * 255) if d > lo else 0)
     return out
 
 
@@ -92,7 +103,7 @@ def check(body_path, mask_path):
                 outside += 1
     res["mask_outside"] = outside / max(1, mask_px)
 
-    # feathered edge, measured as mean width: soft pixels per boundary pixel
+    # Feathered edge, measured as mean width: soft pixels per boundary pixel.
     a = mask.getchannel("A").load()
     solid = [[a[x, y] > 128 for x in range(mask.width)] for y in range(mask.height)]
     edge = 0
@@ -106,7 +117,7 @@ def check(body_path, mask_path):
     res["soft_edge"] = soft / max(1, edge)
 
     # can the muscle still be told apart at 48 px?
-    small = composite(body, mask, 48, (75, 152, 232, 255))
+    small = composite(body, mask, 48, (160, 115, 240, 255))  # #a073f0, the dark accent
     m48 = Image.new("L", (48, 48), 0)
     a = mask.resize((48, 48), Image.LANCZOS).getchannel("A")
     b = body.resize((48, 48), Image.LANCZOS).getchannel("A")

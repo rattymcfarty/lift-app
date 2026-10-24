@@ -2,6 +2,17 @@
 
 ## Unreleased (addendum)
 
+- **Icon highlight is the app's accent purple** (`#a073f0` dark, `#6c3fd1` light), not the
+  warm orange and not the blue. The 18 muscle renders were re-baked with the accent in the
+  muscle material, so the lit result is still a form (median `#966cde` / `#663ec3`) rather
+  than a flat fill; the vector fallbacks (`All`, `Olympic`, `Full-Body`) and **every equipment
+  icon** now take `theme.colors.accent` directly, so the two halves of the set read as one
+  family. `scripts/render-icons.mjs` and `test:icons` follow the same tokens. `--color orange`
+  and `--color red` remain in the renderer for comparison. The QA gate had to change with
+  the colour: it recovered the painted area from raw RGB distance, which collapses in
+  shadow and made the purple look like a 13–35 px feather, so it now measures chromaticity
+  and its `soft_edge` band was re-calibrated (0.25–4.0 px, where a 6 px haze scores 4.8) —
+  stricter than the old 1–10 px.
 - **Expo SDK 58** (React Native 0.88, React 19.3): the owner's iPhone could no longer open the
   app — Expo Go on iOS only loads the newest SDK, and it cannot be rolled back — so the project
   moved up a release. Only four code changes were needed: the custom tab bar now takes

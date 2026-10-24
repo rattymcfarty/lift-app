@@ -53,24 +53,36 @@ compositing and no pale halo at the patch edge.
 
 ### Colours
 
-`--color orange` (default) is the warm highlight used in the app.
-`--color red` is available for comparison. The theme pair is baked in one run
-as `<out>-muscle-dark.png` and `<out>-muscle-light.png`.
+`--color purple` (default) is the app's accent: `#a073f0` for the dark theme,
+`#6c3fd1` for the light one. Lighting lands both a step darker (`#966cde` /
+`#663ec3` in the lit muscle), which is intended — a flat accent would look
+painted on. `--color orange` and `--color red` are kept for comparison. The
+theme pair is baked in one run as `<out>-muscle-dark.png` and
+`<out>-muscle-light.png`.
 
 ## The gate
 
 `qa.py` measures each render and prints the value, so "looks good" is not the
-test. It always derives the painted area from the rendered colour difference
-between the body pass and the muscle pass, rather than trusting the mask.
+test. It always derives the painted area from the rendered difference between
+the body pass and the muscle pass, rather than trusting the mask. The distance is
+measured in **chromaticity** (each channel over that pixel's sum), not raw RGB:
+raw distance collapses in shadow, which made a dark accent (the purple) look like
+a wide feather. Hue survives shadow, so both accents measure the same.
 
 | Check | Meaning | Bounds |
 | --- | --- | --- |
 | `body_coverage` | share of the frame the figure fills | 0.22–0.90 |
 | `mask_ratio` | painted area / body area | 0.03–0.62 |
 | `mask_outside` | painted pixels with no body under them | ≤ 0.002 |
-| `soft_edge` | mean feather width, px | 1.0–10.0 |
+| `soft_edge` | mean feather width, px | 0.25–4.0 |
 | `contrast48` | muscle vs skin distance at 48 px | ≥ 25 |
 | `mask_clip` | painted area cut off by the frame | ≤ 0.005 |
+
+`soft_edge` is calibrated against the renders themselves: the sharp set scores
+0.3–2.3, a 6 px Gaussian haze scores 4.8 and a 10 px one 7.4, so the band fails a
+real halo while accepting the anti-aliasing a render always has. When the metric
+changed from RGB to chromaticity the band moved with it — the old 1.0–10.0 was
+calibrated for a bright orange and is not comparable.
 
 The human gate is the reference comparison sheet: the set at 200 px in both
 themes plus 96 px and 48 px, next to the owner's reference tiles.

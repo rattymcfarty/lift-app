@@ -2,93 +2,93 @@
   "iconCount": 18,
   "icons": {
     "abductors": {
-      "dark": "e349b0ab84e6fb24bb06bc20a3dfca0e3bf49d53ec20432b3012a7ecc2459cae",
-      "light": "c915cf57158fdc51bbba031340ef1c4243c038b525396dbcb64778f5ed5cfb14",
+      "dark": "2786e6601f00e751cbe2e9185c54426149a4684ed095ae95b316bcf47980b63a",
+      "light": "473549976136fb25eb2cc330695609f0a8c43cc5e25ba3e6009fa83e7cef6b3f",
       "qa": "PASS"
     },
     "abs": {
-      "dark": "c454a42ba02a7e40ba02d3ffdcf90eab695bee56bdcd5dbc4fd416906b480474",
-      "light": "f3910d7fef32210a0cc5d60fa9837131143a3cbc0e7edb80b748acd5d3aac7d7",
+      "dark": "98642d1abac6222e44313c1d2a569634d3d65603e3a8978d37638f0c8682437c",
+      "light": "a583ce6bd05b359f8f3fb9a0fe4ab1c5ae62da23c82e12a33eee86e03d3ad61a",
       "qa": "PASS"
     },
     "adductors": {
-      "dark": "d9c5677d121be3961fc2323c2c901ad5213f380b2a2eea4292795ab4055fadd4",
-      "light": "8df39e6f54bd555c9bf4e4c1341b8fdc8f2545e175326484384562f51fb7dec2",
+      "dark": "00769e8a7e355e821579856af8ff1ec3ec048b2ca91f73958f8b40e05624163a",
+      "light": "4fff30e94984f034dd43cb79eee30193d9846471af1c4a0c613009cf1b4c7964",
       "qa": "PASS"
     },
     "biceps": {
-      "dark": "51dd72bf41579bf69ae8cd73f95a0490b0c980c4b419fb5b061ac8d8ab8e5107",
-      "light": "f9e4c9d676d85f1bed1723d4eb7ecf8aafbdaaa6b4c3178cf650b71261a8a091",
+      "dark": "84ba804b2948fd1c092d796000a10e967a92bee2afe2a10ebe88a8f2ebf8bc79",
+      "light": "3245450b3bc0f67032d11b6abf9df524c8eab75140c13422ae1a602c7e7694af",
       "qa": "PASS"
     },
     "calves": {
-      "dark": "fab8d7d2ac8f850f55e6b6414e4b47da68043890146bc504943e52696fc601d6",
-      "light": "0dc76bae949ddd4db4718be9b2b1c409d8a933530f809c93a911fd4c6feea822",
+      "dark": "a666cb3d65bf09673cf2781d51dcbf03a718f1b074c47d61963579d7b25c07f0",
+      "light": "ef115d175bcdff7c3035af919608b13a40a654bbe029cca0da1fe9124738eb07",
       "qa": "PASS"
     },
     "chest": {
-      "dark": "9cc2b348a809208f2ba1ad40f47fbe190affd8efac229f57d4823a94c34ec6a4",
-      "light": "82c0544f5c2a167d49dbdd26c89d7f20e17e98a7b6d3d56b993e305aea9f8044",
+      "dark": "9a4b8608df4862c9829891cd8c726da33f9429a264089acecf61f93517fc6db3",
+      "light": "23bf6fdfc0589680d4f70b97924edfa375fa7586f6beb48f5be9c46d91fb2e8b",
       "qa": "PASS"
     },
     "forearms": {
-      "dark": "b349f70a1e965899cee81412fc8d3df11cc564543bb1d7b7778cd151be9ef999",
-      "light": "bd56317d7044f7ed14e46b4e3fc9a4672828e4f9b3f3ac46570bc62da5277551",
+      "dark": "b975b59d638829d76e876eea33aa2ddd570373daf5e1cf7416fe80ec60c1e940",
+      "light": "de239b70bf0f0ff887e25b03786c70ed303b768490d421d094bc66fb2997fe95",
       "qa": "PASS"
     },
     "front-delts": {
-      "dark": "cd57548c9c4bb102226d66ff6666876f1639797159417713bc1c033868e6027b",
-      "light": "78ab72cbe7c4cbebdf0da48797d1dc3312957b29a7106abb1a34727c752bb518",
+      "dark": "d9f993a7d38521d4bc54b70d53e3fa1b75dd939baa3f7d036ffac56e76196fa9",
+      "light": "2e1e297631177df6e721c80620a9847fc6fdd45ad486d23b77a635c30f7b64ac",
       "qa": "PASS"
     },
     "glutes": {
-      "dark": "b5c840a1e62ee6b6243564dcda5bb6b547e3296daa2c9f1b8dd4a8aebb6ee105",
-      "light": "856762e438fc7557be69ed139db4d858d96df57b0b92f643391ec24f46983ca5",
+      "dark": "1a523be02372da598f52e9ef784e228c9a983d27bcae741bab4d26d8c9e8a610",
+      "light": "82c1de823b3ca9eaecfe2fc1d81f9ec3511ec6207fe0a235802a23ef8c0a582e",
       "qa": "PASS"
     },
     "hamstrings": {
-      "dark": "aaf5a752af5e5ed2d85599aae73b1ef8c58c736c4df7b936cd9d690bb2d72cb0",
-      "light": "6ed8844fc8490748566f390bac69d4c8292b54fb4045288c5eab7f48bde5aa81",
+      "dark": "24cdbb624fd036141f6010f656baa1c004c49d7a4dc09dfb37197b943617a432",
+      "light": "36be115c0714485444f398d19a366eda204c0f340fbc9b352e1ce969734c58c9",
       "qa": "PASS"
     },
     "lats": {
-      "dark": "4ee104d8c8a920ee323b40f66d65ef7b799bfc870811e94856e33c021da8a342",
-      "light": "c29e651e7fd40cbf9048e33d67567bf220ae4d9a57388f82b013df578f033693",
+      "dark": "7ab82a00548ad4e07e933bd0485625adb2ba69010cbec29f66a6d0028215194c",
+      "light": "423e4691d49df332680b249dc127f5b3b5f887ce92239933c1578500dc428328",
       "qa": "PASS"
     },
     "lower-back": {
-      "dark": "9e50ef987c0eb93d2d13a3fc227d16f7cda83cfc96d24d63ba3a6a24ceac2258",
-      "light": "648f76ee9a57d266827cbee8857f84790d048755af62c9564f7e2ae6ebf01502",
+      "dark": "65987569ff62bb4867a8ae712fc034516fd7308de1761e2fd3a21ee40573385f",
+      "light": "26c27b85a055466e0b69ac740f62cbf20c13dd1f1d7a2d573f0ce7f4c7ab6c37",
       "qa": "PASS"
     },
     "middle-delts": {
-      "dark": "d62c2794d79d24135751a6aa58d4b0cc4b49a7e9ebaaa4d13faa376d9df38311",
-      "light": "9e6f7af158b08d0486f28decb29f1ff0aeffec7e714c51aa1cf5fca7b40443e1",
+      "dark": "cb9a9e167f95b427e1b7c106201e7f2e753ddf0f68dede6eeadf658bf8b67164",
+      "light": "c87c3d8b74e4f1e79db079290c3d199f8e1cf319b3094f32bdc35baa87e50851",
       "qa": "PASS"
     },
     "neck": {
-      "dark": "199a782653feff196b171f38ae19f35f7ba5cbeb66a7a71951c906993600eece",
-      "light": "6be61962d68abaf8ccdc216d20ca2476a2c79b18ce371ae1628c9eb3c88510c9",
+      "dark": "868331445cdb7a15080985acc9c7722587482fd6e70af473ca43358acfafc769",
+      "light": "5a97484925fc0b50d8ba6633a964926d05bf842440590c2f6044d4f8762fd5d4",
       "qa": "PASS"
     },
     "quadriceps": {
-      "dark": "0dc1e4af7cee51b9ca9484ccc7e1e77781a510c3344c145430e6c6acdaec4b4e",
-      "light": "53b333a1e79ec5b80f99a72513053faa6aabf33077089415b89be7484d3cf810",
+      "dark": "a3b714234a3169be009dec68e7871ad5e83d5c157abcd4a0fee01bd68c8f314b",
+      "light": "04543d2a85e5f22406aaf87b1d6d958422a1d1b3864c252a33f4ecf5fbfa64bf",
       "qa": "PASS"
     },
     "rear-delts": {
-      "dark": "e7f6d79af557845c43bef4c55c0040823e8032d7413445ceb31a83613c20c3e8",
-      "light": "a3c39ce18514449645db3e204a3ea8f6eb4010c3dc7f2a812f948eb884df68cd",
+      "dark": "79a0a20311f0891b95aa93dffa787eacf61787f45198ec8ff34500e6a8fbd678",
+      "light": "d26534be6dcf1e132d6e1d9da12b0b6dc4ef93c08c7cd64d1076b63ce1cedb0d",
       "qa": "PASS"
     },
     "triceps": {
-      "dark": "088cb2a20c198a4dd4ab53024c0ed1495169bd0dc2eb3b8c1f192daa48f035a6",
-      "light": "3b2232652d2645a025ae7af5f4264179b1f070b51c995479bd852c05dc11bd7e",
+      "dark": "f75f6fae9614956c989f657075c6dd0947b7856b560f4ac84a2cb98c1bc596c9",
+      "light": "4fc9ca3259fca8b6617e6b2a0dc92b14ae75f1b2e5d814e62b2a6d32980e1829",
       "qa": "PASS"
     },
     "upper-back": {
-      "dark": "918aebb57131c9d37fb085efa00fd4f7b8b218a86ef8654fd5a166463451a795",
-      "light": "ccdc1fdad8fca792a7024292fc1f5bd6c6dc998d953eaa8764a2a36b34f67878",
+      "dark": "0d4b8ac4295918749813b4f93a8f2f784025556c607b2b11a99de5819c192e5e",
+      "light": "30f91805708839f2f786de48c77e678fb937cf47362d99d2e84186fdfbd26100",
       "qa": "PASS"
     }
   },

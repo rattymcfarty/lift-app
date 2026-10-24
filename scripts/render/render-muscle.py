@@ -36,10 +36,12 @@ AO_FAC = float(arg("--aofac", "0.9"))
 
 # muscle colours: linear RGB for Cycles, plus the dark-theme / light-theme pair
 PALETTE = {
+    # linear RGB, sRGB hex in brackets: #a073f0 (dark accent) / #6c3fd1 (light accent)
+    "purple": {"dark": (0.352, 0.171, 0.871), "light": (0.150, 0.050, 0.638)},
     "orange": {"dark": (1.00, 0.235, 0.012), "light": (0.62, 0.115, 0.004)},
     "red":    {"dark": (0.84, 0.055, 0.030), "light": (0.52, 0.022, 0.014)},
 }
-COLOUR = arg("--color", "orange")
+COLOUR = arg("--color", "purple")
 DARK_RGB = PALETTE[COLOUR]["dark"]
 LIGHT_RGB = PALETTE[COLOUR]["light"]
 

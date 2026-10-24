@@ -5,11 +5,11 @@
  * reference screenshots of another app — no copied, traced, or
  * extracted artwork): small illustrated scenes on a 48x48 grid — a
  * gray figure using the equipment, with the implement itself in the
- * highlight blue. Every shape here is an original primitive drawn
+ * accent. Every shape here is an original primitive drawn
  * for this file.
  *
  * Colors come from props (theme muted = figure/structure, theme
- * highlight = blue implement) so the icons work in both light and
+ * highlight = accent implement) so the icons work in both light and
  * dark mode. Fine detail uses a translucent black stroke.
  *
  * Ids that have a file in assets/icons-src/equipment are rendered from the
@@ -30,7 +30,7 @@ export interface EquipmentIconArtProps {
   size: number;
   /** Structure / figure color (theme muted). */
   silhouette: string;
-  /** Implement color (theme highlight blue). */
+  /** Implement color (theme accent). */
   highlight: string;
 }
 
@@ -181,7 +181,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Cardio':
-      // Exercise bike: blue flywheel/frame, gray rider.
+      // Exercise bike: accent flywheel/frame, gray rider.
       art = (
         <>
           <Limb x1={7} y1={41} x2={36} y2={41} c={sil} w={3} />
@@ -200,7 +200,7 @@ export function EquipmentIconArt({ id, size, silhouette, highlight }: EquipmentI
       break;
 
     case 'Smith Machine':
-      // Squat inside a Smith frame: gray rails, blue bar and plates.
+      // Squat inside a Smith frame: gray rails, accent bar and plates.
       art = (
         <>
           <Rect x={5} y={4} width={3} height={36} rx={1.2} fill={sil} />

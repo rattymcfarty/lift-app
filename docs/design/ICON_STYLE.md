@@ -16,10 +16,10 @@ conventions of good anatomy-chart icons (views, proportions, highlight scheme) b
   `src/components/icons/iconArt.generated.ts` (`--check` = fail if stale; part of `npm run verify`).
 - `node scripts/render-icons.mjs [out.png]` renders a contact sheet (every icon on a dark
   and a light tile, labelled) with headless Chrome so you can look at the result. It uses the
-  **real app theme colors** (light/dark `muted` + `highlight` from `src/theme/tokens.ts`, with
+  **real app theme colors** (light/dark `muted` + `accent` from `src/theme/tokens.ts`, with
   `line`/`hiLine` derived exactly as `src/lib/iconColors.ts` derives them), so the sheet shows
   what the app draws — `#ff7a1a` is an authoring placeholder, not a screen colour
-  (muscle icons ship the sampled warm accent; see below). Add `--only=muscle` or
+  (every shipped icon highlights in the theme accent; see below). Add `--only=muscle` or
   `--only=equipment` while redrawing one half of the set.
 - The components `MuscleIconArt` / `EquipmentIconArt` draw the generated SVG with the
   app's colors; icons without art yet fall back to the older drawing.
@@ -37,10 +37,12 @@ and for every equipment icon.
 - The renders are pinned to their gate result: `assets/icons-3d/qa.json` stores
   the QA verdict and the SHA-256 of every PNG, and `test:icons` fails if a file
   is missing, resized, edited, or the generated map is stale.
-- The muscle accent (`#dd7726` dark, `#bc591b` light) is sampled from the renders
-  and passed to the remaining vector muscle icons, so `All`/`Olympic`/`Full-Body`
-  sit next to the 3D set without a colour jump. Equipment icons keep the theme's
-  blue highlight.
+- The highlight is the app's **accent purple** everywhere: `#a073f0` in dark,
+  `#6c3fd1` in light. The renders bake each theme's accent into the muscle pass
+  and the lit result lands a step darker (median `#966cde` / `#663ec3`), which is
+  what makes it read as a form rather than a sticker. The vector icons — muscle
+  fallbacks and all equipment — take `theme.colors.accent` directly, so the two
+  halves of the set match with no colour jump.
 
 ## SVG rules
 

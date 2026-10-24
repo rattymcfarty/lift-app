@@ -38,8 +38,8 @@ const CELL_H = TILE_BIG + LABEL_H + PAD * 2;
  * Theme colors the app substitutes, on a dark and a light tile.
  *
  * These are the REAL app values, so the sheet shows what the icons look like in
- * the app: `body` is theme `muted`, `hi` is theme `highlight` (the blue set
- * numbers and active borders use — never the #ff7a1a authoring placeholder),
+ * the app: `body` is theme `muted`, `hi` is theme `accent` (the purple the app's
+ * primary actions and icon highlights use — never the #ff7a1a placeholder),
  * and `line`/`shadow`/`hiLine` are derived exactly as src/lib/iconColors.ts
  * derives them (LINE_LIGHTEN / SHADOW_* / HI_LINE_DARKEN below, mirrored in
  * `themeIconPalette`).
@@ -56,10 +56,10 @@ function mix(color, target, amount) {
   return `#${out.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
-/** muted / highlight per theme, straight from src/theme/tokens.ts. */
+/** muted / accent per theme, straight from src/theme/tokens.ts. */
 const THEME_TOKENS = {
-  dark: { tile: '#1c1c1e', muted: '#a1a1a6', highlight: '#4b98e8' },
-  light: { tile: '#f2f2f7', muted: '#5c5c60', highlight: '#1a69c8' },
+  dark: { tile: '#1c1c1e', muted: '#a1a1a6', accent: '#a073f0' },
+  light: { tile: '#f2f2f7', muted: '#5c5c60', accent: '#6c3fd1' },
 };
 
 const THEMES = Object.fromEntries(
@@ -71,8 +71,8 @@ const THEMES = Object.fromEntries(
       line: mix(t.muted, 255, LINE_LIGHTEN),
       shadow: mix(t.muted, 0, SHADOW_DARKEN),
       shadowSoft: mix(t.muted, 0, SHADOW_SOFT_DARKEN),
-      hi: t.highlight,
-      hiLine: mix(t.highlight, 0, HI_LINE_DARKEN),
+      hi: t.accent,
+      hiLine: mix(t.accent, 0, HI_LINE_DARKEN),
     },
   ]),
 );

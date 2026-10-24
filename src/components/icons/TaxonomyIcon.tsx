@@ -1,7 +1,7 @@
 /**
  * TaxonomyIcon — renders a muscle or equipment icon, tiled by default.
- * Colors come from the active theme (muted silhouette, highlight
- * blue) so icons read correctly in both light and dark mode.
+ * Colors come from the active theme (muted silhouette, purple accent)
+ * so icons read correctly in both light and dark mode.
  * Artwork itself lives in muscleIcons.tsx / equipmentIcons.tsx and is
  * original to LIFT — see those files for the copyright note.
  *
@@ -34,13 +34,6 @@ const ART_SCALE = 0.78;
 /** The 3D renders are already padded at build time, so they fill more of the tile. */
 const RENDER_SCALE = 0.9;
 
-/**
- * Muscle highlight, sampled from the baked 3D renders (assets/icons-3d) so the
- * vector fallbacks — All, Olympic, Full-Body — sit next to them without a jump.
- * Equipment icons keep the theme's blue highlight.
- */
-const MUSCLE_ACCENT = { dark: '#dd7726', light: '#bc591b' } as const;
-
 export function TaxonomyIcon({ kind, id, size, tiled = true }: TaxonomyIconProps): JSX.Element {
   const { theme, mode } = useTheme();
   const artSize = tiled ? Math.round(size * ART_SCALE) : size;
@@ -63,7 +56,7 @@ export function TaxonomyIcon({ kind, id, size, tiled = true }: TaxonomyIconProps
         id={id}
         size={artSize}
         silhouette={theme.colors.muted}
-        highlight={MUSCLE_ACCENT[mode]}
+        highlight={theme.colors.accent}
       />
     );
   } else {
@@ -72,7 +65,7 @@ export function TaxonomyIcon({ kind, id, size, tiled = true }: TaxonomyIconProps
         id={id}
         size={artSize}
         silhouette={theme.colors.muted}
-        highlight={theme.colors.highlight}
+        highlight={theme.colors.accent}
       />
     );
   }

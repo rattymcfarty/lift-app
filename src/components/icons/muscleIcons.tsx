@@ -3,14 +3,14 @@
  *
  * Genre (direction only, from Matt's reference screenshots of another
  * app — no copied, traced, or extracted artwork): a small tile with a
- * gray anatomical-style figure and the working muscle highlighted in
- * blue. Every shape here is an original path drawn for this file on
+ * gray anatomical-style figure and the working muscle highlighted in the
+ * app accent. Every shape here is an original path drawn for this file on
  * a 48x48 grid: one front figure and one back figure share a body
  * outline; muscle highlights are separate paths layered on top, and a
  * per-muscle viewBox zooms the crop (shoulders, forearms, abs, neck).
  *
- * Colors come from props (theme muted = silhouette, theme highlight =
- * blue) so the icons work in both light and dark mode. Fine
+ * Colors come from props (theme muted = silhouette, theme accent) so the
+ * icons work in both light and dark mode. Fine
  * definition lines use a translucent black stroke so they read on both.
  *
  * Ids that have a file in assets/icons-src/muscle are rendered from the
@@ -31,7 +31,7 @@ export interface MuscleIconArtProps {
   size: number;
   /** Silhouette color (theme muted). */
   silhouette: string;
-  /** Highlight color (theme highlight blue). */
+  /** Highlight color (theme accent). */
   highlight: string;
 }
 
