@@ -2,6 +2,24 @@
 
 ## Unreleased (addendum)
 
+- **Every section now names itself, and all four headings sit at the same height.** The
+  Programs tab led with “Explore | Library” and nothing else — no word anywhere said which
+  section you were in — while the Analytics title floated ~60 dp lower than Train's and
+  Browse's. Two causes, both fixed: `SegmentedTitle` gained an optional section `title`
+  (“Programs”, with the segments stepping down to a switcher beneath), and the tab screens
+  stopped adding their own `useTopBarInset()` spacer on top of a header that already
+  reserves the top bar. `ScreenHeader` and `SegmentedTitle` now own that allowance, so
+  Train, Programs, Analytics and Browse Exercises all start their title at the same y.
+  Documented in `docs/design/TYPE.md` (“Headers: exactly one top-bar allowance”).
+
+- **Exercise titles in a workout no longer clip on a Display-Zoomed iPhone.** The card
+  title was a fixed 18 pt on one line, so “Romanian Deadlift (Dumbbell)” was cut on a
+  320 pt screen. It now takes ONE size for the whole workout — `useGroupFit` over the
+  longest exercise name, measured on the title row — the same “computed once from the
+  available width” rule as the set table and the filter grid, never per-label shrinking.
+  The 2c audit in `docs/ops/HANDOFF.md` tracks the rest of the app; `docs/design/TYPE.md`
+  now carries the screen-by-screen table.
+
 - **Full-Body and Olympic are 3D renders too.** They were the last two vector muscle icons —
   visibly the odd ones out in the taxonomy grid. Both are now baked from the same mannequin
   as the rest: Full-Body lights all seven front-facing muscles at once; Olympic is the same

@@ -45,7 +45,6 @@ import { volumeByMuscleByWeek } from '../../src/stats/balance';
 import { startOfWeekMonday } from '../../src/stats/volume';
 import { fetchStatWorkouts } from '../../src/stats/queries';
 import { listMeasurements } from '../../src/data/repositories';
-import { useTopBarInset } from '../../src/components/chrome/TopBar';
 import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 /** "Oct 5" — short label for chart axes. */
@@ -153,7 +152,6 @@ function ExerciseChips({
 export default function ProgressScreen(): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
-  const topInset = useTopBarInset();
   const tabBarSpace = useTabBarSpace();
 
   const [weekly, setWeekly] = useState<WeeklyVolumePoint[] | null>(null);
@@ -285,7 +283,6 @@ export default function ProgressScreen(): JSX.Element {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       edges={['top']}
     >
-      <View style={{ paddingTop: topInset }} />
       <ScreenHeader title="Analytics" />
       {loading ? (
         <View style={styles.center}>

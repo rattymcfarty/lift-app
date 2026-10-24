@@ -7,6 +7,7 @@
  */
 import type { JSX, ReactNode } from 'react';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { TOP_BAR_HEIGHT, useTopBarVisible } from '../chrome/TopBar';
 import { useTheme } from '../../theme';
 import { fitGroupSize } from '../../theme/adaptive';
 
@@ -14,6 +15,12 @@ export interface SegmentedTitleProps<K extends string> {
   segments: ReadonlyArray<{ key: K; label: string; testID?: string }>;
   active: K;
   onChange: (key: K) => void;
+  /**
+   * Section name, rendered as the page title above the segments (Programs).
+   * Without it the segments ARE the title (Train's "Train | History"), which is
+   * fine when one of them names the section; use it when none of them does.
+   */
+  title?: string;
   /** Trailing controls (settings gear, action button). */
   right?: ReactNode;
 }
@@ -22,11 +29,16 @@ export function SegmentedTitle<K extends string>({
   segments,
   active,
   onChange,
+  title,
   right,
 }: SegmentedTitleProps<K>): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
   const { width } = useWindowDimensions();
+  const topBarVisible = useTopBarVisible();
+  // Titled mode: the section name carries the hierarchy, so the segments step
+  // down to row size and read as a switcher, not as a second title.
+  const titled = title != null;
   // One size for every segment, computed once from the narrowest thing that has
   // to fit: the longest label in the width left over after the trailing action.
   // Each segment used to autoshrink on its own, so "Train | History" could come
@@ -34,21 +46,44 @@ export function SegmentedTitle<K extends string>({
   const reserved = right ? theme.spacing.md + 40 : 0;
   const size = fitGroupSize(width - theme.spacing.md * 2 - reserved, {
     longest: segments.reduce((a, s) => (s.label.length > a.length ? s.label : a), ''),
-    base: width < 360 ? t.size.screenCompact : t.size.screen,
-    min: t.size.card,
+    base: titled ? t.size.row : width < 360 ? t.size.screenCompact : t.size.screen,
+    min: titled ? t.size.meta : t.size.card,
     count: segments.length,
     gap: theme.spacing.md * (segments.length - 1),
   });
+  // The page title matches ScreenHeader's: same scale formula, same width rules,
+  // so every section's title is the same size on the same device.
+  const titleScale = Math.min(1.05, Math.max(0.86, width / 390));
   return (
     <View
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingHorizontal: theme.spacing.md,
-        paddingVertical: theme.spacing.sm,
-        gap: theme.spacing.md,
+        // Same top-bar allowance as ScreenHeader; screens must NOT add their own
+        // spacer on top of this or their headers drift apart.
+        paddingTop: theme.spacing.sm + (topBarVisible ? TOP_BAR_HEIGHT : 0),
+        paddingBottom: theme.spacing.sm,
+        gap: theme.spacing.sm,
       }}
     >
+      {title != null ? (
+        <Text
+          numberOfLines={1}
+          style={{
+            color: theme.colors.text,
+            fontSize: Math.round((width < 360 ? t.size.screenCompact : t.size.screen) * titleScale * 2) / 2,
+            fontWeight: t.weight.bold,
+          }}
+        >
+          {title}
+        </Text>
+      ) : null}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: theme.spacing.md,
+        }}
+      >
       <View style={{ flexDirection: 'row', flexShrink: 1, gap: theme.spacing.md }}>
         {segments.map((s) => {
           const on = s.key === active;
@@ -81,6 +116,7 @@ export function SegmentedTitle<K extends string>({
         })}
       </View>
       {right ? <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>{right}</View> : null}
+      </View>
     </View>
   );
 }

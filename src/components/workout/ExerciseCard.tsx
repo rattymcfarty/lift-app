@@ -36,6 +36,7 @@ import {
 import { decodeStringArray } from '../../db/schema';
 import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
+import { useGroupFit } from '../../theme/adaptive';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import { supersetTagText, shouldStartRest, nextSupersetMember } from '../../lib/exerciseMenu';
@@ -136,6 +137,26 @@ export function ExerciseCard({
   const { width: windowWidth } = useWindowDimensions();
   const gm = gridMetrics(windowWidth);
   const t = theme.typography;
+  /**
+   * Exercise-title size. ONE size for every exercise in the workout, computed
+   * from the card's measured text width and the LONGEST name in the workout —
+   * the same model as setGrid/filterMetrics, not per-label shrinking. A long
+   * name ("Romanian Deadlift (Dumbbell)") used to clip at a fixed 18 pt on a
+   * 320 pt Display-Zoom screen; now the whole workout steps down together.
+   * `padding` reserves the note icon + gap so a noted exercise can't clip either.
+   */
+  const titleFit = useGroupFit({
+    longest: (workoutItems.length > 0 ? workoutItems : [detail]).reduce(
+      (a, it) => {
+        const name = displayName(it.exercise);
+        return name.length > a.length ? name : a;
+      },
+      '',
+    ),
+    base: t.size.card,
+    min: t.size.meta,
+    padding: 11,
+  });
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
   /** Collapsed cards hide the set table; remembered for the session. */
@@ -679,11 +700,14 @@ export function ExerciseCard({
           {workoutExercise.position + 1}
         </Text>
         <View style={styles.headerText}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            onLayout={titleFit.onLayout}
+          >
             <Text
               style={{
                 color: theme.colors.accent,
-                fontSize: t.size.card,
+                fontSize: titleFit.size,
                 fontWeight: t.weight.bold,
                 flexShrink: 1,
               }}

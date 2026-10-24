@@ -61,6 +61,32 @@ shrinks rather than clipping, and there is no neighbour to look inconsistent wit
 
 Anything in a row, grid, tab bar, table or stat strip is a group. Use the helper.
 
+## Audit: how each screen sizes its text
+
+The rule above only holds if every screen is on it. This is the running list — add a row
+when you add a screen, so the next agent can check a new screen against the rule instead
+of guessing (the deliverable of queue item 2c in `docs/ops/HANDOFF.md`).
+
+| Screen / group | Treatment |
+|---|---|
+| Filter chips, taxonomy grid (`FilterChip`, `TaxonomyFilterGrid`) | `filterMetrics` — one size per row/grid |
+| Analytics tiles, readiness options, summary numbers | `useGroupFit` on the measured row |
+| Segmented section titles (`SegmentedTitle`) | `fitGroupSize` from the window width; a section *title* uses the ScreenHeader scale |
+| Set table (`SetRow`, `ExerciseCard` column headers) | `fitTextSize` + `gridMetrics`/`GRID_FLEX` |
+| Workout exercise titles (`ExerciseCard`) | `useGroupFit` over the longest name **in the workout**, measured on the title row (2026-10-24: a fixed 18 pt clipped long names at 320 pt) |
+| Screen header / program name / onboarding title | `adjustsFontSizeToFit` — the one allowlisted exception (lone, no peers) |
+| Exercise picker rows, browse rows | wrap to a second line deliberately (`numberOfLines={2}`) |
+| Prose — sheets, guide pages, empty states, notes | theme roles, free to wrap; no fit needed |
+
+## Headers: exactly one top-bar allowance
+
+`ScreenHeader` and `SegmentedTitle` each add `spacing.sm + TOP_BAR_HEIGHT` themselves; the
+safe-area inset comes from the screen's `SafeAreaView`. A screen must **not** add its own
+`useTopBarInset()` spacer on top of one of those components — that was the bug that pushed
+the Analytics title ~60 dp below every other section's heading (fixed 2026-10-24). A screen
+that uses neither component (a bare list under the bar) is the only case that needs the
+spacer.
+
 ## Verifying
 
 - `npm run test:adaptive` — purity, bounds, monotonicity, and the frozen results for the

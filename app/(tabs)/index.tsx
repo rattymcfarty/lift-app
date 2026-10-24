@@ -42,7 +42,6 @@ import {
 import { softDeleteWorkout } from '../../src/data/repositories';
 import { createUserProgram } from '../../src/programs/userPrograms';
 import { companionSessionWaiting } from '../../src/companion/triggers';
-import { useTopBarInset } from '../../src/components/chrome/TopBar';
 import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 type Segment = 'train' | 'history';
@@ -133,7 +132,6 @@ export default function TrainScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   // Stale-response guard: every focus starts a new load; only the latest may write state.
   const loadIdRef = useRef(0);
-  const topInset = useTopBarInset();
   const tabBarSpace = useTabBarSpace();
 
   const load = useCallback(async () => {
@@ -235,7 +233,6 @@ export default function TrainScreen(): JSX.Element {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
-      <View style={{ paddingTop: topInset }} />
       <SegmentedTitle
         segments={[
           { key: 'train', label: 'Train', testID: 'train-segment-train' },

@@ -387,7 +387,8 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
   set table's RPE header (`shot-rpe-sheet`) and finishes; **`plan-picker` PASS** — it adds an
   exercise and opens the same RPE sheet from the plan target editor's RPE label. A muscle-grid
   screenshot confirms the two new 3D renders (Full-Body, Olympic) at tile size in the dark
-  theme.
+  theme. A 320×693 dp audit (Display Zoom, `wm size 720x1560; wm density 360`) shows the
+  four section headers aligned at the same y and a long exercise name fitting on one line.
 - Purple icon set: `qa.py` 20/20 (18 cropped muscles + Full-Body/Olympic × 2 themes), and
   18/18 on the old orange set under the same (changed) metric; `exercise-menu` and
   `exercise-detail` PASS on a release build (`/tmp/lift-e2e-120444`).
@@ -488,6 +489,39 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
       caret ▲ on the *equipment* chip while the *muscle* grid is open (screenshot in the
       2026-10-24 session notes) — the open/collapsed indicator should track the grid that is
       actually open.
+    - Header shape, fixed partially on 2026-10-24: Train still uses its segments AS the
+      title ("Train | History") while Programs is now title + switcher ("Programs" above
+      "Explore | Library"). Both name their section and their titles align, but the shapes
+      differ. Optional unification (owner's call, changes copy): give Train the same
+      title + switcher shape, with the first segment renamed "Today".
+
+2c. **Adaptive-type audit, app-wide — owner request 2026-10-24.** The owner wants the
+    "one size computed once from the available width" rule (never per-label
+    `adjustsFontSizeToFit`) verified everywhere, because on a Display-Zoomed iPhone they
+    can still see **exercise names in an ongoing workout that are too big and get cut or
+    shrunk**. Round 3 applied it to the filter chips/grid, analytics tiles, readiness
+    options, summary numbers, `SegmentedTitle`, settings segments, the set-table numbers
+    and headers, and the workout toolbar — this task is the sweeping review that the rest
+    of the app is on the same rule, plus the reported fix.
+
+    Method (repeatable): audit every screen that renders a *group of peers* or a lone label
+    that can clip — exercise cards (workout, picker, browse, history, PR), plan and program
+    rows, day/exercise lists, analytics tiles and chart labels, summary numbers, settings
+    rows, buttons with long labels, empty states, onboarding steps, sheet titles. For each,
+    either it uses `src/theme/adaptive.ts` (`fitTextSize`/`fitGroupSize`/`useGroupFit`), or
+    it wraps to a second line deliberately, or it truncates on purpose.
+    `adjustsFontSizeToFit` stays only on the three allowlisted lone headings. Check at
+    288/320/390/430 dp and at 1.3× text (emulator: `adb shell wm size 720x1280; wm density
+    360` and `adb shell settings put system font_scale 1.3`); `docs/design/TYPE.md` is the
+    rule of record. Deliverable: the fixes + a short addendum in TYPE.md naming every
+    screen and which of the three treatments it uses, so the next agent can check a new
+    screen against the list.
+
+    Known instance to fix first (the owner's case): `ExerciseCard`'s title
+    (`displayName(exercise)`) is a fixed `t.size.card` on one line, so a long name such as
+    "Romanian Deadlift (Dumbbell)" clips on a 320 pt Display-Zoom screen. It should take ONE
+    size for the whole workout's exercise titles, computed from the card's available width
+    and the longest name in the workout.
 
 3. **Exercise content quality:** enrich the thin entries (list: live exercises with
    fewer than 4 instruction steps); add real safety notes for neck, behind-the-neck,
@@ -541,6 +575,35 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-24 (later) — section headers + adaptive exercise titles (opencode)
+
+- **Owner-reported on a Display-Zoomed iPhone:** the Programs section had no header naming
+  it, the Analytics title area wasted ~60 dp, and exercise names in an ongoing workout were
+  too big and got cut.
+- **Root causes, both structural.** (1) `ScreenHeader` already adds
+  `spacing.sm + TOP_BAR_HEIGHT`; Train/Programs added their own `useTopBarInset()` spacer
+  *and* used `SegmentedTitle` (which added nothing), while Analytics added the spacer *and*
+  `ScreenHeader` — so Analytics sat 60 dp lower and Train/Programs 13 dp higher than Browse.
+  `SegmentedTitle` now owns the same allowance and the three screens dropped their spacers,
+  so all four headings start at the same y. (2) The card title was a fixed 18 pt on one
+  line, so "Romanian Deadlift (Dumbbell)" clipped at 320 dp; it is now
+  `useGroupFit({ longest: the workout's longest name, base: card, min: meta })` measured on
+  the title row — one size for the whole workout, never per-label shrinking.
+- **`SegmentedTitle` gained an optional section `title`** (used by Programs: "Programs" with
+  "Explore | Library" stepping down to a switcher beneath). Train is unchanged
+  ("Train | History" already names the tab); unifying the two shapes is an owner call.
+- **Device (release APK, 320×693 dp = 720×1560 @ 360):** all four headers align
+  (`/home/dash/.maestro/tests/2026-10-24_151128/zoom-audit/`), the long exercise name renders
+  complete on one line, and Programs shows its title. Side finding: at 320×569 dp the home
+  screen's primary action is below the fold, which is why `_skip-onboarding.yaml`'s
+  `home-start-workout` assertion fails on such a screen — the emulator needs the
+  owner-sized height for these audits.
+- Gate: `npm run verify` ALL GREEN. Rules of record: `docs/design/TYPE.md`
+  ("Headers: exactly one top-bar allowance" + the screen-by-screen audit table).
+- Owner's next requests are queued as 2a (Plan vs Program explainer), 2b (Programs section
+  review: persona editor, guided quiz, header/uniformity) and 2c (the app-wide adaptive-type
+  audit that the exercise-title fix belongs to).
 
 ### 2026-10-24 — RPE explainer, the last two 3D icons, UI round 3 (opencode)
 
