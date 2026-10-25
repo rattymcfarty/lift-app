@@ -76,7 +76,7 @@ export function ExercisePickRow({
             fontSize: t.size.row,
             fontWeight: selected ? t.weight.bold : t.weight.medium,
           }}
-          numberOfLines={2}
+          numberOfLines={3}
         >
           {displayName(exercise)}
         </Text>

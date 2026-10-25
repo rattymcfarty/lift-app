@@ -75,7 +75,7 @@ function ExerciseRow({
       <View style={styles.rowText}>
         <Text
           style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
-          numberOfLines={1}
+          numberOfLines={3}
         >
           {displayName(exercise)}
         </Text>

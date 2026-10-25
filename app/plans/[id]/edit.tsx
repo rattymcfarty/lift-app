@@ -535,7 +535,7 @@ export default function PlanEditScreen(): JSX.Element {
                       fontSize: t.size.body,
                       fontWeight: t.weight.medium,
                     }}
-                    numberOfLines={1}
+                    numberOfLines={3}
                   >
                     {index + 1}. {displayName(item.exercise)}
                   </Text>

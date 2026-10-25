@@ -83,7 +83,7 @@ function BreakdownRow({
         <View style={styles.rowName}>
           <Text
             style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}
-            numberOfLines={1}
+            numberOfLines={3}
           >
             {displayName(item.exercise)}
           </Text>

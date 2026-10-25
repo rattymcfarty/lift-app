@@ -36,7 +36,6 @@ import {
 import { decodeStringArray } from '../../db/schema';
 import { displayName } from '../../kb/taxonomy';
 import { useTheme } from '../../theme';
-import { useGroupFit } from '../../theme/adaptive';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import { supersetTagText, shouldStartRest, nextSupersetMember } from '../../lib/exerciseMenu';
@@ -148,20 +147,6 @@ export function ExerciseCard({
    * 320 pt Display-Zoom screen; now the whole workout steps down together.
    * `padding` reserves the note icon + gap so a noted exercise can't clip either.
    */
-  const titleFit = useGroupFit({
-    longest: (workoutItems.length > 0 ? workoutItems : [detail]).reduce(
-      (a, it) => {
-        const name = displayName(it.exercise);
-        return name.length > a.length ? name : a;
-      },
-      '',
-    ),
-    base: t.size.card,
-    min: t.size.meta,
-    // Reserves the info + note glyphs and their gaps (the fit measures the whole
-    // row, so the icons must come off the text width).
-    padding: 21,
-  });
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
   /** Collapsed cards hide the set table; remembered for the session. */
@@ -742,17 +727,17 @@ export function ExerciseCard({
             accessibilityLabel={`About ${displayName(exercise)}`}
             accessibilityHint="Key cues, safety and last time"
             hitSlop={8}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-            onLayout={titleFit.onLayout}
+            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}
           >
+            {/* Never shrunk, never cut: a long name wraps to as many lines as it
+                needs and the card grows (owner decision 2026-10-25). */}
             <Text
               style={{
-                color: theme.colors.accent,
-                fontSize: titleFit.size,
-                fontWeight: t.weight.bold,
                 flexShrink: 1,
+                color: theme.colors.accent,
+                fontSize: t.size.card,
+                fontWeight: t.weight.bold,
               }}
-              numberOfLines={1}
             >
               {displayName(exercise)}
             </Text>

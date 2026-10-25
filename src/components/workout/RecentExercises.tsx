@@ -70,7 +70,7 @@ export function RecentExercises({ items, isSelected, onPick, onInfo }: RecentExe
                     fontSize: t.size.row,
                     fontWeight: t.weight.medium,
                   }}
-                  numberOfLines={2}
+                  numberOfLines={3}
                 >
                   {displayName(exercise)}
                 </Text>

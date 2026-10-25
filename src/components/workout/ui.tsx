@@ -165,6 +165,11 @@ interface ScreenHeaderProps {
   right?: ReactNode;
   /** Smaller title for dense working screens (the active workout, editors). */
   compact?: boolean;
+  /**
+   * Title colour. The active workout passes the accent so an ongoing session is
+   * recognisable at a glance (owner decision 2026-10-25).
+   */
+  titleColor?: string;
 }
 
 /**
@@ -174,11 +179,12 @@ interface ScreenHeaderProps {
  * windows (iOS Display Zoom = 320pt) so it fits instead of truncating.
  * Long titles may wrap to two lines rather than clip mid-word.
  */
-export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right, compact = false }: ScreenHeaderProps): JSX.Element {
+export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right, compact = false, titleColor }: ScreenHeaderProps): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
-  // Narrow windows (iOS Display Zoom = 320pt) get a smaller hero title;
-  // adjustsFontSizeToFit shrinks further for long titles.
+  // Narrow windows (iOS Display Zoom = 320pt) get a smaller hero title. The size
+  // is computed once from the width and never shrinks per title: a long name wraps
+  // instead (owner decision 2026-10-25 — titles are never trimmed or shrunk).
   const { width } = useWindowDimensions();
   // Continuous, width-proportional title size (Display Zoom, small phones,
   // large phones all land on a sensible size; no abrupt breakpoint).
@@ -214,20 +220,18 @@ export function ScreenHeader({ title, subtitle, onBack, backGlyph = '←', right
         ) : null}
         <View style={styles.headerTitleWrap}>
           <Text
+            testID="screen-title"
             style={{
-              color: theme.colors.text,
+              color: titleColor ?? theme.colors.text,
               fontSize: Math.round((narrow || compact ? t.size.screenCompact : t.size.screen) * titleScale * 2) / 2,
               fontWeight: t.weight.bold,
             }}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
           >
             {title}
           </Text>
           {subtitle != null ? (
             typeof subtitle === 'string' ? (
-              <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }} numberOfLines={1}>
+              <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }} numberOfLines={2}>
                 {subtitle}
               </Text>
             ) : (

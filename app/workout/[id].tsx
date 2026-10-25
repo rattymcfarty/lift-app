@@ -381,6 +381,10 @@ export default function ActiveWorkoutScreen(): JSX.Element {
         title={detail?.workout.name ?? 'Workout'}
         onBack={() => router.replace('/')}
         compact
+        // The accent title marks a session that is still running (owner decision
+        // 2026-10-25); the floating badge carries the same signal on every other
+        // screen and is the way back here.
+        titleColor={theme.colors.accent}
       />
 
       {/* Compact action bar */}

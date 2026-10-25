@@ -2,10 +2,11 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-25 — queue 2b complete: the persona editor ("Your profile"), the
-> guided interview ("Set up my plans") and the filter-caret fix, after the Plans/Programs
-> explainer, exercise info sheet, scroll-wheel entry, chrome on every page and uniform section
-> headers. Repo HEAD at the time: see `git log -1`.
+> Last updated: 2026-10-25 — the wheel is the default numeric entry, a running workout owns the
+> chrome (live title + return badge), and names never shrink or truncate. Before that: queue 2b
+> complete (persona editor, guided interview, filter caret), the Plans/Programs explainer,
+> exercise info sheet, chrome on every page and uniform section headers. Repo HEAD at the time:
+> see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -666,7 +667,19 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 Standing rule: **the agent does not enroll in, pay for, or submit anything to a store.**
 
-## 4. Decisions already made (don't re-litigate)
+## 4. Decisions
+
+- **2026-10-25 (owner): an ongoing workout has priority over everything.** Its title uses the
+  live accent colour, a badge with the elapsed time sits in the floating chrome on every other
+  screen, and one tap returns to it; finishing or discarding clears it. Back on other screens
+  stays normal navigation — the badge is the guaranteed route back. Onboarding and PAR-Q+ show
+  no chrome, as before.
+- **2026-10-25 (owner): titles are never shrunk or trimmed.** Exercise and workout names wrap
+  to two or three lines (or more) and their rows grow. One computed size per screen is fine;
+  per-title shrinking, ellipsis and one-line caps are not.
+- **2026-10-25 (owner): the scroll wheel is the default numeric entry**, with "Type instead"
+  opening the keypad for big jumps.
+ already made (don't re-litigate)
 
 - User-facing term is **Plan**; internal `routine` stays (backup-format compatibility).
 - Weights stored in kg; display unit is a setting.
@@ -700,6 +713,32 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-25 — Wheel default, ongoing-workout priority, full titles (opencode)
+
+- **Wheel is the default numeric entry.** A tap on weight/reps/RPE opens the drum; "Type
+  instead" hands that cell to a focused keypad input (`set-<field>-<n>-input`) and blurring
+  returns to the wheel. The six flows that typed into the pills go through `wheel-sheet-type`.
+  Also: the shared "heavy" glass was 85% opaque on Android, so the workout behind the drum was
+  legible through it — heavy is now 96% (sheets, side panels, prompt); light stays translucent.
+- **Ongoing workout priority.** `src/workout/activeSession.ts` is a pure external store (id,
+  name, startedAt) with `formatElapsed`; `src/workout/sessionSync.ts` mirrors
+  `getActiveWorkout()` into it and the `TopBar` calls that on mount and on every route change.
+  `WorkoutBadge` (dot + mm:ss, tappable, `router.navigate`) is placed absolutely between the
+  companion and settings so the companion stays centred; hidden inside `/workout/*`. The
+  workout header title is now accent (`ScreenHeader titleColor`). Device: badge appears after
+  leaving the session, survives the tabs and panel destinations, returns in one tap, and
+  disappears after finishing (`ongoing-workout` PASS; `wheel`, `workout-flow` PASS).
+- **No shrinking, no truncation.** `ScreenHeader` no longer uses `adjustsFontSizeToFit` or a
+  two-line cap (one size computed from the width; subtitle may take two lines) and gained
+  `titleColor`; `ExerciseCard` lost its `useGroupFit` title (the name wraps and the card
+  grows); picker rows, recent exercises, the reorder sheet, plan items, the plan editor and
+  the Analytics chart title moved from one/two-line caps to three lines. `test:active-session`
+  (19) covers the store and clock.
+- **Seen during verification, queued for the app-wide review (not fixed here):** the Train and
+  Analytics content runs *under* the floating tab bar (the quick-action tiles and
+  "Measurements"/"Trends" are clipped) despite `useTabBarSpace` claiming to pad around it; and
+  `.maestro/screenshots.yaml` (docs screenshots only) is stale at four steps.
 
 ### 2026-10-25 — Your profile, the guided interview, the filter caret (opencode)
 

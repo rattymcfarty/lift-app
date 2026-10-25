@@ -14,7 +14,7 @@
  *
  * Hidden on onboarding and PAR-Q routes (reuses helper from companion/placement.ts).
  */
-import type { JSX, ReactNode } from 'react';
+import { useEffect, type JSX, type ReactNode } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, useSegments } from 'expo-router';
@@ -22,6 +22,9 @@ import { GlassButton } from '../ui/Glass';
 import { Companion } from '../../companion/Companion';
 import { usePanels } from '../../chrome/panels';
 import { isCompanionHiddenRoute } from '../../companion/placement';
+import { useActiveSession } from '../../workout/activeSession';
+import { refreshActiveSession } from '../../workout/sessionSync';
+import { WorkoutBadge } from './WorkoutBadge';
 
 /** Top bar height: 44dp content + 2*8dp vertical padding = 60dp. */
 export const TOP_BAR_HEIGHT = 60;
@@ -52,8 +55,19 @@ export function TopBar(): JSX.Element | null {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
+  // The live session is mirrored on every route change — the only moments it can
+  // start or end — so the badge never needs screens to report it.
+  const session = useActiveSession();
+  useEffect(() => {
+    void refreshActiveSession();
+  }, [pathname]);
+
   // Hide on onboarding and PAR-Q routes only.
   if (isCompanionHiddenRoute(pathname, segments)) return null;
+
+  // Not while the user is in that workout: the title already says so there.
+  const inWorkout = pathname.startsWith('/workout/');
+  const showBadge = session !== null && !inWorkout;
 
   // Both floating buttons are drawn on EVERY route that shows the chrome (owner
   // decision 2026-10-24): the panel on the left, settings on the right, beside
@@ -88,6 +102,13 @@ export function TopBar(): JSX.Element | null {
             onPress={() => openPanel('right')}
           />
         </View>
+        {/* Between the companion and settings, absolutely placed so the companion
+            stays centred on every width. 60 = 8 margin + 44 settings + 8 gap. */}
+        {showBadge ? (
+          <View style={styles.badgeSlot} pointerEvents="box-none">
+            <WorkoutBadge session={session} />
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -173,5 +194,10 @@ const styles = StyleSheet.create({
   rightSlot: {
     width: 44,
     alignItems: 'flex-end',
+  },
+  badgeSlot: {
+    position: 'absolute',
+    right: 60,
+    top: (TOP_BAR_HEIGHT - 30) / 2,
   },
 });

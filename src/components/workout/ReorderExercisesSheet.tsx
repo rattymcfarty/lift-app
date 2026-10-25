@@ -100,7 +100,7 @@ export function ReorderExercisesSheet({
               <Text style={{ color: theme.colors.highlight, fontSize: t.size.body, fontWeight: t.weight.bold, minWidth: 20 }}>
                 {index + 1}
               </Text>
-              <Text style={{ flex: 1, color: theme.colors.text, fontSize: t.size.body }} numberOfLines={1}>
+              <Text style={{ flex: 1, color: theme.colors.text, fontSize: t.size.body }} numberOfLines={3}>
                 {displayName(item.exercise)}
               </Text>
               <ActionIcon name="grip" color={theme.colors.faint} size={18} />

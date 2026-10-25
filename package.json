@@ -63,6 +63,7 @@
     "test:filter-panel": "node scripts/test-filter-panel.mjs",
     "test:persona": "node scripts/test-persona.mjs",
     "test:quiz": "node scripts/test-quiz.mjs",
+    "test:active-session": "node scripts/test-active-session.mjs",
     "test:e2e:tabs": "maestro test .maestro/tabs.yaml",
     "test:plan": "node scripts/test-plan-generator.mjs",
     "verify": "bash scripts/dev-loop.sh",

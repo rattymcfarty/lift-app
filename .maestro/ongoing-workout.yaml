@@ -1,0 +1,64 @@
+# The ongoing workout outranks everything (owner decision 2026-10-25):
+#   - its title is the live (accent) one,
+#   - a floating badge with the elapsed time is on every other screen,
+#   - one tap from anywhere returns to it,
+#   - finishing/discarding ends the state everywhere.
+# Run: maestro test .maestro/ongoing-workout.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- assertVisible:
+    id: "workout-add-exercise"
+# On the workout itself: no badge (the title says it), and the title is there.
+- assertVisible:
+    id: "screen-title"
+- assertNotVisible:
+    id: "topbar-workout"
+
+# Leaving the workout: the badge appears with a running clock.
+- tapOn:
+    id: "header-back"
+- assertVisible:
+    id: "topbar-workout"
+- assertVisible:
+    id: "topbar-workout-elapsed"
+    text: ".*:.*"
+
+# It survives the tabs and the left panel's destinations…
+- tapOn:
+    id: "tab-analytics"
+- assertVisible:
+    id: "topbar-workout"
+- tapOn:
+    id: "topbar-panel"
+- scrollUntilVisible:
+    element:
+      id: "panel-more-history"
+    direction: DOWN
+- tapOn:
+    id: "panel-more-history"
+- assertVisible:
+    id: "topbar-workout"
+
+# …and one tap from anywhere lands back in the session.
+- tapOn:
+    id: "topbar-workout"
+- assertVisible:
+    id: "workout-add-exercise"
+- assertNotVisible:
+    id: "topbar-workout"
+
+# Finish: the priority state clears everywhere.
+- tapOn:
+    id: "workout-finish"
+- tapOn:
+    id: "finish-sheet-finish"
+- back
+- assertNotVisible:
+    id: "topbar-workout"

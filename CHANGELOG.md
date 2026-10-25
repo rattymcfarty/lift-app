@@ -2,6 +2,22 @@
 
 ## Unreleased (addendum)
 
+- **A running workout now outranks everything.** While a session is open, the workout's title is
+  in the live accent colour and a small "● 12:34" badge sits in the floating chrome on every
+  other screen — Train, Analytics, Browse, History, the learn pages, anywhere reachable from
+  the panels. Tapping the badge goes straight back to the session (without stacking duplicate
+  workout screens). Finishing or discarding clears the badge and the colour, and normal
+  navigation resumes. The state is mirrored from the database on each route change, so nothing
+  can forget to clear it (`src/workout/activeSession.ts`, `src/workout/sessionSync.ts`,
+  `WorkoutBadge`; `test:active-session` 19; `.maestro/ongoing-workout.yaml` proves the badge
+  across the tabs and the panel, the return tap, and the finish clearing it).
+- **Names are never shrunk or cut again.** Exercise and workout titles now wrap to as many
+  lines as they need and their rows grow, instead of shrinking to one line or ellipsising:
+  the workout card's name, the exercise guide header, every picker/browse row, plan items, the
+  reorder sheet and the Analytics chart title. The shared `ScreenHeader` computes one title
+  size from the screen width and never shrinks per title, and its subtitle may take two lines.
+  `adjustsFontSizeToFit` is gone from the app's titles (the typography gate still guards it).
+
 - **A guided interview that sets up your plans.** "Set up my plans step by step" (Programs →
   Library, or from the profile screen) asks the six questions the generator needs — one per
   screen — and under each answer shows the reason it is asked *and* the live consequence

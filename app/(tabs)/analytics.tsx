@@ -356,7 +356,7 @@ export default function ProgressScreen(): JSX.Element {
                               fontSize: t.size.body,
                               fontWeight: t.weight.medium,
                             }}
-                            numberOfLines={1}
+                            numberOfLines={3}
                           >
                             {selectedName}
                           </Text>
