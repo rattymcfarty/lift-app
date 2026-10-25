@@ -9,7 +9,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput,
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, withAlpha } from '../../theme';
-import { Button } from '../workout/ui';
+import { Button, ScreenHeader } from '../workout/ui';
 
 export function WizardPage({
   title,
@@ -37,33 +37,14 @@ export function WizardPage({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: theme.spacing.md,
-            paddingVertical: theme.spacing.md,
-            backgroundColor: c.background,
-          }}
-        >
-          <Pressable
-            testID="header-back"
-            onPress={onBack ?? (() => router.back())}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            hitSlop={10}
-            style={{ width: 40 }}
-          >
-            <Text style={{ color: c.text, fontSize: t.size.icon }}>←</Text>
-          </Pressable>
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={{ color: c.text, fontSize: t.size.card + 2, fontWeight: t.weight.bold }} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-              {title}
-            </Text>
-            {progress ? <Text style={{ color: c.faint, fontSize: t.size.caption }}>{progress}</Text> : null}
-          </View>
-          <View style={{ width: 40 }} />
-        </View>
+        {/* The shared header, like every other page: it reserves the top-bar band
+            itself, so the back arrow cannot sit under the floating menu button
+            (the hand-rolled row here did, once the chrome went everywhere). */}
+        <ScreenHeader
+          title={title}
+          subtitle={progress}
+          onBack={onBack ?? (() => router.back())}
+        />
         <ScrollView
           style={{ flex: 1, backgroundColor: c.surface }}
           contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl, gap: theme.spacing.lg }}

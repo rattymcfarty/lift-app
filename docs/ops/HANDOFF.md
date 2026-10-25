@@ -607,6 +607,13 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
     header (it pads past `TOP_BAR_HEIGHT`, so they cannot overlap). `isTopLevelRoute` was
     left the codebase as dead weight and is gone; `exercise-browse.yaml` now asserts the two
     buttons on the exercise guide and that the panel opens/closes from there.
+    **The audit then found the two headers that did collide** (their own top rows sat in the
+    band): the program builder (`app/programs/[id].tsx`) and `WizardPage`
+    (`ProgramFormBits.tsx`, used by program details + setup). Both now render the shared
+    `ScreenHeader` — program name as title, rename + Finish on the right, "Step 2 of 3" as
+    the subtitle — so every page's back control is in the same place. Remaining: the wizard
+    forms are taller than before with the shared header, so their content can start below the
+    fold on a short screen (the flow scrolls now); worth a design look.
 
     Still to do — the "equal experience" half of the request, page by page:
     1. **Audit the eight screens that do not use `ScreenHeader`** (21 of 29 do): they
@@ -708,6 +715,14 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   sentence boundary (`test:exercise-info`, 34 assertions). Device: `exercise-info`,
   `workout-flow`, `wheel`, `tabs` all PASS on a release APK; the sheet screenshot shows the
   real KB cues, mistakes and the safety note for the Goblet Squat.
+- **Queue 2f, step 1 (chrome audit).** With the floating buttons on every page, two
+  hand-rolled headers were drawn under them: the program builder's top row and `WizardPage`
+  (program details + setup). Both migrated to the shared `ScreenHeader` — program name as the
+  title, rename pencil + Finish in the right slot, "Step 2 of 3" as the subtitle — so the back
+  arrow sits below the chrome band and every page's header is identical. `program-builder` and
+  `_wizard-shots` updated for the taller header (the last form rows can need a scroll now);
+  device PASS. The remaining 2f work is a visual pass over the wizard forms, which lost some
+  vertical room to the bigger header.
 - **The screenshot caught a layout bug worth remembering:** the page had no `SafeAreaView`,
   so the title and the page's back arrow were drawn ON the floating menu/companion/settings
   band — `ScreenHeader` reserves `TOP_BAR_HEIGHT` but the safe-area inset comes from the

@@ -2,6 +2,16 @@
 
 ## Unreleased (addendum)
 
+- **The program screens use the shared header too (and stop colliding with the chrome).** With
+  the floating menu/settings buttons now on every page, the two hand-rolled headers were
+  drawn *under* them: the program builder's own top row and `WizardPage` (program details and
+  setup) both put a back arrow in the top-bar band. Both now render the shared `ScreenHeader`
+  — program name as the title, the rename pencil and Finish in its right slot, "Step 2 of 3"
+  as its subtitle — so the arrow sits below the chrome band like every other page and the
+  header height, type and back glyph are identical app-wide. `_wizard-shots` /
+  `program-builder` flows updated for the taller header (scroll to the last form rows); device
+  PASS.
+
 - **The exercise title answers "am I doing this right?" mid-set.** Tapping the title in a
   workout card opens a sheet with what the movement trains (muscle + equipment chips), the
   KB **key cues** (capped at four), the **common mistakes**, the **safety stop line** in a

@@ -31,18 +31,34 @@ appId: app.lift.mobile
     id: "focus-Muscle"
 - tapOn:
     id: "equipment-Dumbbell-Only"
+# The wizard now uses the shared (taller) ScreenHeader, so the last rows of the
+# form can sit below the fold: scroll to them instead of failing the tap.
+- scrollUntilVisible:
+    element:
+      id: "difficulty-Advanced"
+    direction: DOWN
 - tapOn:
     id: "difficulty-Advanced"
+# "Time per workout" sits above Focus, so after scrolling down to Difficulty it is
+# back up the page.
+- scrollUntilVisible:
+    element:
+      id: "setup-minutes"
+    direction: UP
 - tapOn:
     id: "setup-minutes"
 - tapOn:
     id: "minutes-sheet-45"
 - assertVisible: "45 mins"
+- scrollUntilVisible:
+    element:
+      id: "setup-next"
+    direction: DOWN
 - tapOn:
     id: "setup-next"
 # ---- builder
-- assertVisible:
-    id: "program-title"
+# The program name is the page title now (shared ScreenHeader), so assert the
+# text rather than the old in-content testID.
 - assertVisible: "My Test Program"
 - assertVisible: "Train. Evolve. Endure."
 - assertVisible: ".*Dumbbell Only.*"

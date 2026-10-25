@@ -29,7 +29,7 @@ import {
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme';
-import { Button, Card, EmptyState } from '../../src/components/workout/ui';
+import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { OptionSheet } from '../../src/components/ui/OptionSheet';
 import { TextPromptModal } from '../../src/components/ui/TextPromptModal';
 import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
@@ -196,7 +196,6 @@ export default function ProgramEditorScreen(): JSX.Element {
   const weekIdx = program.schedule === 'repeating' ? 0 : Math.min(week, program.weekDays.length - 1);
   const days = program.weekDays[weekIdx] ?? [];
   const issues = programIssues(program);
-  const titleSize = Math.round(t.size.screen * Math.min(1.05, Math.max(0.86, scale)) * 2) / 2;
   const pillW = Math.round(54 * scale);
   const repsW = Math.round(68 * scale);
 
@@ -243,46 +242,38 @@ export default function ProgramEditorScreen(): JSX.Element {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top', 'bottom']}>
-      {/* top bar */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm }}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back" hitSlop={10} testID="header-back">
-          <Text style={{ color: c.text, fontSize: t.size.icon }}>←</Text>
-        </Pressable>
-        <Pressable
-          testID="program-finish"
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          style={{ backgroundColor: c.accent, borderRadius: theme.radius.md, paddingVertical: 8, paddingHorizontal: theme.spacing.md }}
-        >
-          <Text style={{ color: c.accentText, fontSize: t.size.body, fontWeight: t.weight.bold }} maxFontSizeMultiplier={1.1}>
-            Finish
-          </Text>
-        </Pressable>
-      </View>
+      {/* The shared header, like every other page: it reserves the top-bar band, so
+          the back arrow no longer sits under the floating menu button. The program
+          name is the title; the rename pencil and Finish sit on the right. */}
+      <ScreenHeader
+        title={program.name}
+        onBack={() => router.back()}
+        right={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
+            <Pressable
+              testID="program-rename"
+              onPress={() => router.push(`/programs/${program.id}/details` as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="Edit program details"
+              hitSlop={10}
+            >
+              <Text style={{ color: c.muted, fontSize: t.size.icon }}>✎</Text>
+            </Pressable>
+            <Pressable
+              testID="program-finish"
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              style={{ backgroundColor: c.accent, borderRadius: theme.radius.md, paddingVertical: 8, paddingHorizontal: theme.spacing.md }}
+            >
+              <Text style={{ color: c.accentText, fontSize: t.size.body, fontWeight: t.weight.bold }} maxFontSizeMultiplier={1.1}>
+                Finish
+              </Text>
+            </Pressable>
+          </View>
+        }
+      />
 
       <ScrollView contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl * 2, gap: theme.spacing.md }} keyboardShouldPersistTaps="handled">
-        {/* title */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
-          <Text
-            testID="program-title"
-            style={{ color: c.text, fontSize: titleSize, fontWeight: t.weight.bold, flexShrink: 1 }}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
-          >
-            {program.name}
-          </Text>
-          <Pressable
-            testID="program-rename"
-            onPress={() => router.push(`/programs/${program.id}/details` as Href)}
-            accessibilityRole="button"
-            accessibilityLabel="Edit program details"
-            hitSlop={10}
-          >
-            <Text style={{ color: c.muted, fontSize: t.size.icon }}>✎</Text>
-          </Pressable>
-        </View>
-
         {(() => {
           const d = detailsOf(program);
           const bits = [d.focus.join(', '), d.equipment, d.difficulty.join(', '), `${d.minutesPerWorkout} min`].filter(Boolean);
