@@ -301,6 +301,13 @@ export default function PersonaScreen(): JSX.Element {
             disabled={busy}
             onPress={() => void save(false)}
           />
+          <Button
+            title="Answer the questions step by step"
+            variant="secondary"
+            testID="persona-quiz"
+            disabled={busy}
+            onPress={() => router.push('/quiz' as Href)}
+          />
           <Text style={{ color: c.muted, fontSize: t.size.caption, textAlign: 'center' }}>
             Rebuilding replaces plans named “{GENERATED_PREFIX}…” only. Plans you made or
             duplicated yourself are never touched.

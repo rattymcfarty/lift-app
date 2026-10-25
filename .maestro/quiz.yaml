@@ -1,0 +1,85 @@
+# The guided interview: six questions with their reasons, then a review of the
+# real generated programme — and only then anything is written.
+# Run: maestro test .maestro/quiz.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-segment-library"
+- tapOn:
+    id: "programs-quiz"
+
+# 1 — goal, with the generator's own consequence under the answer.
+- assertVisible: "Set up my plans"
+- assertVisible:
+    id: "quiz-question-goal"
+- tapOn:
+    id: "quiz-goal-strength"
+- assertVisible: ".*4-6 reps.*"
+- tapOn:
+    id: "quiz-continue"
+
+# 2 — experience.
+- assertVisible:
+    id: "quiz-question-experience"
+- tapOn:
+    id: "quiz-experience-intermediate"
+- tapOn:
+    id: "quiz-continue"
+
+# 3 — days, 4 → the upper/lower split.
+- tapOn:
+    id: "quiz-days-4"
+- tapOn:
+    id: "quiz-continue"
+
+# 4 — session length.
+- tapOn:
+    id: "quiz-minutes-60"
+- tapOn:
+    id: "quiz-continue"
+
+# 5 — equipment.
+- tapOn:
+    id: "quiz-equipment-full"
+- tapOn:
+    id: "quiz-continue"
+
+# 6 — limitations.
+- tapOn:
+    id: "quiz-limitation-knees"
+- tapOn:
+    id: "quiz-continue"
+
+# Review: the answers, the days, and the reason for the numbers.
+- assertVisible: "Review your plans"
+- assertVisible: "Nothing is saved until you tap Build"
+- assertVisible: ".*Strength · Intermediate · 4 days a week · 60 min.*"
+- assertVisible:
+    id: "quiz-day-1"
+- scrollUntilVisible:
+    element:
+      id: "quiz-day-4"
+    direction: DOWN
+- scrollUntilVisible:
+    element: "Why these numbers"
+    direction: DOWN
+# Intermediate + strength → 4 sets of 4-6 (the generator's own table).
+- assertVisible: ".*Main lifts 4 × 4-6 reps.*"
+
+# Build, then find the plans in the library.
+- scrollUntilVisible:
+    element:
+      id: "quiz-build"
+    direction: DOWN
+- tapOn:
+    id: "quiz-build"
+- assertVisible:
+    id: "quiz-built"
+- tapOn:
+    id: "quiz-open-programs"
+- assertVisible: ".*My Plan · Day 1.*"

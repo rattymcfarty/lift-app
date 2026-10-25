@@ -2,10 +2,10 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-25 — the persona editor ("Your profile") and the filter-caret fix
-> (queue 2b items 3 + 5), after the Plans/Programs explainer, exercise info sheet, scroll-wheel
-> entry, chrome on every page and uniform section headers. Repo HEAD at the time: see
-> `git log -1`.
+> Last updated: 2026-10-25 — queue 2b complete: the persona editor ("Your profile"), the
+> guided interview ("Set up my plans") and the filter-caret fix, after the Plans/Programs
+> explainer, exercise info sheet, scroll-wheel entry, chrome on every page and uniform section
+> headers. Repo HEAD at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -471,12 +471,16 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 2b. **Programs section review — owner request 2026-10-24.** Four things the owner saw, plus
     the coherence pass they asked for ("all sections should be nicely and equally laid out…
     uniform and cohesive").
-    *Status 2026-10-25: (1) section headers, (2) Analytics spacing and (5 — the lying filter
-    caret) are shipped, as is (3) the persona editor: `app/persona.tsx`, opened from the
-    Programs header (person button), the left panel and Settings, with every answer's effect
-    read from the generator's tables (`src/lib/personaImpact.ts`, `test:persona` 54) and a
-    "Save & rebuild my plans" path that replaces only `My Plan · …`. Device PASS. Remaining:
-    (4) the guided quiz — a step-by-step interview with an explicit review-before-save step.*
+    *Status 2026-10-25: **all five shipped.** (1) section headers; (2) Analytics spacing;
+    (3) the persona editor — `app/persona.tsx`, opened from the Programs header (person
+    button), the left panel and Settings, with every answer's effect read from the generator's
+    tables (`src/lib/personaImpact.ts`, `test:persona` 54) and a "Save & rebuild my plans" path
+    that replaces only `My Plan · …`; (4) the guided interview — `app/quiz.tsx`, "Set up my
+    plans", six questions with their reasons and live consequences, then a review of the real
+    generated plan set before writing (`src/lib/quiz.ts`, `previewPlans()` in
+    `src/data/generatedPlan.ts`, `test:quiz` 40); (5) the filter caret, fixed at the source by
+    `src/components/workout/filterPanel.ts` (`test:filter-panel` 14). Device PASS for
+    `persona`, `quiz`, `tabs`, `exercise-browse`, `plan-picker` and `workout-flow`.*
     1. **Missing section header on Programs.** The tab opens straight into content while
        Browse/Articles lead with a title. Give every section the same header
        (title + a factual one-line subtitle, e.g. "Browse Exercises · 581 exercises in the
@@ -696,6 +700,27 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-25 — Your profile, the guided interview, the filter caret (opencode)
+
+- **Queue 2b finished — all five items shipped.** The guided interview
+  (`app/quiz.tsx`, "Set up my plans", entered from Programs → Library and from the profile
+  screen) asks the six questions one per screen with the reason for each (and the live
+  consequence under the answer, from `personaImpact`), then renders the actual plan set —
+  `previewPlans()` in `src/data/generatedPlan.ts` runs the same `generatePlan` input the
+  writer uses, resolving exercise names from the KB, with no DB writes — day by day with sets,
+  reps, rest and estimated loads, and a "why these numbers" block. "Build my N plans" saves
+  the profile and calls `buildPlansFromProfile(…, { replaceExisting: true })`. The step order,
+  prompts, summary line and promised plan names live in `src/lib/quiz.ts`; `test:quiz` (40)
+  checks the prompts are questions, that every step key matches a `personaImpact` key (so no
+  question is unexplained), navigation/progress, the summary and the `My Plan · Day N · …`
+  names. `.maestro/quiz.yaml` answers all six, reviews, builds and finds the plans in the
+  library — device PASS.
+- **Vocabulary decision (2026-10-25):** the interview is called "Set up my plans", not "Build a
+  program", because it writes one plan per training day and no multi-week structure — the
+  Learn page's Program/Plan distinction has to hold. If a later round adds weeks and deloads to
+  the generator, renaming the entry point is the only change needed.
+- The persona editor (below) shipped the same day.
 
 ### 2026-10-25 — Your profile (persona editor) + the filter caret (opencode)
 

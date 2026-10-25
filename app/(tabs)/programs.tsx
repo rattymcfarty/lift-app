@@ -278,6 +278,12 @@ export default function ProgramsScreen(): JSX.Element {
                     .catch(() => Alert.alert('Could not create the program', 'Try again.'));
                 }}
               />
+              <Button
+                title="Set up my plans step by step"
+                variant="secondary"
+                testID="programs-quiz"
+                onPress={() => router.push('/quiz' as Href)}
+              />
               {mine.length > 0 ? (
                 <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
                   MY PROGRAMS · {mine.length}

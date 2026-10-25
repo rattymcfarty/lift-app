@@ -36,12 +36,9 @@ export interface BuildResult {
  * a profile change never piles up copies. Plans the user created or
  * duplicated themselves are never touched.
  */
-export async function buildPlansFromProfile(
-  profile: Profile,
-  opts: { replaceExisting?: boolean } = {},
-): Promise<BuildResult> {
+function kbCatalogue(): CatalogueExercise[] {
   const { bundle } = loadSnapshot();
-  const catalogue: CatalogueExercise[] = bundle.exercises
+  return bundle.exercises
     .filter((e) => !e.deprecated)
     .map((e) => ({
       id: e.id,
@@ -51,6 +48,57 @@ export async function buildPlansFromProfile(
       category: e.category,
       difficulty: e.difficulty,
     }));
+}
+
+/**
+ * What the generator would build for this profile — names resolved, nothing
+ * written. The guided interview's review step reads this, so the user sees the
+ * exact days and prescriptions *before* anything is saved, and "Build" then
+ * writes that same set (`buildPlansFromProfile` uses the same generator input).
+ */
+export interface PreviewItem {
+  name: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  weightKg?: number;
+}
+export interface PreviewDay {
+  name: string;
+  items: PreviewItem[];
+}
+export function previewPlans(profile: Profile): PreviewDay[] {
+  const { bundle } = loadSnapshot();
+  const names = new Map(bundle.exercises.map((e) => [e.id, e.name]));
+  return generatePlan(
+    {
+      experience: profile.experience,
+      goal: profile.goal,
+      daysPerWeek: profile.daysPerWeek,
+      minutes: profile.minutes,
+      equipment: profile.equipment,
+      limitations: profile.limitations,
+      weightKg: profile.weightKg,
+    },
+    kbCatalogue(),
+  ).map((day) => ({
+    name: day.name,
+    items: day.items.map((item) => ({
+      name: names.get(item.exerciseId) ?? item.exerciseId,
+      sets: item.sets,
+      reps: item.reps,
+      restSeconds: item.restSeconds,
+      ...(item.weightKg !== undefined ? { weightKg: item.weightKg } : {}),
+    })),
+  }));
+}
+
+export async function buildPlansFromProfile(
+  profile: Profile,
+  opts: { replaceExisting?: boolean } = {},
+): Promise<BuildResult> {
+  const { bundle } = loadSnapshot();
+  const catalogue = kbCatalogue();
 
   const days = generatePlan(
     {

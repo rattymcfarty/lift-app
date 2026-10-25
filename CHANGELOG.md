@@ -2,6 +2,18 @@
 
 ## Unreleased (addendum)
 
+- **A guided interview that sets up your plans.** "Set up my plans step by step" (Programs →
+  Library, or from the profile screen) asks the six questions the generator needs — one per
+  screen — and under each answer shows the reason it is asked *and* the live consequence
+  ("Main lifts 3 × 8-12 reps, 75 s rest"). Then it shows the real plan set before anything is
+  written: every day, every exercise, sets × reps, rest and estimated loads, plus a "why these
+  numbers" block read from the generator's tables. "Build my N plans" writes that exact set
+  through the same path onboarding and the profile editor use, replacing only `My Plan · …`.
+  Deterministic and on-device — no network, no model, and the review and the build share one
+  generator input, so what you approve is what you get. `scripts/test-quiz.mjs` (40
+  assertions); `.maestro/quiz.yaml` answers all six, reviews, builds and finds the plans in the
+  library — device PASS.
+
 - **Your profile: change the persona, see what it changes.** A new "Your profile" screen (from
   the Programs header, the left panel's More list and Settings) shows the six answers the plan
   generator reads — goal, experience, days per week, session length, equipment, joint

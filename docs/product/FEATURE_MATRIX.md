@@ -17,7 +17,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Flag limitations (knees, lower back, shoulders) | ✅ P9 | Excludes risky movements |
 | Safety screening (PAR-Q+) | ✅ | Gate before programs |
 | A plan built for me, adjustable afterwards | ✅ P9 | Rule-based generator → ordinary editable plans |
-| A guided interview that builds a **program** (plans + progression) for me | 🟡 → partly | Onboarding already generates a multi-week plan set from the profile, and `Your profile` now explains and rebuilds it; the step-by-step quiz with an explicit review-before-save step is the remaining half of queue 2b |
+| A guided interview that builds **plans** for me, with a review before anything is saved | ✅ | "Set up my plans" (`app/quiz.tsx`): six questions, each with its reason and live consequence, then a review of the real generated plan set (days, exercises, sets × reps, rest, estimated loads) before "Build my N plans". Same generator and writer as onboarding and the profile editor; replaces only `My Plan · …` |
 | Starting weights sized to my body & level | ✅ P9 | Conservative estimates, clearly labelled |
 
 ## 2. Deciding what to do today
