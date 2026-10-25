@@ -1,0 +1,54 @@
+# Mid-workout exercise info: the exercise title opens a sheet with the muscles,
+# key cues, the safety line, the plan target and last time — WITHOUT leaving the
+# workout (the pending set must still be there afterwards).
+# Run: maestro test .maestro/exercise-info.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- hideKeyboard
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+
+# The title is the trigger.
+- tapOn:
+    id: "exercise-info-1"
+- assertVisible:
+    id: "exercise-info-sheet"
+- assertVisible: "About this exercise"
+- assertVisible: "Quadriceps, Glutes"
+
+# The full guide is one button away, and coming back leaves the set untouched.
+- tapOn:
+    id: "exercise-info-sheet-guide"
+- assertVisible: "Guide"
+- tapOn:
+    id: "header-back"
+- assertVisible:
+    id: "add-set"
+- assertVisible:
+    id: "set-reps-1"
+
+# Done just closes it.
+- tapOn:
+    id: "exercise-info-1"
+- assertVisible:
+    id: "exercise-info-sheet"
+- tapOn:
+    id: "exercise-info-sheet-done"
+- assertNotVisible:
+    id: "exercise-info-sheet"

@@ -2,6 +2,17 @@
 
 ## Unreleased (addendum)
 
+- **The exercise title answers "am I doing this right?" mid-set.** Tapping the title in a
+  workout card opens a sheet with what the movement trains (muscle + equipment chips), the
+  KB **key cues** (capped at four), the **common mistakes**, the **safety stop line** in a
+  warning-tinted block, the plan's target, last time, and one "why it matters" line — with
+  the full guide one button away. It never navigates away, so a half-filled set survives,
+  and with the companion on Pip says the summary line ("Keep it simple: 3 cues, and you stop
+  if it hurts"). Anything the KB entry lacks is simply absent rather than an empty heading
+  (`src/components/workout/exerciseInfo.ts`, pure; `scripts/test-exercise-info.mjs`, 34
+  assertions). `.maestro/exercise-info.yaml` opens it, jumps to the full guide and returns
+  with the set intact — device PASS alongside `workout-flow`, `wheel` and `tabs`.
+
 - **"Plans and Programs" — the app now explains its own two words.** The owner supplied the
   copy; it lives as **content, not JSX** (`src/content/infoPages.ts`: heading, paragraph,
   bullets, a two-sided Plan/Program card, two worked examples, the one-line rule, and the

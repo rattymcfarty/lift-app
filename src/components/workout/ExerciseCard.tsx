@@ -40,12 +40,15 @@ import { useGroupFit } from '../../theme/adaptive';
 import { getSettings } from '../../data/settings';
 import { formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import { supersetTagText, shouldStartRest, nextSupersetMember } from '../../lib/exerciseMenu';
+import type { Href } from 'expo-router';
 import type { PlannedSetRow } from '../../data/plannedSets';
 import { formatPreviousPerformance } from './format';
 import { RestTimer } from './RestTimer';
 import { SetRow, type SetInputValues, type SetRowMode } from './SetRow';
 import { Card } from './ui';
 import { ExerciseActionsSheet } from './ExerciseActionsSheet';
+import { ExerciseInfoSheet } from './ExerciseInfoSheet';
+import { exerciseInfo } from './exerciseInfo';
 import { ActionIcon } from '../icons';
 import { FONT_WEIGHT } from '../../theme/tokens';
 import { GRID_FLEX, GRID_MAX_FONT_SCALE, gridMetrics } from './setGrid';
@@ -155,7 +158,9 @@ export function ExerciseCard({
     ),
     base: t.size.card,
     min: t.size.meta,
-    padding: 11,
+    // Reserves the info + note glyphs and their gaps (the fit measures the whole
+    // row, so the icons must come off the text width).
+    padding: 21,
   });
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
@@ -188,6 +193,8 @@ export function ExerciseCard({
   const pendingKeyRef = useRef(0);
   const [settings, setSettings] = useState<{ weightUnit: 'kg' | 'lb'; defaultRestSeconds: number } | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  /** The mid-workout "about this exercise" sheet (opened from the title). */
+  const [infoVisible, setInfoVisible] = useState(false);
 
   const { workoutExercise, exercise, sets } = detail;
 
@@ -616,6 +623,34 @@ export function ExerciseCard({
   const lastTimeLine =
     previous === undefined ? 'Looking up last time…' : formatPreviousPerformance(previous);
 
+  /**
+   * The plan's target for this exercise, one line (the sheet's "Your plan").
+   * `plannedSets` carries one row per planned set with the same targets, so the
+   * count and the first row describe it.
+   */
+  const plannedTarget =
+    plannedSets && plannedSets.length > 0
+      ? [
+          plannedSets[0].reps != null
+            ? `${plannedSets.length} × ${plannedSets[0].reps} reps`
+            : `${plannedSets.length} sets`,
+          plannedSets[0].weightKg != null ? formatWeight(plannedSets[0].weightKg, displayUnit) : '',
+          plannedSets[0].rpe != null ? `RPE ${plannedSets[0].rpe}` : '',
+        ]
+          .filter((part) => part.length > 0)
+          .join(' · ')
+      : undefined;
+
+  /** Everything the info sheet shows, derived from what the card already has. */
+  const info = exerciseInfo({
+    name: displayName(exercise),
+    muscles,
+    kbDetailJson: exercise.kbDetailJson,
+    longevityNotes: exercise.longevityNotes,
+    target: plannedTarget,
+    lastTime: previous ? formatPreviousPerformance(previous) : undefined,
+  });
+
   // Determine if we should show column headers (any rows exist: logged or pending)
   const hasAnyRows = sets.length > 0 || pendings.length > 0;
 
@@ -700,7 +735,13 @@ export function ExerciseCard({
           {workoutExercise.position + 1}
         </Text>
         <View style={styles.headerText}>
-          <View
+          <Pressable
+            testID={`exercise-info-${workoutExercise.position + 1}`}
+            onPress={() => setInfoVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`About ${displayName(exercise)}`}
+            accessibilityHint="Key cues, safety and last time"
+            hitSlop={8}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
             onLayout={titleFit.onLayout}
           >
@@ -715,8 +756,9 @@ export function ExerciseCard({
             >
               {displayName(exercise)}
             </Text>
+            <ActionIcon name="info" color={theme.colors.accent} size={14} />
             {workoutExercise.notes ? <ActionIcon name="note" color={theme.colors.accent} size={16} /> : null}
-          </View>
+          </Pressable>
           {muscles ? (
             <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
               {muscles}
@@ -905,6 +947,15 @@ export function ExerciseCard({
         routineTargetWeightKg={plannedSets?.[0]?.weightKg ?? null}
         hasUnloggedWarmups={pendings.some((p) => p.isWarmup)}
         globalUnit={displayUnit}
+      />
+
+      {/* About this exercise — opened from the title. Never navigates away: the
+          pending set stays exactly as it was. */}
+      <ExerciseInfoSheet
+        visible={infoVisible}
+        onClose={() => setInfoVisible(false)}
+        info={info}
+        onOpenGuide={() => router.push(`/exercises/${exercise.id}` as Href)}
       />
     </Card>
     </SwipeableRow>

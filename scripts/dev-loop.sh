@@ -58,5 +58,6 @@ check "test:icons" "node scripts/test-icons.mjs"
 check "test:rpe" "npm run test:rpe"
 check "test:wheel" "npm run test:wheel"
 check "test:content" "npm run test:content"
+check "test:exercise-info" "npm run test:exercise-info"
 check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi

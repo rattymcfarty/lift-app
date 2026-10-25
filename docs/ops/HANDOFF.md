@@ -553,12 +553,13 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
     4. Consider whether the *keyboard* should stay the default for reps (small range, fast to
        type) — an owner call once they have felt both.
 
-2e. **Exercise info mid-workout — from the exercise title (owner request 2026-10-24).** The
-    RPE explainer's sibling: while a set is in progress, tapping the exercise's name should
-    show the same kind of sheet about *that exercise*. Not in the queue before now; the only
-    path today is buried — the card's ⋯ actions sheet → "View Demo & History" → pushes the
-    full `/exercises/<id>` screen, which takes the user out of the workout. The title itself
-    does nothing (it was only ever a label; it got its adaptive size on 2026-10-24).
+2e. **Exercise info mid-workout — from the exercise title (owner request 2026-10-24).**
+    *Shipped 2026-10-24 (see §6): the title opens `ExerciseInfoSheet` — muscle/equipment
+    chips, KB key cues (capped at four), common mistakes, the safety line, plan target, last
+    time and one longevity line, with "Open full guide" for the long version. Pure content
+    mapping in `workout/exerciseInfo.ts` (`test:exercise-info`, 34), flow
+    `.maestro/exercise-info.yaml`, device PASS. Remaining idea: reuse the same sheet from the
+    plan/program rows, history detail and the summary.*
 
     Recommendations:
     - **Same shape as the RPE sheet** (`BottomSheet` + a pure content module + a Pip line),
@@ -696,6 +697,17 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   examples, both entry points, every panel href ↔ route file) wired into `dev-loop.sh`;
   `test:panel` and the rest of the suite unchanged. Device: `learn` PASS from both entry
   points (plus `panels`, `tabs`).
+- **Queue 2e shipped the same evening.** The exercise title in a workout card opens
+  `ExerciseInfoSheet`: Pip's one-liner, muscle/equipment chips, the KB **key cues** (capped
+  at four), common mistakes, the **safety stop line** (warning-tinted — the thing that should
+  never be more than a tap away), the plan's target, last time, and one "why it matters"
+  line, with "Open full guide" for the rest. It never navigates away, so a half-filled set
+  survives. Content is a pure function (`workout/exerciseInfo.ts`) so degradation is testable:
+  a missing/corrupt KB blob yields no cues and no empty headings, headings are dropped from
+  the "why" line rather than unhashed into a fake sentence, and long prose is cut at a
+  sentence boundary (`test:exercise-info`, 34 assertions). Device: `exercise-info`,
+  `workout-flow`, `wheel`, `tabs` all PASS on a release APK; the sheet screenshot shows the
+  real KB cues, mistakes and the safety note for the Goblet Squat.
 - **The screenshot caught a layout bug worth remembering:** the page had no `SafeAreaView`,
   so the title and the page's back arrow were drawn ON the floating menu/companion/settings
   band — `ScreenHeader` reserves `TOP_BAR_HEIGHT` but the safe-area inset comes from the
