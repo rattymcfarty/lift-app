@@ -29,6 +29,7 @@ export type ActionIconName =
   | 'arrow-down'
   | 'grip'
   | 'info'
+  | 'person'
   | 'check';
 
 export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; color: string; size?: number }): JSX.Element {
@@ -154,6 +155,11 @@ export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; c
           <Circle cx={15} cy={12} r={1.3} fill={color} />
           <Circle cx={9} cy={17} r={1.3} fill={color} />
           <Circle cx={15} cy={17} r={1.3} fill={color} />
+        </>
+      ) : name === 'person' ? (
+        <>
+          <Circle cx={12} cy={8.4} r={3.4} {...c} />
+          <Path d="M4.8 19.5c.7-3.6 3.5-5.6 7.2-5.6s6.5 2 7.2 5.6" {...c} />
         </>
       ) : name === 'info' ? (
         <>

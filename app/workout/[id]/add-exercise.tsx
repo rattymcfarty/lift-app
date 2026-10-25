@@ -33,6 +33,7 @@ import { useTheme } from '../../../src/theme';
 import { EmptyState, ScreenHeader, Button } from '../../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
+import { toggleFilterPanel, type OpenFilterPanel } from '../../../src/components/workout/filterPanel';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { RecentExercises } from '../../../src/components/workout/RecentExercises';
@@ -131,8 +132,8 @@ export default function AddExerciseScreen(): JSX.Element {
   // Filter state — multi-select toggle chips.
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [muscleExpanded, setMuscleExpanded] = useState(false);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+  /** One filter grid at a time — the caret can then never describe a closed grid. */
+  const [openFilter, setOpenFilter] = useState<OpenFilterPanel>(null);
   // Selection model for multi-select add.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
@@ -198,13 +199,13 @@ export default function AddExerciseScreen(): JSX.Element {
     setSelectedMuscles((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setMuscleExpanded(true);
+    setOpenFilter('muscle');
   };
   const toggleEquipment = (id: string) => {
     setSelectedEquipment((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setEquipmentExpanded(true);
+    setOpenFilter('equipment');
   };
   const clearMuscles = () => setSelectedMuscles([]);
   const clearEquipment = () => setSelectedEquipment([]);
@@ -368,28 +369,28 @@ export default function AddExerciseScreen(): JSX.Element {
                 <FilterChip
                   label="Muscles"
                   count={selectedMuscles.length}
-                  expanded={muscleExpanded}
-                  onToggle={() => setMuscleExpanded((p) => !p)}
+                  expanded={openFilter === 'muscle'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'muscle'))}
                   onClear={clearMuscles}
                   testID="picker-filter-muscle"
                 />
                 <FilterChip
                   label="Equipment"
                   count={selectedEquipment.length}
-                  expanded={equipmentExpanded}
-                  onToggle={() => setEquipmentExpanded((p) => !p)}
+                  expanded={openFilter === 'equipment'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'equipment'))}
                   onClear={clearEquipment}
                   testID="picker-filter-equipment"
                 />
               </FilterChipRow>
-              {muscleExpanded ? (
+              {openFilter === 'muscle' ? (
                 <TaxonomyFilterGrid
                   mode="muscle"
                   selected={selectedMuscles}
                   onToggle={toggleMuscle}
                 />
               ) : null}
-              {equipmentExpanded ? (
+              {openFilter === 'equipment' ? (
                 <TaxonomyFilterGrid
                   mode="equipment"
                   selected={selectedEquipment}

@@ -1,0 +1,91 @@
+# Your profile: the persona the generator reads, editable any time, with the
+# consequence of every answer shown before saving — then a rebuild that really
+# produces the plans.
+# Run: maestro test .maestro/persona.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+
+# Reachable from the left panel, anywhere.
+- tapOn:
+    id: "topbar-panel"
+- scrollUntilVisible:
+    element:
+      id: "panel-more-profile"
+    direction: DOWN
+- tapOn:
+    id: "panel-more-profile"
+- assertVisible: "Your profile"
+- assertVisible: "What each answer changes"
+- assertVisible: "Goal"
+- assertVisible: "Experience"
+- assertVisible:
+    id: "persona-changes-goal"
+
+# Changing an answer explains the consequence immediately — before saving.
+- tapOn:
+    id: "persona-goal-strength"
+# Beginner profile: the strength scheme is 3 sets of 4-6 with 150 s rest.
+- assertVisible: ".*4-6 reps, 150 s rest.*"
+
+# The split names are the generator's own day table.
+- scrollUntilVisible:
+    element:
+      id: "persona-days-4"
+    direction: DOWN
+- tapOn:
+    id: "persona-days-4"
+- assertVisible: ".*Upper A · Lower A · Upper B · Lower B.*"
+
+# Equipment says what it excludes (or that nothing is excluded).
+- scrollUntilVisible:
+    element: "Equipment"
+    direction: DOWN
+- assertVisible: "The whole library is available."
+
+# A limitation names exactly which movements it removes.
+- scrollUntilVisible:
+    element:
+      id: "persona-limitation-knees"
+    direction: DOWN
+- tapOn:
+    id: "persona-limitation-knees"
+- scrollUntilVisible:
+    element:
+      id: "persona-changes-limitations"
+    direction: DOWN
+- assertVisible: ".*jumps, lunges, split squats.*"
+
+# Saving without rebuilding keeps the old plans and says so.
+- scrollUntilVisible:
+    element:
+      id: "persona-save"
+    direction: DOWN
+- tapOn:
+    id: "persona-save"
+- assertVisible:
+    id: "persona-message"
+- assertVisible: ".*Saved.*"
+
+# Rebuilding writes the plans the description promised.
+- tapOn:
+    id: "persona-rebuild"
+- assertVisible: ".*Rebuilt 4 plans.*"
+
+# They are really in the library.
+- tapOn:
+    id: "header-back"
+- tapOn:
+    id: "tab-programs"
+- tapOn:
+    id: "programs-segment-library"
+- assertVisible: ".*My Plan · Day 1.*"
+
+# And from the Programs header, where the profile shapes the programmes.
+- tapOn:
+    id: "programs-profile"
+- assertVisible: "Your profile"
+- tapOn:
+    id: "header-back"

@@ -2,6 +2,25 @@
 
 ## Unreleased (addendum)
 
+- **Your profile: change the persona, see what it changes.** A new "Your profile" screen (from
+  the Programs header, the left panel's More list and Settings) shows the six answers the plan
+  generator reads — goal, experience, days per week, session length, equipment, joint
+  limitations — as chips, and underneath each one the exact consequence: sets, reps and rest
+  for a main lift, the starting-load factor, the actual split names ("Upper A · Lower A · Upper
+  B · Lower B"), the exercise cap for the session length, what the equipment excludes and which
+  movements a limitation removes. The numbers are read from the generator's own tables
+  (`src/lib/personaImpact.ts`), so the explanation cannot drift from the plan. Changing a chip
+  updates it before saving; "Save & rebuild my plans" regenerates only the `My Plan · …` set
+  (plans you made yourself are never touched), and screenshots/flow confirm four plans appear in
+  the library. `scripts/test-persona.mjs` (54 assertions) pins the copy to the generator;
+  `.maestro/persona.yaml` edits, saves, rebuilds and checks the result.
+- **The filter chevron finally tells the truth.** With the muscle grid open, the equipment chip
+  still pointed "open": the chips were independent and the glyph was inverted. Now one grid can
+  be open at a time (browse, add-exercise, swap and the plan picker share
+  `src/components/workout/filterPanel.ts`), and ▲ means open / ▼ means closed, as in the
+  composer picker. `scripts/test-filter-panel.mjs` (14 assertions) pins both rules; browse,
+  plan-picker and workout-flow pass on device.
+
 - **The program screens use the shared header too (and stop colliding with the chrome).** With
   the floating menu/settings buttons now on every page, the two hand-rolled headers were
   drawn *under* them: the program builder's own top row and `WizardPage` (program details and

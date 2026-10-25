@@ -34,6 +34,7 @@ import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../src/components/workout/TaxonomyFilterGrid';
 import { FilterChip, FilterChipRow } from '../../src/components/workout/FilterChip';
+import { toggleFilterPanel, type OpenFilterPanel } from '../../src/components/workout/filterPanel';
 import { buildExerciseSections, type ExerciseSection } from '../../src/lib/exerciseSections';
 import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { ExercisePickRow } from '../../src/components/workout/ExercisePickRow';
@@ -133,8 +134,8 @@ export default function BrowseExercisesScreen(): JSX.Element {
 
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [muscleExpanded, setMuscleExpanded] = useState(false);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+  /** One filter grid at a time — the caret can then never describe a closed grid. */
+  const [openFilter, setOpenFilter] = useState<OpenFilterPanel>(null);
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
 
   // The left panel's "Search exercises" row lands here with ?focus=search:
@@ -183,13 +184,13 @@ export default function BrowseExercisesScreen(): JSX.Element {
     setSelectedMuscles((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setMuscleExpanded(true);
+    setOpenFilter('muscle');
   };
   const toggleEquipment = (id: string) => {
     setSelectedEquipment((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setEquipmentExpanded(true);
+    setOpenFilter('equipment');
   };
   const clearMuscles = () => setSelectedMuscles([]);
   const clearEquipment = () => setSelectedEquipment([]);
@@ -258,34 +259,34 @@ export default function BrowseExercisesScreen(): JSX.Element {
             <FilterChip
               label="Muscles"
               count={selectedMuscles.length}
-              expanded={muscleExpanded}
-              onToggle={() => setMuscleExpanded((p) => !p)}
+              expanded={openFilter === 'muscle'}
+              onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'muscle'))}
               onClear={clearMuscles}
               testID="browse-filter-muscle"
             />
             <FilterChip
               label="Equipment"
               count={selectedEquipment.length}
-              expanded={equipmentExpanded}
-              onToggle={() => setEquipmentExpanded((p) => !p)}
+              expanded={openFilter === 'equipment'}
+              onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'equipment'))}
               onClear={clearEquipment}
               testID="browse-filter-equipment"
             />
           </FilterChipRow>
-          {muscleExpanded || equipmentExpanded ? (
+          {openFilter !== null ? (
             <ScrollView
               style={{ maxHeight: gridMaxHeight }}
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
             >
-              {muscleExpanded ? (
+              {openFilter === 'muscle' ? (
                 <TaxonomyFilterGrid
                   mode="muscle"
                   selected={selectedMuscles}
                   onToggle={toggleMuscle}
                 />
               ) : null}
-              {equipmentExpanded ? (
+              {openFilter === 'equipment' ? (
                 <TaxonomyFilterGrid
                   mode="equipment"
                   selected={selectedEquipment}

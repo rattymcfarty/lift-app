@@ -28,6 +28,7 @@ import { useTheme } from '../../../src/theme';
 import { Button, ScreenHeader, EmptyState } from '../../../src/components/workout/ui';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
+import { toggleFilterPanel, type OpenFilterPanel } from '../../../src/components/workout/filterPanel';
 import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../src/data/history';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
@@ -56,8 +57,8 @@ export default function SwapExerciseScreen(): JSX.Element {
   // Filter state — shared TaxonomyFilterGrid.
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [muscleExpanded, setMuscleExpanded] = useState(false);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+  /** One filter grid at a time — the caret can then never describe a closed grid. */
+  const [openFilter, setOpenFilter] = useState<OpenFilterPanel>(null);
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
 
   // Load current exercise info
@@ -118,13 +119,13 @@ export default function SwapExerciseScreen(): JSX.Element {
     setSelectedMuscles((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setMuscleExpanded(true);
+    setOpenFilter('muscle');
   };
   const toggleEquipment = (id: string) => {
     setSelectedEquipment((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-    setEquipmentExpanded(true);
+    setOpenFilter('equipment');
   };
   const clearMuscles = () => setSelectedMuscles([]);
   const clearEquipment = () => setSelectedEquipment([]);
@@ -192,28 +193,28 @@ export default function SwapExerciseScreen(): JSX.Element {
                 <FilterChip
                   label="Muscles"
                   count={selectedMuscles.length}
-                  expanded={muscleExpanded}
-                  onToggle={() => setMuscleExpanded((p) => !p)}
+                  expanded={openFilter === 'muscle'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'muscle'))}
                   onClear={clearMuscles}
                   testID="swap-filter-muscle"
                 />
                 <FilterChip
                   label="Equipment"
                   count={selectedEquipment.length}
-                  expanded={equipmentExpanded}
-                  onToggle={() => setEquipmentExpanded((p) => !p)}
+                  expanded={openFilter === 'equipment'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'equipment'))}
                   onClear={clearEquipment}
                   testID="swap-filter-equipment"
                 />
               </FilterChipRow>
-              {muscleExpanded ? (
+              {openFilter === 'muscle' ? (
                 <TaxonomyFilterGrid
                   mode="muscle"
                   selected={selectedMuscles}
                   onToggle={toggleMuscle}
                 />
               ) : null}
-              {equipmentExpanded ? (
+              {openFilter === 'equipment' ? (
                 <TaxonomyFilterGrid
                   mode="equipment"
                   selected={selectedEquipment}

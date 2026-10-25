@@ -2,9 +2,10 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-24 evening — the Plans/Programs explainer (queue 2a shipped), the
-> scroll-wheel numeric entry, chrome on every page, uniform section headers and adaptive
-> exercise titles. Repo HEAD at the time: see `git log -1`.
+> Last updated: 2026-10-25 — the persona editor ("Your profile") and the filter-caret fix
+> (queue 2b items 3 + 5), after the Plans/Programs explainer, exercise info sheet, scroll-wheel
+> entry, chrome on every page and uniform section headers. Repo HEAD at the time: see
+> `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -469,7 +470,13 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 2b. **Programs section review — owner request 2026-10-24.** Four things the owner saw, plus
     the coherence pass they asked for ("all sections should be nicely and equally laid out…
-    uniform and cohesive"):
+    uniform and cohesive").
+    *Status 2026-10-25: (1) section headers, (2) Analytics spacing and (5 — the lying filter
+    caret) are shipped, as is (3) the persona editor: `app/persona.tsx`, opened from the
+    Programs header (person button), the left panel and Settings, with every answer's effect
+    read from the generator's tables (`src/lib/personaImpact.ts`, `test:persona` 54) and a
+    "Save & rebuild my plans" path that replaces only `My Plan · …`. Device PASS. Remaining:
+    (4) the guided quiz — a step-by-step interview with an explicit review-before-save step.*
     1. **Missing section header on Programs.** The tab opens straight into content while
        Browse/Articles lead with a title. Give every section the same header
        (title + a factual one-line subtitle, e.g. "Browse Exercises · 581 exercises in the
@@ -689,6 +696,30 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-25 — Your profile (persona editor) + the filter caret (opencode)
+
+- **Queue 2b, items 3 and 5 shipped.** `app/persona.tsx` ("Your profile") shows the six answers
+  the generator reads as chips, and under each one the consequence taken from the generator's
+  own tables — via `src/lib/personaImpact.ts`, which imports the now-exported `DAYS`,
+  `MAX_ITEMS`, `RANK`, `ALLOWED_EQUIPMENT`, `AVOID`, `EXPERIENCE_LOAD` and a new
+  `mainLiftPrescription()` from `planGenerator.ts`. Goal → sets/reps/rest, experience → sets +
+  load factor + difficulty ceiling, days → the actual split names, minutes → the exercise cap,
+  equipment/limitations → what is filtered out. Editing a chip updates the explanation before
+  saving; "Save & rebuild my plans" calls the same `buildPlansFromProfile(…, { replaceExisting:
+  true })` as onboarding, so it replaces only `My Plan · …` and never a user-made plan.
+  `scripts/test-persona.mjs` (54) pins the copy to the generator; `.maestro/persona.yaml`
+  edits goal/days/limitation, saves, rebuilds, sees four plans in the library, and opens the
+  screen again from the Programs header — device PASS (plus `tabs`, `exercise-browse`,
+  `plan-picker`, `workout-flow`).
+- Entry points: the Programs header now carries a person button beside the ⓘ (`rightSize` added
+  to `SegmentedTitle` so the title reserves room for two controls), the left panel's More list
+  (`panel-more-profile`) and the Settings profile card. Bodyweight and PAR-Q+ are named on the
+  screen with a link to Body weight rather than duplicated.
+- **The caret bug is gone at the source.** `src/components/workout/filterPanel.ts` keeps one
+  open grid (`toggleFilterPanel`) and owns the convention (`panelCaret`: ▲ = open, ▼ = closed).
+  Browse, add-exercise, swap-exercise and the plan picker use it; `test:filter-panel` (14).
+- Remaining in 2b: the guided quiz (item 4) with review-before-save.
 
 ### 2026-10-24 (evening) — Plans and Programs explainer (opencode)
 

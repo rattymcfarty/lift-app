@@ -191,13 +191,22 @@ export default function ProgramsScreen(): JSX.Element {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <SegmentedTitle
         title="Programs"
+        rightSize={92}
         right={
-          <GlassButton
-            testID="programs-learn"
-            icon={<ActionIcon name="info" color={c.text} size={22} />}
-            accessibilityLabel="What plans and programs are"
-            onPress={() => router.push('/learn/plan-vs-program' as Href)}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <GlassButton
+              testID="programs-profile"
+              icon={<ActionIcon name="person" color={c.text} size={22} />}
+              accessibilityLabel="Your profile — what your plans are built from"
+              onPress={() => router.push('/persona' as Href)}
+            />
+            <GlassButton
+              testID="programs-learn"
+              icon={<ActionIcon name="info" color={c.text} size={22} />}
+              accessibilityLabel="What plans and programs are"
+              onPress={() => router.push('/learn/plan-vs-program' as Href)}
+            />
+          </View>
         }
         segments={[
           { key: 'explore', label: 'Explore', testID: 'programs-segment-explore' },

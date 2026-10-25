@@ -14,7 +14,8 @@ export type PanelHref =
   | '/balance'
   | '/calculators'
   | '/measure'
-  | '/learn/plan-vs-program';
+  | '/learn/plan-vs-program'
+  | '/persona';
 
 /** One "More" row. */
 export interface PanelLink {
@@ -36,4 +37,5 @@ export const PANEL_MORE_LINKS: ReadonlyArray<PanelLink> = [
   { key: 'calculators', label: 'Calculators', href: '/calculators', icon: 'note' },
   { key: 'body-weight', label: 'Body weight', href: '/measure', icon: 'progression' },
   { key: 'learn', label: 'Plans vs programs', href: '/learn/plan-vs-program', icon: 'info' },
+  { key: 'profile', label: 'Your profile', href: '/persona', icon: 'person' },
 ];

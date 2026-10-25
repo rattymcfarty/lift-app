@@ -234,12 +234,14 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
             : 'Tell LIFT about you and get a plan built for your body, level and week.'}
         </Text>
         <Button
-          title={profile?.onboarded ? 'Edit profile & rebuild plan' : 'Set up my plan'}
+          title={profile?.onboarded ? 'Review profile & what it changes' : 'Set up my plan'}
           testID="settings-profile"
           variant="secondary"
           onPress={() => {
             onLeave?.();
-            router.push('/onboarding?edit=1');
+            // The persona editor, not the first-run wizard: it shows what each
+            // answer changes and can rebuild the generated plans in place.
+            router.push(profile?.onboarded ? '/persona' : '/onboarding?edit=1');
           }}
         />
       </Card>

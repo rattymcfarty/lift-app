@@ -33,6 +33,7 @@ import { ComposerTaxonomyPicker } from '../../../src/components/workout/Composer
 import { displayName } from '../../../src/kb/taxonomy';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 import { FilterChip, FilterChipRow } from '../../../src/components/workout/FilterChip';
+import { toggleFilterPanel, type OpenFilterPanel } from '../../../src/components/workout/filterPanel';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 
@@ -75,8 +76,8 @@ export default function AddPlanExerciseScreen(): JSX.Element {
     ?.split(',')
     .filter(Boolean) ?? [];
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>(initialEquip);
-  const [muscleExpanded, setMuscleExpanded] = useState(false);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+  /** One filter grid at a time — the caret can then never describe a closed grid. */
+  const [openFilter, setOpenFilter] = useState<OpenFilterPanel>(null);
   const filtersActive = selectedMuscles.length > 0 || selectedEquipment.length > 0;
   const toggleIn = (list: string[], id: string): string[] =>
     list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -269,21 +270,21 @@ export default function AddPlanExerciseScreen(): JSX.Element {
                 <FilterChip
                   label="Muscles"
                   count={selectedMuscles.length}
-                  expanded={muscleExpanded}
-                  onToggle={() => setMuscleExpanded((p) => !p)}
+                  expanded={openFilter === 'muscle'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'muscle'))}
                   onClear={() => setSelectedMuscles([])}
                   testID="plan-picker-filter-muscle"
                 />
                 <FilterChip
                   label="Equipment"
                   count={selectedEquipment.length}
-                  expanded={equipmentExpanded}
-                  onToggle={() => setEquipmentExpanded((p) => !p)}
+                  expanded={openFilter === 'equipment'}
+                  onToggle={() => setOpenFilter((p) => toggleFilterPanel(p, 'equipment'))}
                   onClear={() => setSelectedEquipment([])}
                   testID="plan-picker-filter-equipment"
                 />
               </FilterChipRow>
-              {muscleExpanded ? (
+              {openFilter === 'muscle' ? (
                 <TaxonomyFilterGrid
                   mode="muscle"
                   selected={selectedMuscles}
@@ -291,7 +292,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
                   testIDPrefix="plan-picker"
                 />
               ) : null}
-              {equipmentExpanded ? (
+              {openFilter === 'equipment' ? (
                 <TaxonomyFilterGrid
                   mode="equipment"
                   selected={selectedEquipment}

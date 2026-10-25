@@ -17,6 +17,7 @@
 import type { JSX, ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTheme } from '../../theme';
+import { panelCaret } from './filterPanel';
 
 export function FilterChip({
   label,
@@ -66,7 +67,7 @@ export function FilterChip({
           {display}
         </Text>
         <Text style={{ color: theme.colors.muted, fontSize: t.size.caption }}>
-          {expanded ? '▾' : '▴'}
+          {panelCaret(expanded)}
         </Text>
       </Pressable>
       {count > 0 && (

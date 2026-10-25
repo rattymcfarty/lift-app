@@ -59,5 +59,7 @@ check "test:rpe" "npm run test:rpe"
 check "test:wheel" "npm run test:wheel"
 check "test:content" "npm run test:content"
 check "test:exercise-info" "npm run test:exercise-info"
+check "test:filter-panel" "npm run test:filter-panel"
+check "test:persona" "npm run test:persona"
 check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi

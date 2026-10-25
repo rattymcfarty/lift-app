@@ -17,7 +17,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Flag limitations (knees, lower back, shoulders) | ✅ P9 | Excludes risky movements |
 | Safety screening (PAR-Q+) | ✅ | Gate before programs |
 | A plan built for me, adjustable afterwards | ✅ P9 | Rule-based generator → ordinary editable plans |
-| A guided interview that builds a **program** (plans + progression) for me | 🟡 → queued | Onboarding generates a plan today; a step-by-step quiz with a review step before saving is queue 2b |
+| A guided interview that builds a **program** (plans + progression) for me | 🟡 → partly | Onboarding already generates a multi-week plan set from the profile, and `Your profile` now explains and rebuilds it; the step-by-step quiz with an explicit review-before-save step is the remaining half of queue 2b |
 | Starting weights sized to my body & level | ✅ P9 | Conservative estimates, clearly labelled |
 
 ## 2. Deciding what to do today
@@ -70,7 +70,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Hide the companion completely | ✅ | Settings → Companion (default ON); the circle is fixed in the top bar centre |
 | Choose the companion's look | ✅ | Settings → Companion → Style: Mouse (default) / Blob; persisted, rides in backups |
 | Works offline, no tracking | ✅ | |
-| Review and update my profile ("persona") at any time, and see what each answer changes | 🟡 → queued | Editable in Settings today (and carried in backups); a reachable reviewer in the Programs section that shows the effect on volume/reps/rest/exclusions is queue 2b |
+| Review and update my profile ("persona") at any time, and see what each answer changes | ✅ | `Your profile` (`app/persona.tsx`), opened from the Programs header (person button), the left panel's More list and Settings. Every answer shows its consequence read from the generator's own tables (`src/lib/personaImpact.ts`): sets/reps/rest, load factor, split names, exercise cap, equipment and limitation exclusions. Save, or save & rebuild only the generated plans |
 
 ## 6. Longevity layer
 | Need | Status | Notes |

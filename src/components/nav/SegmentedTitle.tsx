@@ -23,6 +23,8 @@ export interface SegmentedTitleProps<K extends string> {
   title?: string;
   /** Trailing controls (settings gear, action button). */
   right?: ReactNode;
+  /** Width reserved for the trailing controls, in dp (two buttons need more than one). */
+  rightSize?: number;
 }
 
 export function SegmentedTitle<K extends string>({
@@ -31,6 +33,7 @@ export function SegmentedTitle<K extends string>({
   onChange,
   title,
   right,
+  rightSize = 40,
 }: SegmentedTitleProps<K>): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -43,7 +46,7 @@ export function SegmentedTitle<K extends string>({
   // to fit: the longest label in the width left over after the trailing action.
   // Each segment used to autoshrink on its own, so "Train | History" could come
   // out as two different sizes.
-  const reserved = right ? theme.spacing.md + 40 : 0;
+  const reserved = right ? theme.spacing.md + rightSize : 0;
   const size = fitGroupSize(width - theme.spacing.md * 2 - reserved, {
     longest: segments.reduce((a, s) => (s.label.length > a.length ? s.label : a), ''),
     base: titled ? t.size.row : width < 360 ? t.size.screenCompact : t.size.screen,

@@ -83,7 +83,7 @@ const SLOT_FALLBACK: Record<Slot, { pattern: string; category?: string }> = {
   upperBack: { pattern: 'pull', category: 'Horizontal Pull' },
 };
 
-const DAYS: Record<number, ReadonlyArray<{ name: string; slots: Slot[] }>> = {
+export const DAYS: Record<number, ReadonlyArray<{ name: string; slots: Slot[] }>> = {
   2: [
     { name: 'Full body A', slots: ['squat', 'pushH', 'pullH', 'hinge', 'core', 'mobility'] },
     { name: 'Full body B', slots: ['lunge', 'pushV', 'pullV', 'hinge', 'carry', 'mobility'] },
@@ -108,16 +108,16 @@ const DAYS: Record<number, ReadonlyArray<{ name: string; slots: Slot[] }>> = {
   ],
 };
 
-const MAX_ITEMS: Record<number, number> = { 30: 4, 45: 5, 60: 6, 75: 7 };
-const RANK = { beginner: 0, intermediate: 1, advanced: 2 } as const;
-const ALLOWED_EQUIPMENT: Record<EquipmentAccess, readonly string[] | null> = {
+export const MAX_ITEMS: Record<number, number> = { 30: 4, 45: 5, 60: 6, 75: 7 };
+export const RANK = { beginner: 0, intermediate: 1, advanced: 2 } as const;
+export const ALLOWED_EQUIPMENT: Record<EquipmentAccess, readonly string[] | null> = {
   full: null,
   dumbbells: ['Dumbbell', 'Kettlebell', 'Bodyweight'],
   bodyweight: ['Bodyweight'],
 };
 /** Specialist variants never chosen by the fallback. */
 const FALLBACK_EXCLUDE = /weighted|assisted|partial|paused|deficit|behind|isometric|tempo|chains|speed|halting|banded|single-leg|one-arm|kroc|gorilla/i;
-const AVOID: Record<Limitation, RegExp> = {
+export const AVOID: Record<Limitation, RegExp> = {
   knees: /jump|hop|box|sissy|pistol|lunge|split-squat|thruster|burpee|skater|plyo/i,
   lowerBack: /deadlift|good-morning|back-extension|hyperextension|swing|snatch|clean|superman|bent-over-barbell|barbell-row|sumo|block-pull/i,
   shoulders: /overhead|shoulder-press|handstand|behind-the-neck|dip|upright|military|push-press|arnold|pull-up/i,
@@ -160,7 +160,7 @@ const LOAD_RATIO: Record<string, number> = {
   'leverage-shoulder-press': 0.2,
   'pallof-press': 0.08,
 };
-const EXPERIENCE_LOAD = { beginner: 0.6, intermediate: 1, advanced: 1.3 } as const;
+export const EXPERIENCE_LOAD = { beginner: 0.6, intermediate: 1, advanced: 1.3 } as const;
 
 function roundLoad(kg: number): number {
   return kg < 10 ? Math.max(1, Math.round(kg)) : Math.round(kg / 2.5) * 2.5;
@@ -197,6 +197,19 @@ function prescription(
     default: // longevity
       return { sets: [2, 3, 3][lvl], reps: '8-12', restSeconds: 90 };
   }
+}
+
+/**
+ * What the generator would prescribe for a main lift under this profile.
+ *
+ * Exported for the persona editor (`src/lib/personaImpact.ts`), so "what this
+ * answer changes" is read from the same table the plan is built from and can
+ * never drift into marketing copy.
+ */
+export function mainLiftPrescription(
+  p: GeneratorProfile,
+): Pick<PlannedItem, 'sets' | 'reps' | 'restSeconds'> {
+  return prescription('squat', { id: 'squat' } as CatalogueExercise, p);
 }
 
 export function generatePlan(p: GeneratorProfile, catalogue: readonly CatalogueExercise[]): PlannedDay[] {
