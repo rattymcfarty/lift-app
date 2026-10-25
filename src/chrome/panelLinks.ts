@@ -8,7 +8,13 @@
 import type { ActionIconName } from '../components/icons';
 
 /** Destinations offered under "More" in the left panel. */
-export type PanelHref = '/history' | '/prs' | '/balance' | '/calculators' | '/measure';
+export type PanelHref =
+  | '/history'
+  | '/prs'
+  | '/balance'
+  | '/calculators'
+  | '/measure'
+  | '/learn/plan-vs-program';
 
 /** One "More" row. */
 export interface PanelLink {
@@ -29,4 +35,5 @@ export const PANEL_MORE_LINKS: ReadonlyArray<PanelLink> = [
   { key: 'balance', label: 'Balance', href: '/balance', icon: 'scale' },
   { key: 'calculators', label: 'Calculators', href: '/calculators', icon: 'note' },
   { key: 'body-weight', label: 'Body weight', href: '/measure', icon: 'progression' },
+  { key: 'learn', label: 'Plans vs programs', href: '/learn/plan-vs-program', icon: 'info' },
 ];

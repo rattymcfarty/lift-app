@@ -45,6 +45,8 @@ import {
 import { daysPerWeekOf, isUserProgramRoutine, totalDays, type UserProgram } from '../../src/programs/userProgramDef';
 import type { Href } from 'expo-router';
 import { useTabBarSpace } from '../../src/components/nav/TabBar';
+import { GlassButton } from '../../src/components/ui/Glass';
+import { ActionIcon } from '../../src/components/icons';
 
 type Segment = 'explore' | 'library';
 
@@ -189,6 +191,14 @@ export default function ProgramsScreen(): JSX.Element {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <SegmentedTitle
         title="Programs"
+        right={
+          <GlassButton
+            testID="programs-learn"
+            icon={<ActionIcon name="info" color={c.text} size={22} />}
+            accessibilityLabel="What plans and programs are"
+            onPress={() => router.push('/learn/plan-vs-program' as Href)}
+          />
+        }
         segments={[
           { key: 'explore', label: 'Explore', testID: 'programs-segment-explore' },
           { key: 'library', label: 'Library', testID: 'programs-segment-library' },

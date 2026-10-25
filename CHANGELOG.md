@@ -2,6 +2,21 @@
 
 ## Unreleased (addendum)
 
+- **"Plans and Programs" — the app now explains its own two words.** The owner supplied the
+  copy; it lives as **content, not JSX** (`src/content/infoPages.ts`: heading, paragraph,
+  bullets, a two-sided Plan/Program card, two worked examples, the one-line rule, and the
+  note that the industry uses the terms interchangeably), rendered by one shared
+  `InfoPageView` so every explainer in the app looks alike. It is a real route
+  (`/learn/plan-vs-program`, three lines + a shared `InfoScreen` shell) rather than a sheet,
+  because it is read and returned to — and the floating chrome stays on it. Entry points: the
+  ⓘ in the Programs header and the left panel's More list. `scripts/test-content.mjs`
+  (75 assertions) checks the shape of every page, that the Plan/Program page defines both
+  sides and both examples, and that every panel link points at a route file that exists; a
+  route file per page keeps `test:panel`'s dead-link check honest.
+  `.maestro/learn.yaml` opens it from both entry points on a device. Moving this copy to the
+  knowledge base (editable on GitHub, updatable through the existing anonymous KB channel) is
+  the next step in queue 2a.
+
 - **Numeric entry gets a scroll wheel.** Weight, reps and RPE can be picked by flicking an
   iOS-style drum — the value in a highlighted band with its unit beside it — instead of the
   numeric keypad covering half the screen mid-workout. It opens from the set number in a

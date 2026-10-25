@@ -2,8 +2,9 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-24, after the RPE explainer + Full-Body/Olympic renders round.
-> Repo HEAD at the time: see `git log -1`.
+> Last updated: 2026-10-24 evening — the Plans/Programs explainer (queue 2a shipped), the
+> scroll-wheel numeric entry, chrome on every page, uniform section headers and adaptive
+> exercise titles. Repo HEAD at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -431,7 +432,11 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
    at 1.3× text and 320 pt width (emulator: `adb shell settings put system font_scale 1.3`,
    `wm size 720x1280; wm density 360`).
 
-2a. **"Plan vs Program" explainer — owner request 2026-10-24 (copy supplied).** An
+2a. **"Plan vs Program" explainer — owner request 2026-10-24 (copy supplied).** *Shipped
+    2026-10-24 as `/learn/plan-vs-program` (see §6): copy in `src/content/infoPages.ts`,
+    one shared `InfoPageView`, a route file per page, entry points in the Programs header
+    (ⓘ) and the left panel's More list, `test:content` (75) and `.maestro/learn.yaml`. Only
+    the "move the copy to the KB so it can be edited on GitHub" half remains.* An
     informational page that answers the terminology the app leans on every day: a **Plan**
     is *what/when* (the weekly schedule: Mon chest·tri, Tue back·bi, Wed rest…); a
     **Program** is *how it progresses* (a 12-week structure with sets/reps, intensity,
@@ -676,6 +681,28 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-24 (evening) — Plans and Programs explainer (opencode)
+
+- **Queue 2a shipped.** The owner's copy is in the app as `/learn/plan-vs-program`:
+  `src/content/infoPages.ts` (blocks, not JSX: headings, paragraphs, bullets, the two-sided
+  Plan/Program card, the weekly-plan and 12-week-program examples, the one-line rule and the
+  interchangeability note), one shared `InfoPageView`, and a three-line route file per page
+  (`app/learn/plan-vs-program.tsx` + `InfoScreen`) so `test:panel`'s "every link points at a
+  screen file" check stays honest. Entry points: the ⓘ in the Programs header
+  (`programs-learn`) and the left panel's More list (`panel-more-learn`). A real route, not a
+  sheet: it is read, and the floating chrome stays on it.
+- Gates: `scripts/test-content.mjs` (75 assertions — page shape, the two definitions, both
+  examples, both entry points, every panel href ↔ route file) wired into `dev-loop.sh`;
+  `test:panel` and the rest of the suite unchanged. Device: `learn` PASS from both entry
+  points (plus `panels`, `tabs`).
+- **The screenshot caught a layout bug worth remembering:** the page had no `SafeAreaView`,
+  so the title and the page's back arrow were drawn ON the floating menu/companion/settings
+  band — `ScreenHeader` reserves `TOP_BAR_HEIGHT` but the safe-area inset comes from the
+  screen. Every `ScreenHeader` screen must be wrapped in `SafeAreaView edges={['top']}`;
+  `InfoPageView` now is, and `learn.yaml` asserts the chrome on the page.
+- Still open in 2a: move the copy into the KB so the owner can edit it on GitHub and have it
+  arrive through the existing anonymous KB channel (no app release, no new endpoint).
 
 ### 2026-10-24 (later) — section headers + adaptive exercise titles (opencode)
 

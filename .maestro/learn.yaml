@@ -1,0 +1,44 @@
+# Plans and Programs: the explainer page opens from the Programs header and from
+# the left panel, and it is a real route (not a sheet) so the chrome stays.
+# Run: maestro test .maestro/learn.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "tab-programs"
+- assertVisible: "Programs"
+
+# The ⓘ in the Programs header.
+- tapOn:
+    id: "programs-learn"
+- assertVisible: "Plans and Programs"
+- assertVisible: "What the two words mean in LIFT"
+- assertVisible: "Plan"
+- assertVisible: "Program"
+# The one-line rule sits below both examples, so scroll to it.
+- scrollUntilVisible:
+    element: "The plan organises your workouts.*"
+    timeout: 30000
+# The chrome stays on this page too.
+- assertVisible:
+    id: "topbar-panel"
+- assertVisible:
+    id: "topbar-settings"
+- tapOn:
+    id: "header-back"
+- assertVisible: "Programs"
+
+# And from the left panel's More list.
+- tapOn:
+    id: "topbar-panel"
+- scrollUntilVisible:
+    element:
+      id: "panel-more-learn"
+    direction: DOWN
+- tapOn:
+    id: "panel-more-learn"
+- assertVisible: "Plans and Programs"
+- tapOn:
+    id: "header-back"
