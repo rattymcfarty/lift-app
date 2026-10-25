@@ -30,9 +30,23 @@ appId: app.lift.mobile
     id: "add-set"
 - tapOn:
     id: "set-reps-1"
+# The wheel is the default now — one tap deeper for the keypad.
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-reps-1-input"
+    timeout: 5000
 - inputText: "10"
 - tapOn:
     id: "set-weight-1"
+# The wheel is the default now — one tap deeper for the keypad.
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-weight-1-input"
+    timeout: 5000
 - inputText: "20"
 - tapOn:
     id: "log-set-1"
@@ -67,9 +81,23 @@ appId: app.lift.mobile
     id: "add-set"
 - tapOn:
     id: "set-reps-2"
+# The wheel is the default now — one tap deeper for the keypad.
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-reps-2-input"
+    timeout: 5000
 - inputText: "12"
 - tapOn:
     id: "set-weight-2"
+# The wheel is the default now — one tap deeper for the keypad.
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-weight-2-input"
+    timeout: 5000
 - inputText: "25"
 - tapOn:
     id: "log-set-2"

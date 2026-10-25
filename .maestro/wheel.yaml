@@ -69,3 +69,22 @@ appId: app.lift.mobile
 - assertVisible:
     id: "set-reps-1"
     text: "3"
+
+# The wheel is the DEFAULT way into a number (owner decision 2026-10-25): tapping
+# a value cell opens the drum, not the keypad.
+- tapOn:
+    id: "set-reps-1"
+- assertVisible:
+    id: "wheel-sheet"
+- assertVisible:
+    id: "wheel-sheet-wheel-unit"
+    text: "reps"
+
+# …and the keypad is one tap deeper, for a big jump.
+- tapOn:
+    id: "wheel-sheet-type"
+- assertNotVisible:
+    id: "wheel-sheet"
+- assertVisible:
+    id: "set-reps-1-input"
+- hideKeyboard

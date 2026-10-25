@@ -54,7 +54,7 @@ changes. Key testIDs:
 | `workout-add-exercise` | Active workout → + Add exercise |
 | `add-exercise-search` | Add exercise → search field |
 | `add-exercise-row-<id>` | Add exercise → row per exercise id |
-| `set-reps-<n>`, `set-weight-<n>` | Set row inputs (n = set number) |
+| `set-reps-<n>`, `set-weight-<n>` | Set row value cells (n = set number). A tap opens the wheel; use `wheel-sheet-type` then type into `set-<field>-<n>-input` |
 | `log-set-<n>` | Set row → Log button |
 | `rpe-help` | Set table → RPE column header (opens the RPE explainer) |
 | `plan-rpe-help` | Plan target editor → RPE field label (same explainer) |

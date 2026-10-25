@@ -151,6 +151,16 @@ function RemoveButton({ onPress, label, theme, size, testID }: { onPress: () => 
  * dividers — the focused segment lights up with the highlight border — so the
  * three numbers read as one unit at any width.
  */
+/**
+ * The three value cells (weight | reps | RPE).
+ *
+ * The wheel is the default path: a tap on any cell opens the drum for that field
+ * (owner request 2026-10-25 — infinity wheels instead of the keypad). The keypad
+ * is still there, one tap deeper: "Type instead" in the sheet turns the chosen
+ * cell into a focused TextInput, and blurring it returns to the wheel behaviour.
+ * That keeps typing available for a big jump ("60" instead of a long flick)
+ * without making it the way in.
+ */
 function InputPill(props: {
   theme: ThemeT;
   fontSize: number;
@@ -159,47 +169,99 @@ function InputPill(props: {
   weight: { value: string; onChange: (v: string) => void; testID: string };
   reps: { value: string; onChange: (v: string) => void; testID: string };
   rpe: { value: string; onChange: (v: string) => void };
+  /** The cell currently in keypad mode; null means every tap opens the wheel. */
+  typing: 'weight' | 'reps' | 'rpe' | null;
+  onOpenWheel: (field: 'weight' | 'reps' | 'rpe') => void;
+  onTypingChange: (field: 'weight' | 'reps' | 'rpe' | null) => void;
 }): JSX.Element {
   const { theme, fontSize, height, editable } = props;
   const [focus, setFocus] = useState<'w' | 'r' | 'p' | null>(null);
-  const seg = (key: 'w' | 'r' | 'p', flex: number, value: string, onChange: (v: string) => void, placeholder: string, decimal: boolean, testID?: string): JSX.Element => (
-    <View
-      style={{
-        flex,
-        height: height - 2,
-        borderLeftWidth: key === 'w' ? 0 : 1,
-        borderLeftColor: theme.colors.border,
-        borderRadius: focus === key ? 8 : 0,
-        borderWidth: focus === key ? 2 : 0,
-        borderColor: theme.colors.highlight,
-      }}
-    >
-      <TextInput
-        testID={testID}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor={theme.colors.faint}
-        keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
-        returnKeyType="done"
-        editable={editable}
-        textAlign="center"
-        selectTextOnFocus
-        maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
-        onFocus={() => setFocus(key)}
-        onBlur={() => setFocus((f) => (f === key ? null : f))}
+
+  const seg = (
+    field: 'weight' | 'reps' | 'rpe',
+    key: 'w' | 'r' | 'p',
+    flex: number,
+    value: string,
+    onChange: (v: string) => void,
+    placeholder: string,
+    decimal: boolean,
+    label: string,
+    testID?: string,
+  ): JSX.Element => {
+    const typing = props.typing === field;
+    return (
+      <View
         style={{
-          flex: 1,
-          minWidth: 0,
-          padding: 0,
-          color: theme.colors.text,
-          fontSize,
-          fontVariant: ['tabular-nums'],
-          fontWeight: FONT_WEIGHT.semibold,
+          flex,
+          height: height - 2,
+          borderLeftWidth: key === 'w' ? 0 : 1,
+          borderLeftColor: theme.colors.border,
+          borderRadius: focus === key ? 8 : 0,
+          borderWidth: focus === key ? 2 : 0,
+          borderColor: theme.colors.highlight,
         }}
-      />
-    </View>
-  );
+      >
+        {typing ? (
+          <TextInput
+            testID={testID ? `${testID}-input` : undefined}
+            value={value}
+            onChangeText={onChange}
+            placeholder={placeholder}
+            placeholderTextColor={theme.colors.faint}
+            keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
+            returnKeyType="done"
+            editable={editable}
+            autoFocus
+            selectTextOnFocus
+            maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
+            onFocus={() => setFocus(key)}
+            onBlur={() => {
+              setFocus((f) => (f === key ? null : f));
+              props.onTypingChange(null);
+            }}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: 0,
+              color: theme.colors.text,
+              fontSize,
+              fontVariant: ['tabular-nums'],
+              fontWeight: FONT_WEIGHT.semibold,
+              textAlign: 'center',
+            }}
+          />
+        ) : (
+          <Pressable
+            testID={testID ? `${testID}-pill` : undefined}
+            disabled={!editable}
+            onPress={() => props.onOpenWheel(field)}
+            accessibilityRole="button"
+            accessibilityLabel={`${label}${value ? `, ${value}` : ''} for this set`}
+            accessibilityHint="Opens the scroll wheel. Tap Type instead in the sheet to use the keypad."
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          >
+            {/* The text keeps the row's testID so flows can both tap it (the press
+                bubbles to the pill) and assert the value it shows. */}
+            <Text
+              testID={testID}
+              style={{
+                color: value ? theme.colors.text : theme.colors.faint,
+                fontSize,
+                fontVariant: ['tabular-nums'],
+                fontWeight: FONT_WEIGHT.semibold,
+                textAlign: 'center',
+              }}
+              maxFontSizeMultiplier={GRID_MAX_FONT_SCALE}
+              numberOfLines={1}
+            >
+              {value || placeholder}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View
       style={{
@@ -215,9 +277,9 @@ function InputPill(props: {
         overflow: 'hidden',
       }}
     >
-      {seg('w', GRID_FLEX.weight, props.weight.value, props.weight.onChange, '0', true, props.weight.testID)}
-      {seg('r', GRID_FLEX.reps, props.reps.value, props.reps.onChange, '0', false, props.reps.testID)}
-      {seg('p', GRID_FLEX.rpe, props.rpe.value, props.rpe.onChange, '–', true)}
+      {seg('weight', 'w', GRID_FLEX.weight, props.weight.value, props.weight.onChange, '0', true, 'Weight', props.weight.testID)}
+      {seg('reps', 'r', GRID_FLEX.reps, props.reps.value, props.reps.onChange, '0', false, 'Reps', props.reps.testID)}
+      {seg('rpe', 'p', GRID_FLEX.rpe, props.rpe.value, props.rpe.onChange, '–', true, 'RPE')}
     </View>
   );
 }
@@ -380,10 +442,30 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
   const [localError, setLocalError] = useState<string | null>(null);
   /**
    * The scroll wheel sheet: which field it is editing, or null when closed.
-   * Opened from the set number (`edit-set-<n>`) — tapping a value pill still
-   * focuses the keypad, so both ways of entering a number stay available.
+   * Opened by tapping a value cell (weight, reps or RPE) or the set number. The
+   * keypad is reached from the sheet's "Type instead" action, which switches the
+   * chosen cell to a focused TextInput until it blurs.
    */
   const [wheelField, setWheelField] = useState<WheelField | null>(null);
+  /** The cell in keypad mode (null: taps open the wheel). */
+  const [typingField, setTypingField] = useState<WheelField | null>(null);
+
+  const openWheel = (field: WheelField): void => {
+    setTypingField(null);
+    setWheelField(field);
+  };
+
+  /**
+   * "Type instead": close the sheet, then hand that cell to the keypad. The
+   * delay lets the sheet's modal finish closing first — focusing the input while
+   * it is still covered left the keyboard hidden on Android.
+   */
+  const typeInstead = (): void => {
+    const field = wheelField;
+    setWheelField(null);
+    if (!field) return;
+    setTimeout(() => setTypingField(field), 320);
+  };
 
   const report = (next: { reps: string; weightKg: string; rpe: string }): void => onValuesChange?.(next);
   const setReps = (v: string): void => { setRepsState(v); report({ reps: v, weightKg, rpe }); };
@@ -427,7 +509,7 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
             {isWarmup ? <WarmupBadge theme={theme} setNumber={setNumber} size={m.fontHeader} /> : (
               <Pressable
                 testID={`edit-set-${setNumber}`}
-                onPress={() => setWheelField('weight')}
+                onPress={() => openWheel('weight')}
                 accessibilityRole="button"
                 accessibilityLabel={`Enter set ${setNumber} with the wheel`}
                 accessibilityHint="Opens the scroll wheel for weight, reps and RPE"
@@ -457,6 +539,9 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
             weight={{ value: weightKg, onChange: setWeight, testID: `set-weight-${setNumber}` }}
             reps={{ value: reps, onChange: setReps, testID: `set-reps-${setNumber}` }}
             rpe={{ value: rpe, onChange: setRpe }}
+            typing={typingField}
+            onOpenWheel={openWheel}
+            onTypingChange={setTypingField}
           />
           <Col flex={GRID_FLEX.check}>
             <Pressable
@@ -510,6 +595,7 @@ function PendingRow(props: PendingSetRowProps & { theme: ThemeT; m: ReturnType<t
           else if (wheelField === 'reps') setReps('');
           else if (wheelField === 'rpe') setRpe('');
         }}
+        onType={typeInstead}
         testID="wheel-sheet"
       />
     </SwipeableRow>

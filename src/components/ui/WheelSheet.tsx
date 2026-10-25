@@ -6,8 +6,8 @@
  * right when the sheet closes; the unit comes from the caller ("kg"/"lb" for a
  * weight, "reps", "RPE"), never from the component.
  *
- * Typing still works: a plain tap focuses the same field's keypad. The wheel is
- * for flicking to a number; the keypad is for jumping straight to one.
+ * The wheel is the default way in (owner decision, 2026-10-25). Typing is one
+ * tap deeper — "Type instead" — for when a big jump is quicker than a flick.
  */
 import type { JSX } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -37,6 +37,11 @@ export interface WheelSheetProps {
   onSelect: (value: string) => void;
   /** Shows a "Clear" action when set (optional fields). */
   onClear?: () => void;
+  /**
+   * Shows "Type instead": the caller closes the sheet and hands the field to the
+   * keypad. The wheel is the default path; typing stays one tap away.
+   */
+  onType?: () => void;
   testID: string;
 }
 
@@ -53,6 +58,7 @@ export function WheelSheet({
   unit,
   onSelect,
   onClear,
+  onType,
   testID,
 }: WheelSheetProps): JSX.Element {
   const { theme } = useTheme();
@@ -115,6 +121,23 @@ export function WheelSheet({
             />
           </View>
         </View>
+        {onType ? (
+          <Pressable
+            testID={`${testID}-type`}
+            onPress={() => {
+              onType();
+              onClose();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Type the value instead"
+            hitSlop={8}
+            style={{ alignItems: 'center', paddingVertical: theme.spacing.sm }}
+          >
+            <Text style={{ color: theme.colors.accent, fontSize: t.size.meta, fontWeight: t.weight.semibold }}>
+              Type instead
+            </Text>
+          </Pressable>
+        ) : null}
         <View
           style={{
             flexDirection: 'row',

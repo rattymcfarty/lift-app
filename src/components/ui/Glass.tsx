@@ -111,11 +111,18 @@ export function Glass({
     );
   }
 
-  // Android: translucent surface + hairline border
+  // Android: translucent surface + hairline border.
+  //
+  // The alpha follows `strength`: "heavy" is used by every overlay that sits ON
+  // content the user must read through it (the bottom sheets, the side panels,
+  // the text prompt). At 85% the workout behind a wheel drum stayed legible and
+  // the numbers fought it (seen on the device 2026-10-25, when the wheel became
+  // the default way to enter a weight). 96% keeps a hint of glass and a readable
+  // sheet; light stays translucent for floating chrome.
   const surfaceColor = theme.colors.surface;
   const borderColor = theme.colors.border;
-  // ~85% alpha on surface
-  const backgroundColor = `${surfaceColor}D9`; // 85% = 217/255 ≈ D9 hex
+  const alpha = strength === 'heavy' ? 'F5' : strength === 'light' ? 'CC' : 'D9';
+  const backgroundColor = `${surfaceColor}${alpha}`;
 
   const content = (
     <View
