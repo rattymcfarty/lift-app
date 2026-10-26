@@ -2,9 +2,10 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-26 — three main doors (Train · Analytics · Exercises) with Programs in
-> a decluttered left menu, an Analytics volume window switcher, the wheel as the numeric entry
-> everywhere, a running workout owning the chrome, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
+> Last updated: 2026-10-26 — three main doors (Train · Analytics · Exercises) on a larger bar,
+> Programs in a decluttered left menu behind one Create door, a settings-only right panel, an
+> Analytics volume window switcher, the wheel as the numeric entry everywhere, a running workout
+> owning the chrome, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
 > guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
 > every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
@@ -719,6 +720,21 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-26 — Bigger bar, one Create door, panels split by purpose (opencode)
+
+- **Bar proportions** raised to a modern system-bar size: `TAB_BAR_HEIGHT` 56 → 64, icons 26 → 30,
+  capsules 62 × 44, float 10 dp. `useTabBarSpace` derives from the constants, so every screen's
+  bottom padding follows.
+- **Programs → one Create door.** `ProgramsCreateSheet` (program / plan / guide, each with a
+  one-line description) replaces the two header buttons and the "+ New plan" link. Flows updated
+  (`program-builder`, `quiz`, `plan-picker`).
+- **Panels split by purpose (owner request):** features on the left, application settings on the
+  right. The PROFILE & PLAN card left Settings — "Your profile" in the left menu is the way in.
+  Settings selection outlines now use the accent; blue stays the set row's focus ring.
+- Device PASS: `panels` (right panel now asserts a real setting), `quiz`, `program-builder`,
+  `plan-picker`, `tabs`. Screenshots confirm the bar size, the Create sheet and the
+  settings-only right panel.
 
 ### 2026-10-26 — Menu decluttered; Analytics window switcher (opencode)
 

@@ -75,11 +75,11 @@ appId: app.lift.mobile
 - tapOn:
     id: "topbar-settings"
 - assertVisible:
-    id: "settings-profile"
+    id: "settings-reminders-off"
 - tapOn:
     point: "5%,50%"
 - assertNotVisible:
-    id: "settings-profile"
+    id: "settings-reminders-off"
 
 # --- a More item navigates, and the menu is gone (last: it leaves the tabs) ---
 - tapOn:

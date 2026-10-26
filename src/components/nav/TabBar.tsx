@@ -31,15 +31,15 @@ import {
 } from '../../nav/tabOrder';
 
 /** Bar height (the pill itself). */
-export const TAB_BAR_HEIGHT = 56;
+export const TAB_BAR_HEIGHT = 64;
 /** Gap between the pill and the safe-area bottom. */
-export const TAB_BAR_MARGIN_BOTTOM = 8;
+export const TAB_BAR_MARGIN_BOTTOM = 10;
 /** Height the bar claims above the safe-area bottom, before the inset. */
 const TAB_BAR_SPACE = TAB_BAR_HEIGHT + TAB_BAR_MARGIN_BOTTOM;
 /** Minimum touch target per item. */
-const TAB_BAR_ITEM_HEIGHT = 44;
+const TAB_BAR_ITEM_HEIGHT = 52;
 /** Icon size at a 390 dp-wide screen, scaled a little for narrower ones. */
-const TAB_ICON_SIZE = 26;
+const TAB_ICON_SIZE = 30;
 
 /** One entry of the bar: the tab, its route, its glyph and its Maestro test id. */
 export interface TabBarTab {
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.94 }],
   },
   capsule: {
-    minWidth: 52,
-    height: 36,
+    minWidth: 62,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -31,6 +31,7 @@ import { SwipeableRow } from '../../src/components/ui/SwipeableRow';
 import { useTheme } from '../../src/theme';
 import { Button, Card, EmptyState } from '../../src/components/workout/ui';
 import { SegmentedTitle } from '../../src/components/nav/SegmentedTitle';
+import { ProgramsCreateSheet } from '../../src/components/programs/ProgramsCreateSheet';
 import { formatWorkoutDay } from '../../src/components/workout/format';
 import { loadSnapshot } from '../../src/kb/snapshot';
 import { compileKbProgram, ProgramError } from '../../src/programs/compile';
@@ -111,6 +112,8 @@ export default function ProgramsScreen(): JSX.Element {
   const [mine, setMine] = useState<UserProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  /** One door for the three things you can create (program / plan / guide). */
+  const [createOpen, setCreateOpen] = useState(false);
   const tabBarSpace = useTabBarSpace();
 
   const { programs, bundleVersion } = useMemo(() => {
@@ -270,20 +273,9 @@ export default function ProgramsScreen(): JSX.Element {
           ListHeaderComponent={
             <View style={{ gap: theme.spacing.md, paddingBottom: theme.spacing.sm }}>
               <Button
-                title="Create Program"
-                variant="secondary"
+                title="Create"
                 testID="programs-create"
-                onPress={() => {
-                  void createUserProgram()
-                    .then((p) => router.push(`/programs/${p.id}/details?flow=create` as Href))
-                    .catch(() => Alert.alert('Could not create the program', 'Try again.'));
-                }}
-              />
-              <Button
-                title="Set up my plans step by step"
-                variant="secondary"
-                testID="programs-quiz"
-                onPress={() => router.push('/quiz' as Href)}
+                onPress={() => setCreateOpen(true)}
               />
               {mine.length > 0 ? (
                 <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
@@ -381,9 +373,7 @@ export default function ProgramsScreen(): JSX.Element {
                 <Text style={{ flex: 1, color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
                   MY PLANS · {plans.length}
                 </Text>
-                <Pressable testID="programs-new-plan" onPress={() => router.push('/plans/new')} accessibilityRole="button" hitSlop={8}>
-                  <Text style={{ color: c.accent, fontSize: t.size.meta + 1, fontWeight: t.weight.semibold }}>+ New plan</Text>
-                </Pressable>
+
               </View>
             </View>
           }
@@ -421,6 +411,17 @@ export default function ProgramsScreen(): JSX.Element {
           }
         />
       )}
+      <ProgramsCreateSheet
+        visible={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onProgram={() => {
+          void createUserProgram()
+            .then((p) => router.push(`/programs/${p.id}/details?flow=create` as Href))
+            .catch(() => Alert.alert('Could not create the program', 'Try again.'));
+        }}
+        onPlan={() => router.push('/plans/new' as Href)}
+        onGuide={() => router.push('/quiz' as Href)}
+      />
     </SafeAreaView>
   );
 }

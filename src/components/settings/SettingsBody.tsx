@@ -18,8 +18,6 @@ import { Button, Card } from '../workout/ui';
 import { deleteBackupFile, exportBackup, shareBackup } from '../../data/export';
 import { applyReminders, getReminders, type ReminderSettings } from '../../notifications/workoutReminders';
 import { notificationsAvailable } from '../../notifications/native';
-import { getProfile, type Profile } from '../../data/profile';
-import { GOAL_LABEL } from '../../data/generatedPlan';
 import { dryRunImport, importBackup, pickBackupFile } from '../../data/import';
 import { setCompanionEnabled, useCompanionEnabled } from '../../companion/enabled';
 import { setCompanionStyle, useCompanionStyle } from '../../companion/style';
@@ -65,7 +63,9 @@ function SegmentedOption<T extends string>({
         justifyContent: 'center',
         borderRadius: theme.radius.md,
         borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.highlight : theme.colors.border,
+        // Accent, like every other selection in the app. Blue (`highlight`) is the
+        // set row's focus ring and must not double as a chosen state.
+        borderColor: selected ? theme.colors.accent : theme.colors.border,
         backgroundColor: selected ? theme.colors.surfaceMuted : theme.colors.surface,
         paddingHorizontal: theme.spacing.sm,
       }}
@@ -93,7 +93,6 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
   const [idleMin, setIdleMin] = useState({ prompt: 45, auto: 180 });
   const [dataBusy, setDataBusy] = useState<'export' | 'import' | null>(null);
   const [reminders, setReminders] = useState<ReminderSettings | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const companionOn = useCompanionEnabled();
   const companionStyle = useCompanionStyle();
 
@@ -112,11 +111,8 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([getReminders(), getProfile()]).then(([r, p]) => {
-      if (!cancelled) {
-        setReminders(r);
-        setProfile(p);
-      }
+    void getReminders().then((r) => {
+      if (!cancelled) setReminders(r);
     });
     return () => {
       cancelled = true;
@@ -197,9 +193,8 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
               void importBackup(uri)
                 .then(async () => {
                   // Re-apply restored reminders and refresh what this screen shows.
-                  const [r, p] = await Promise.all([getReminders(), getProfile()]);
+                  const r = await getReminders();
                   setReminders(r);
-                  setProfile(p);
                   await applyReminders(r).catch(() => false);
                   Alert.alert('Import complete', 'Your data has been restored.');
                 })
@@ -224,28 +219,6 @@ export function SettingsBody({ onLeave }: SettingsBodyProps): JSX.Element {
         gap: theme.spacing.md,
       }}
     >
-      <Card>
-        <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
-          PROFILE &amp; PLAN
-        </Text>
-        <Text style={{ color: theme.colors.text, fontSize: t.size.body }}>
-          {profile?.onboarded
-            ? `${profile.experience[0].toUpperCase()}${profile.experience.slice(1)} · ${GOAL_LABEL[profile.goal]} · ${profile.daysPerWeek} days a week · ${profile.minutes} min`
-            : 'Tell LIFT about you and get a plan built for your body, level and week.'}
-        </Text>
-        <Button
-          title={profile?.onboarded ? 'Review profile & what it changes' : 'Set up my plan'}
-          testID="settings-profile"
-          variant="secondary"
-          onPress={() => {
-            onLeave?.();
-            // The persona editor, not the first-run wizard: it shows what each
-            // answer changes and can rebuild the generated plans in place.
-            router.push(profile?.onboarded ? '/persona' : '/onboarding?edit=1');
-          }}
-        />
-      </Card>
-
       <Card>
         <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, fontWeight: t.weight.medium }}>
           WORKOUT CHECK-INS

@@ -14,7 +14,9 @@ appId: app.lift.mobile
 - tapOn:
     id: "programs-segment-library"
 - tapOn:
-    id: "programs-quiz"
+    id: "programs-create"
+- tapOn:
+    id: "create-guide"
 
 # 1 — goal, with the generator's own consequence under the answer.
 - assertVisible: "Set up my plans"

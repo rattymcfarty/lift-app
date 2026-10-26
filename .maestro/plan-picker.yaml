@@ -12,8 +12,11 @@ appId: app.lift.mobile
     id: "topbar-panel"
 - tapOn:
     id: "panel-programs"
+# One Create door: choose a single plan.
 - tapOn:
-    id: "programs-new-plan"
+    id: "programs-create"
+- tapOn:
+    id: "create-plan"
 - tapOn:
     id: "plan-new-name"
 - inputText: "Filter test plan"

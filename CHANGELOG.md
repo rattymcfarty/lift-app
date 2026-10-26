@@ -2,6 +2,19 @@
 
 ## Unreleased (addendum)
 
+- **A calmer, slightly larger bottom bar.** The three doors are taller and their capsules/icons are
+  bigger (64 dp bar, 30 dp icons, 62 × 44 capsules, a 10 dp float) — the proportions of a modern
+  system bar, with LIFT's own icons. Content padding follows automatically.
+- **One Create door in Programs.** "Create Program", "Set up my plans step by step" and "+ New
+  plan" were three competing actions; the library now opens with a single **Create** button that
+  offers the three named choices with a line each: *Create a program*, *New plan*, *Set up my
+  plans with a guide*.
+- **The right panel is settings only; features live on the left.** The profile card ("Review
+  profile & what it changes") moved out of Settings — the left menu's **Your profile** is the
+  way in, where the other feature destinations are. Everything left in the right panel is a real
+  preference: check-in thresholds, reminders, companion, appearance, units, data. Selection
+  states in settings now use the app accent (purple) instead of the set row's blue focus ring.
+
 - **The left menu lost its dead weight.** With three fixed doors the "Tabs — long-press and drag
   to reorder the bar" block had nothing left to express, so it is gone: the menu is now New
   workout · Search exercises · Programs, then the secondary screens. The bar itself still reads

@@ -11,8 +11,13 @@ appId: app.lift.mobile
     id: "topbar-panel"
 - tapOn:
     id: "panel-programs"
+# One Create door: choose the multi-week program.
 - tapOn:
     id: "programs-create"
+- assertVisible:
+    id: "create-sheet"
+- tapOn:
+    id: "create-program"
 # ---- page 1: name / tagline / description / thumbnail
 - assertVisible: "Program Details"
 - assertVisible: "Program Name"
