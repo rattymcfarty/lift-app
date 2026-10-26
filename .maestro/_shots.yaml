@@ -5,8 +5,11 @@ appId: app.lift.mobile
     clearState: true
 - runFlow: _skip-onboarding.yaml
 - takeScreenshot: shot-home
+# Programs is a menu destination since 2026-10-26.
 - tapOn:
-    id: "tab-programs"
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - takeScreenshot: shot-programs
 - tapOn:
     id: "tab-exercises"

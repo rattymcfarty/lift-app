@@ -15,7 +15,8 @@ export type PanelHref =
   | '/calculators'
   | '/measure'
   | '/learn/plan-vs-program'
-  | '/persona';
+  | '/persona'
+  | '/programs';
 
 /** One "More" row. */
 export interface PanelLink {

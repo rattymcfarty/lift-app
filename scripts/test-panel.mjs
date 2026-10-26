@@ -115,11 +115,10 @@ check('shiftForIndex is a no-op when the slot does not change', () => {
 
 // --- the tab table --------------------------------------------------------
 
-check('there are four sections, keyed like the stored order', () => {
-  assert.deepEqual(
-    tabs.APP_TABS.map((t) => t.key),
-    ['programs', 'train', 'analytics', 'exercises'],
-  );
+check('there are three main doors, keyed like the stored order', () => {
+  // Owner decision 2026-10-26: Train · Analytics · Exercises. Programs is a menu
+  // destination now, not a tab.
+  assert.deepEqual(tabs.APP_TABS.map((t) => t.key), ['train', 'analytics', 'exercises']);
 });
 
 check('every section has a route and a test id', () => {
@@ -135,16 +134,15 @@ check('every section has a route and a test id', () => {
 
 check('tabHref points at the real routes', () => {
   assert.equal(tabs.tabHref('train'), '/');
-  assert.equal(tabs.tabHref('programs'), '/programs');
   assert.equal(tabs.tabHref('analytics'), '/analytics');
   assert.equal(tabs.tabHref('exercises'), '/exercises');
 });
 
-check('tabKeyForPathname matches only the four top-level paths', () => {
+check('tabKeyForPathname matches only the three top-level paths', () => {
   assert.equal(tabs.tabKeyForPathname('/'), 'train');
-  assert.equal(tabs.tabKeyForPathname('/programs'), 'programs');
   assert.equal(tabs.tabKeyForPathname('/analytics'), 'analytics');
   assert.equal(tabs.tabKeyForPathname('/exercises'), 'exercises');
+  assert.equal(tabs.tabKeyForPathname('/programs'), undefined, 'Programs is a page, not a tab');
   assert.equal(tabs.tabKeyForPathname('/history'), undefined);
   assert.equal(tabs.tabKeyForPathname('/workout/abc'), undefined);
 });
@@ -157,7 +155,9 @@ check('tabByKey knows every section and nothing else', () => {
 
 check('every More link points at a screen that exists', () => {
   for (const link of links.PANEL_MORE_LINKS) {
-    const file = join(root, 'app', `${link.href.replace(/^\//, '')}.tsx`);
+    const base = join(root, 'app', link.href.replace(/^\//, ''));
+    // A destination can be a file (`history.tsx`) or a folder's index (`programs`).
+    const file = existsSync(`${base}.tsx`) ? `${base}.tsx` : join(base, 'index.tsx');
     assert.ok(existsSync(file), `${link.label} → ${link.href} (missing ${file})`);
     assert.ok(link.icon.length > 0);
   }

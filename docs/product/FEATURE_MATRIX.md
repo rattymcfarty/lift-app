@@ -23,12 +23,12 @@ Principles: longevity first · everything on device · no accounts · MIT.
 ## 2. Deciding what to do today
 | Need | Status | Notes |
 |---|---|---|
-| "What's my workout today?" | ✅ P9 | Program pointer existed; now also suggests next plan in rotation |
+| "What's my workout today?" | ✅ | The Train page leads with UP NEXT and one Start button; an ongoing session takes that spot, and a live badge follows you elsewhere |
 | Week at a glance + weekly goal | ✅ P9 | Week strip + goal progress on Train |
 | Readiness check-in (energy / sleep / soreness) | ✅ P9 | 3 taps; advice adjusts effort, stored locally |
 | Reminders on my training days | ✅ P9 | Local notifications, no server |
-| Move between sections with one thumb | ✅ A3 | Floating glass pill tab bar, icon only (Programs · Train · Analytics · Exercises), active item in an accent capsule; order persisted (`src/nav/tabOrder.ts`) and carried in backups; content pads around it (`useTabBarSpace`) |
-| Reach anything from one menu | ✅ B | Glass **side panels** from the top bar: left = New workout, Search, the four sections (tap to jump, long-press-drag to reorder the bar) and More (History, Records, Balance, Calculators, Body weight); right = Settings. Tap-only dismissal (scrim, close button, item tap, Android back) |
+| Move between sections with one thumb | ✅ | Three main doors — Train · Analytics · Exercises — on the floating glass pill (owner decision 2026-10-26, Apple Health's shape), active item in an accent capsule; the order is persisted and carried in backups. Programs is a menu page, not a tab |
+| Reach anything from one menu | ✅ | Glass **side panels** from the top bar: left = features (New workout, Search, Programs, the three doors, and History, Records, Balance, Calculators, Body weight, Plans vs programs, Your profile); right = settings. Tap-only dismissal (scrim, close button, item tap, Android back) |
 | Sheets and dialogs that look like one app | ✅ C | Every bottom sheet is the same glass component (`BottomSheet` + shared `SheetHeader`: grabber, title, close); the option pickers, the plate calculator, the muscle sheet and the rest timer all render it, and the rename dialog is glass. Dismiss by the header close, a backdrop tap, a pull down on the header, or Android back |
 | Find exercises by muscle or equipment at a glance | ✅ D | 2-column tile + label grid (`TaxonomyFilterGrid`) with original LIFT artwork: 21 muscle-group and 10 equipment icons, figure in the theme's muted colour with the worked muscle or the implement in the theme highlight (light and dark), so the set follows the app theme rather than a fixed accent (`docs/design/ICON_STYLE.md`) |
 | Know how to do a movement, and why it matters | ✅ E | Exercise guide (KB bundle 0.6.0, 631 pages): numbered steps with the tempo written in, coaching cues, common mistakes, a safety note that says when to stop, and longevity notes under *why this matters for a long life · rhythm and tempo · keeping it for life*. All 50 curated foundational names now resolve to a live page (Bird Dog, Cable Woodchops, Rowing Machine and Outdoor Cycling were written for this pass) |

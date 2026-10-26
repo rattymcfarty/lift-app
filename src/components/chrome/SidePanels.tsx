@@ -102,7 +102,13 @@ export function SidePanels(): JSX.Element | null {
         style={[
           styles.panel,
           leftSide ? styles.left : styles.right,
-          { width: panelWidth, transform: [{ translateX }] },
+          {
+            width: panelWidth,
+            transform: [{ translateX }],
+            // Opaque base under the glass, like every sheet: the Android glass is
+            // translucent and the page behind was legible through the menu.
+            backgroundColor: theme.colors.surface,
+          },
         ]}
       >
         <Glass

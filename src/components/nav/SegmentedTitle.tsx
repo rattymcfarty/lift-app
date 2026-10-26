@@ -25,6 +25,11 @@ export interface SegmentedTitleProps<K extends string> {
   right?: ReactNode;
   /** Width reserved for the trailing controls, in dp (two buttons need more than one). */
   rightSize?: number;
+  /**
+   * Back affordance. Sections that live on a tab leave it out; a section pushed
+   * from the menu (Programs) shows the standard '←' so it behaves like a page.
+   */
+  onBack?: () => void;
 }
 
 export function SegmentedTitle<K extends string>({
@@ -34,6 +39,7 @@ export function SegmentedTitle<K extends string>({
   title,
   right,
   rightSize = 40,
+  onBack,
 }: SegmentedTitleProps<K>): JSX.Element {
   const { theme } = useTheme();
   const t = theme.typography;
@@ -69,16 +75,33 @@ export function SegmentedTitle<K extends string>({
       }}
     >
       {title != null ? (
-        <Text
-          numberOfLines={1}
-          style={{
-            color: theme.colors.text,
-            fontSize: Math.round((width < 360 ? t.size.screenCompact : t.size.screen) * titleScale * 2) / 2,
-            fontWeight: t.weight.bold,
-          }}
-        >
-          {title}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+          {onBack ? (
+            <Pressable
+              onPress={onBack}
+              testID="header-back"
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={8}
+              style={{ width: 28 }}
+            >
+              <Text style={{ color: theme.colors.text, fontSize: t.size.icon, fontWeight: t.weight.medium }}>
+                ←
+              </Text>
+            </Pressable>
+          ) : null}
+          {/* No line cap and no shrink: a section name is never cut (owner rule). */}
+          <Text
+            style={{
+              flexShrink: 1,
+              color: theme.colors.text,
+              fontSize: Math.round((width < 360 ? t.size.screenCompact : t.size.screen) * titleScale * 2) / 2,
+              fontWeight: t.weight.bold,
+            }}
+          >
+            {title}
+          </Text>
+        </View>
       ) : null}
       <View
         style={{

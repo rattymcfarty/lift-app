@@ -261,7 +261,10 @@ export default function ProgramEditorScreen(): JSX.Element {
             </Pressable>
             <Pressable
               testID="program-finish"
-              onPress={() => router.back()}
+              // Land on the library. `replace` (not `back`): the create flow clears
+              // the wizard stack at step 2/3, so the screen underneath is Train —
+              // a back would look like the new program vanished.
+              onPress={() => router.replace('/programs')}
               accessibilityRole="button"
               style={{ backgroundColor: c.accent, borderRadius: theme.radius.md, paddingVertical: 8, paddingHorizontal: theme.spacing.md }}
             >

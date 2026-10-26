@@ -4,8 +4,11 @@ appId: app.lift.mobile
 - launchApp:
     clearState: true
 - runFlow: _skip-onboarding.yaml
+# Programs is a menu destination since 2026-10-26.
 - tapOn:
-    id: "tab-programs"
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - tapOn:
     id: "programs-segment-explore"
 - tapOn:

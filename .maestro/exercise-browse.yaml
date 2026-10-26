@@ -70,9 +70,9 @@ appId: app.lift.mobile
 - tapOn:
     id: "topbar-panel"
 - assertVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-train"
 - tapOn:
     point: "95%, 50%"
 - assertNotVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-train"
 - assertVisible: "Guide"

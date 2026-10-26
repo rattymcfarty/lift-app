@@ -11,8 +11,11 @@ appId: app.lift.mobile
 - assertVisible:
     id: "home-start-workout"
 # Tapping a tab underneath the overlay must still work.
+# Programs is a menu destination since 2026-10-26.
 - tapOn:
-    id: "tab-programs"
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - assertVisible: "Explore"
 - tapOn:
     id: "tab-train"

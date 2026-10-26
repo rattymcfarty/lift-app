@@ -103,12 +103,14 @@ const links = readFileSync(join(root, 'src/chrome/panelLinks.ts'), 'utf8');
 const hrefs = [...links.matchAll(/href: '(\/[a-z0-9/-]+)'/g)].map((m) => m[1]);
 ok(hrefs.length >= 5, 'the panel still has its More links');
 for (const href of hrefs) {
-  const file = `app${href}.tsx`;
+  // A destination is a file (`app/history.tsx`) or a folder's index (`app/programs/index.tsx`).
+  const base = `app${href}`;
+  const file = existsSync(join(root, `${base}.tsx`)) ? `${base}.tsx` : `${base}/index.tsx`;
   ok(existsSync(join(root, file)), `${href} has a route file (${file})`);
 }
 
 // The Programs header is the visible entry point…
-const programs = readFileSync(join(root, 'app/(tabs)/programs.tsx'), 'utf8');
+const programs = readFileSync(join(root, 'app/programs/index.tsx'), 'utf8');
 ok(/testID="programs-learn"/.test(programs), 'the Programs header links to the page');
 ok(/learn\/plan-vs-program/.test(programs), 'and points at this page');
 // …and a flow opens it on a device.

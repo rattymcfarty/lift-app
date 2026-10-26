@@ -5,8 +5,11 @@ appId: app.lift.mobile
 - runFlow: _skip-onboarding.yaml
 - assertVisible:
     id: "home-start-workout"
+# Programs is a menu destination since 2026-10-26.
 - tapOn:
-    id: "tab-programs"
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - tapOn:
     id: "programs-create"
 - assertVisible: "Program Details"

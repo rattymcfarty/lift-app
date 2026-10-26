@@ -10,8 +10,8 @@ appId: app.lift.mobile
 - runFlow: _skip-onboarding.yaml
 - assertVisible:
     id: "home-start-workout"
-# All four sections are on screen at once, in the default order.
-- assertVisible:
+# Three main doors, in the default order (owner decision 2026-10-26).
+- assertNotVisible:
     id: "tab-programs"
 - assertVisible:
     id: "tab-train"
@@ -19,14 +19,6 @@ appId: app.lift.mobile
     id: "tab-analytics"
 - assertVisible:
     id: "tab-exercises"
-- tapOn:
-    id: "tab-programs"
-# The section title (added 2026-10-24) plus the sub-view switcher.
-- assertVisible: "Programs"
-- assertVisible: "Explore"
-- tapOn:
-    id: "programs-segment-explore"
-- assertVisible: "Start program"
 - tapOn:
     id: "tab-analytics"
 - assertVisible: "Lifetime"

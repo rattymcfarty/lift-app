@@ -2,6 +2,19 @@
 
 ## Unreleased (addendum)
 
+- **Three main doors: Train · Analytics · Exercises.** The floating bar now holds the three things
+  people actually open the app for (owner decision 2026-10-26, Apple Health's shape). Programs is
+  no longer a tab: it opens from the left menu as a page with its own back arrow — it is a
+  set-up-once destination, not a daily one.
+- **The Train page lost its clutter.** Your library, Create program, Bodyweight and Calculators
+  moved into the left menu, so Home is just today: the week strip, the readiness check-in, **UP
+  NEXT** with one primary button, and a quiet "Empty workout".
+- **Finishing a program returns to the library.** The create wizard clears its own steps at 2/3,
+  so the builder's Finish now lands on the Programs page instead of leaving the user on Train
+  wondering where the new program went.
+- **The side panels are opaque**, like the sheets: the page behind them was readable through the
+  menu on Android.
+
 - **The wheel is now the numeric keypad of the whole app.** Set rows were the start; every other
   number follows the same rule: the in-workout plate calculator (target and bar), the
   Calculators screen (1RM weight/reps, plate target/bar), plan targets (sets, weight, RPE, rest),

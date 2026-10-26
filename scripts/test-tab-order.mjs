@@ -47,45 +47,46 @@ let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
 
-const DEFAULT = ['programs', 'train', 'analytics', 'exercises'];
+const DEFAULT = ['train', 'analytics', 'exercises'];
 
 // --- defaults -------------------------------------------------------------
 {
-  eq([...T.DEFAULT_TAB_ORDER], DEFAULT, 'shipped order is Programs, Train, Analytics, Exercises');
+  eq([...T.DEFAULT_TAB_ORDER], DEFAULT, 'shipped order is Train, Analytics, Exercises');
   eq(T.normalizeOrder(undefined), DEFAULT, 'nothing stored → the default order');
-  ok(T.isTabKey('train') && T.isTabKey('programs'), 'known ids pass the guard');
+  ok(T.isTabKey('train') && T.isTabKey('exercises'), 'known ids pass the guard');
   ok(!T.isTabKey('Train') && !T.isTabKey('settings') && !T.isTabKey(3), 'unknown ids, wrong case and non-strings do not');
 }
 
 // --- normalizeOrder: repair, never lose a tab -----------------------------
 {
-  eq(T.normalizeOrder(['train', 'programs', 'analytics', 'exercises']), ['train', 'programs', 'analytics', 'exercises'], 'a complete order is kept as given');
-  eq(T.normalizeOrder(['exercises', 'programs', 'train', 'analytics']), ['exercises', 'programs', 'train', 'analytics'], 'a fully reversed order is valid');
-  eq(T.normalizeOrder(['train']), ['train', 'programs', 'analytics', 'exercises'], 'missing tabs are appended, never dropped');
-  eq(T.normalizeOrder(['train', 'train', 'analytics']), ['train', 'analytics', 'programs', 'exercises'], 'duplicates collapse, missing tabs appended');
-  eq(T.normalizeOrder(['settings', 'train', 'nope']), ['train', 'programs', 'analytics', 'exercises'], 'unknown ids are dropped');
+  eq(T.normalizeOrder(['train', 'analytics', 'exercises']), ['train', 'analytics', 'exercises'], 'a complete order is kept as given');
+  eq(T.normalizeOrder(['exercises', 'analytics', 'train']), ['exercises', 'analytics', 'train'], 'a fully reversed order is valid');
+  eq(T.normalizeOrder(['train']), ['train', 'analytics', 'exercises'], 'missing tabs are appended, never dropped');
+  eq(T.normalizeOrder(['train', 'train', 'analytics']), ['train', 'analytics', 'exercises'], 'duplicates collapse, missing tabs appended');
+  eq(T.normalizeOrder(['settings', 'train', 'nope']), ['train', 'analytics', 'exercises'], 'unknown ids are dropped');
+  eq(T.normalizeOrder(['programs', 'train']), ['train', 'analytics', 'exercises'], 'the retired programs id is dropped');
   eq(T.normalizeOrder('train'), DEFAULT, 'a bare string is not an order');
   eq(T.normalizeOrder(42), DEFAULT, 'a number is not an order');
   eq(T.normalizeOrder(null), DEFAULT, 'null is not an order');
   eq(T.normalizeOrder({ 0: 'train' }), DEFAULT, 'an object is not an order');
-  eq(T.normalizeOrder(['train', 'analytics']).length, 4, 'the result always has all four tabs');
+  eq(T.normalizeOrder(['train', 'analytics']).length, 3, 'the result always has all three tabs');
 }
 
 // --- moveTab --------------------------------------------------------------
 {
-  eq(T.moveTab(DEFAULT, 'exercises', 0), ['exercises', 'programs', 'train', 'analytics'], 'last tab to the front');
-  eq(T.moveTab(DEFAULT, 'programs', 3), ['train', 'analytics', 'exercises', 'programs'], 'first tab to the back');
-  eq(T.moveTab(DEFAULT, 'train', 2), ['programs', 'analytics', 'train', 'exercises'], 'one step down');
-  eq(T.moveTab(DEFAULT, 'analytics', 1), ['programs', 'analytics', 'train', 'exercises'], 'one step up');
-  eq(T.moveTab(DEFAULT, 'train', -5), ['train', 'programs', 'analytics', 'exercises'], 'a negative index clamps to the front');
-  eq(T.moveTab(DEFAULT, 'train', 99), ['programs', 'analytics', 'exercises', 'train'], 'an oversized index clamps to the back');
-  eq(T.moveTab(DEFAULT, 'train', 1), DEFAULT, 'moving onto its own index is a no-op');
-  eq(T.moveTab(['train', 'train', 'programs'], 'analytics', 1), ['train', 'analytics', 'programs', 'exercises'], 'a sloppy order is normalized on the way in');
+  eq(T.moveTab(DEFAULT, 'exercises', 0), ['exercises', 'train', 'analytics'], 'last tab to the front');
+  eq(T.moveTab(DEFAULT, 'train', 2), ['analytics', 'exercises', 'train'], 'first tab to the back');
+  eq(T.moveTab(DEFAULT, 'train', 1), ['analytics', 'train', 'exercises'], 'one step down');
+  eq(T.moveTab(DEFAULT, 'exercises', 1), ['train', 'exercises', 'analytics'], 'one step up');
+  eq(T.moveTab(DEFAULT, 'train', -5), ['train', 'analytics', 'exercises'], 'a negative index clamps to the front');
+  eq(T.moveTab(DEFAULT, 'train', 99), ['analytics', 'exercises', 'train'], 'an oversized index clamps to the back');
+  eq(T.moveTab(DEFAULT, 'train', 0), DEFAULT, 'moving onto its own index is a no-op');
+  eq(T.moveTab(['train', 'train', 'analytics'], 'exercises', 1), ['train', 'exercises', 'analytics'], 'a sloppy order is normalized on the way in');
 }
 {
-  const order = ['programs', 'train', 'analytics', 'exercises'];
-  const moved = T.moveTab(order, 'train', 3);
-  eq(order, ['programs', 'train', 'analytics', 'exercises'], 'the input order is never mutated');
+  const order = ['train', 'analytics', 'exercises'];
+  const moved = T.moveTab(order, 'train', 2);
+  eq(order, ['train', 'analytics', 'exercises'], 'the input order is never mutated');
   ok(moved !== order, 'a new array comes back');
 }
 
@@ -95,14 +96,14 @@ const DEFAULT = ['programs', 'train', 'analytics', 'exercises'];
   let calls = 0;
   const unsubscribe = T.subscribeTabOrder(() => { calls += 1; });
 
-  await T.setTabOrder(['train', 'programs', 'analytics', 'exercises']);
-  eq(T.getTabOrderSnapshot(), ['train', 'programs', 'analytics', 'exercises'], 'a saved order becomes the snapshot');
+  await T.setTabOrder(['analytics', 'train']);
+  eq(T.getTabOrderSnapshot(), ['analytics', 'train', 'exercises'], 'a saved order becomes the snapshot (missing appended)');
   eq(calls, 1, 'subscribers hear about it');
 
   await T.setTabOrder(['train', 'train', 'settings']);
-  eq(T.getTabOrderSnapshot(), ['train', 'programs', 'analytics', 'exercises'], 'saved values are normalized');
+  eq(T.getTabOrderSnapshot(), ['train', 'analytics', 'exercises'], 'saved values are normalized');
 
-  eq(await T.loadTabOrder(), ['train', 'programs', 'analytics', 'exercises'], 'the saved order survives a reload');
+  eq(await T.loadTabOrder(), ['train', 'analytics', 'exercises'], 'the saved order survives a reload');
 
   unsubscribe();
   const before = calls;
@@ -117,8 +118,8 @@ const DEFAULT = ['programs', 'train', 'analytics', 'exercises'];
   // sections; it is the single source the navigator and the bar both read.
   const table = readFileSync(join(root, 'src/nav/tabs.ts'), 'utf8');
   const keys = [...table.matchAll(/key: '([a-z]+)'/g)].map((m) => m[1]);
-  eq(keys, DEFAULT, 'the tab table declares the four tabs in the default order');
-  for (const testID of ['tab-programs', 'tab-train', 'tab-analytics', 'tab-exercises']) {
+  eq(keys, DEFAULT, 'the tab table declares the three main doors in the default order');
+  for (const testID of ['tab-train', 'tab-analytics', 'tab-exercises']) {
     ok(table.includes(`testID: '${testID}'`), `the ${testID} test id Maestro taps is still on the bar`);
   }
 }

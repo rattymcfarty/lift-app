@@ -1,5 +1,5 @@
 /**
- * Bottom-tab order — which of the four main sections comes first.
+ * Bottom-tab order — which of the three main doors comes first.
  *
  * The pure half (`normalizeOrder`, `moveTab`) touches no storage and is
  * unit-tested by `scripts/test-tab-order.mjs` (which stubs AsyncStorage). The
@@ -15,13 +15,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /** AsyncStorage key (whitelisted for backups). */
 export const TAB_ORDER_KEY = 'lift:tab-order';
 
-/** The four tabs in their shipped order — Programs · Train · Analytics · Exercises. */
-export const DEFAULT_TAB_ORDER = ['programs', 'train', 'analytics', 'exercises'] as const;
+/** The three tabs in their shipped order — Train · Analytics · Exercises. */
+export const DEFAULT_TAB_ORDER = ['train', 'analytics', 'exercises'] as const;
 
 /** A reorderable tab. Stable ids: they outlive screen and route names. */
 export type TabKey = (typeof DEFAULT_TAB_ORDER)[number];
 
-/** True for the four known tab ids — anything else is dropped. */
+/** True for the three known tab ids — anything else is dropped. */
 export function isTabKey(value: unknown): value is TabKey {
   return typeof value === 'string' && (DEFAULT_TAB_ORDER as readonly string[]).includes(value);
 }

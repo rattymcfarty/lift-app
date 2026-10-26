@@ -1,12 +1,13 @@
-# Side panels smoke test (Stage B of the layout redesign).
+# Side panels smoke test.
 #
-# The two top-bar buttons open the left menu and the right settings panel;
-# tapping a section jumps to it; the close button and a tap on the scrim dismiss
-# the panel; a "More" item navigates and dismisses it.
+# The two top-bar buttons open the left menu (features) and the right settings
+# panel; tapping a section jumps to it; the close button and a tap on the scrim
+# dismiss the panel; a "More" item navigates and dismisses it.
 #
-# Note the order: the "More" step leaves the tab routes, so it comes last. (The
-# panel button itself is on every route since 2026-10-24, alongside the page's
-# own back arrow.)
+# Since 2026-10-26 the bar has three main doors (Train · Analytics · Exercises);
+# Programs is a menu destination that opens as a page with a back arrow.
+#
+# Note the order: the "More" step leaves the tab routes, so it comes last.
 #
 # Run: maestro test .maestro/panels.yaml
 appId: app.lift.mobile
@@ -17,17 +18,19 @@ appId: app.lift.mobile
 - assertVisible:
     id: "home-start-workout"
 
-# --- left panel opens and lists the sections, the quick actions and the scrim ---
+# --- left panel opens and lists the three doors, the features and the scrim ---
 - tapOn:
     id: "topbar-panel"
-- assertVisible:
-    id: "panel-tab-programs"
 - assertVisible:
     id: "panel-tab-train"
 - assertVisible:
     id: "panel-tab-analytics"
 - assertVisible:
     id: "panel-tab-exercises"
+- assertNotVisible:
+    id: "panel-tab-programs"
+- assertVisible:
+    id: "panel-programs"
 - assertVisible:
     id: "panel-new-workout"
 - assertVisible:
@@ -37,11 +40,22 @@ appId: app.lift.mobile
 
 # --- a section row jumps to that tab, and the panel closes behind it ---
 - tapOn:
-    id: "panel-tab-programs"
+    id: "panel-tab-analytics"
+- assertVisible: "Analytics"
+- assertNotVisible:
+    id: "panel-tab-analytics"
+
+# --- Programs is a page now: opened from the menu, closed with its own back ---
+- tapOn:
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - assertVisible:
     id: "programs-segment-explore"
-- assertNotVisible:
-    id: "panel-tab-programs"
+- tapOn:
+    id: "header-back"
+# Back returns to the screen the menu was opened from (Analytics at this point).
+- assertVisible: "Analytics"
 
 # --- the close button dismisses the panel ---
 - tapOn:
@@ -49,7 +63,7 @@ appId: app.lift.mobile
 - tapOn:
     id: "panel-close"
 - assertNotVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-analytics"
 
 # --- the right panel shows settings; a tap on the bare strip dismisses it ---
 - tapOn:
@@ -57,7 +71,7 @@ appId: app.lift.mobile
 - assertVisible:
     id: "settings-profile"
 - assertNotVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-analytics"
 - tapOn:
     point: "5%,50%"
 - assertNotVisible:
@@ -67,11 +81,11 @@ appId: app.lift.mobile
 - tapOn:
     id: "topbar-panel"
 - assertVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-analytics"
 - tapOn:
     point: "95%,50%"
 - assertNotVisible:
-    id: "panel-tab-programs"
+    id: "panel-tab-analytics"
 
 # --- a More item navigates, and the panel is gone (last: it leaves the tabs) ---
 - tapOn:

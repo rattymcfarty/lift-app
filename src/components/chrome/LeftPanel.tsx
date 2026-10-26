@@ -98,8 +98,15 @@ export function LeftPanel(): JSX.Element {
             icon="search"
             label="Search exercises"
             testID="panel-search"
-            divider={false}
+            divider
             onPress={openSearch}
+          />
+          <PanelRow
+            icon="note"
+            label="Programs"
+            testID="panel-programs"
+            divider={false}
+            onPress={() => go('/programs')}
           />
         </View>
 

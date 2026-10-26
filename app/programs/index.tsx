@@ -191,6 +191,7 @@ export default function ProgramsScreen(): JSX.Element {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <SegmentedTitle
         title="Programs"
+        onBack={() => router.back()}
         rightSize={92}
         right={
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

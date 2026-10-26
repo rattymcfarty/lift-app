@@ -2,9 +2,9 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-25 — the wheel is the numeric entry for the whole app (including the
-> in-sheet drums), sheets are opaque, a running workout owns the chrome (live title + return
-> badge) and names never shrink or truncate. Before that: queue 2b complete (persona editor,
+> Last updated: 2026-10-26 — three main doors (Train · Analytics · Exercises) with Programs in
+> the left menu, the wheel as the numeric entry everywhere, a running workout owning the chrome,
+> and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
 > guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
 > every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
@@ -669,6 +669,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 4. Decisions
 
+- **2026-10-26 (owner): three main doors on the bar — Train · Analytics · Exercises** (Apple
+  Health's shape). Everything else belongs in the top-left menu (features) or the top-right panel
+  (settings). Programs therefore became a menu page with its own back arrow; the Train page keeps
+  only the daily content, and the quick actions (library, create program, body weight,
+  calculators) moved into the menu.
+
 - **2026-10-25 (owner): an ongoing workout has priority over everything.** Its title uses the
   live accent colour, a badge with the elapsed time sits in the floating chrome on every other
   screen, and one tap returns to it; finishing or discarding clears it. Back on other screens
@@ -713,6 +719,26 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-26 — Three main doors; Programs moves to the menu (opencode)
+
+- **Nav reshape.** `APP_TABS`/`DEFAULT_TAB_ORDER` are now Train · Analytics · Exercises; the bar
+  renders exactly those three, and the retired `programs` key is dropped by the order normaliser
+  (unit-tested). The Programs screen moved from `app/(tabs)/programs.tsx` to
+  `app/programs/index.tsx`, so it is a pushed page: `SegmentedTitle` gained an optional `onBack`
+  and the screen shows the standard '←'. The left panel gained a primary **Programs** row
+  (`panel-programs`) next to Search; the "More" list is unchanged.
+- **Home trimmed** to the daily loop: week strip, readiness, UP NEXT, Empty workout. The action
+  tiles (Your library, Create program, Bodyweight, Calculators) are gone from the home screen —
+  they are menu destinations now.
+- **Program Finish** lands on the library with `router.replace('/programs')`: the create wizard
+  clears its stack at step 2/3, so a back left the user on Train.
+- **Side panels** got the same opaque base under the glass as the sheets.
+- Tests updated for three doors (`test:panel`, `test:tab-order`, `test:content`); flows that
+  opened Programs from the bar now open it from the menu. Device PASS: `tabs`, `panels`, `learn`,
+  `quiz`, `persona`, `plan-picker`, `program-builder`.
+- Not changed, worth a decision: the panel still carries its "Tabs" reorder block (3 rows + hint)
+  even though the doors are now fixed; removing it would shorten the menu further.
 
 ### 2026-10-25 — Wheels everywhere, readable sheets (opencode)
 

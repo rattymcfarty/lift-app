@@ -421,46 +421,16 @@ export default function TrainScreen(): JSX.Element {
             )}
           </Card>
 
-          <Text style={{ color: c.muted, fontSize: t.size.caption, fontWeight: t.weight.medium, letterSpacing: 1 }}>
-            QUICK ACTIONS
-          </Text>
-          <View style={{ gap: theme.spacing.sm }}>
-            <Button
-              title="▶  Empty workout"
-              variant="secondary"
-              size="large"
-              testID="home-start-workout"
-              onPress={() => router.push('/workout/new')}
-            />
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <ActionTile label="Your library" glyph="▤" onPress={() => router.push('/programs')} />
-              <ActionTile
-                label="Create program"
-                glyph="✎"
-                testID="home-create-program"
-                onPress={() => {
-                  void createUserProgram().then((p) => router.push(`/programs/${p.id}/details?flow=create` as never));
-                }}
-              />
-            </View>
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <ActionTile label="Bodyweight" glyph="⚖" testID="home-bodyweight" onPress={() => router.push('/measure')}>
-                {latest != null ? (
-                  <View style={{ gap: theme.spacing.xs }}>
-                    <Sparkline values={weights} width={tileWidth} height={40} />
-                    <Text style={{ color: c.text, fontSize: t.size.section, fontWeight: t.weight.bold }}>
-                      {shown(latest)} <Text style={{ color: c.muted, fontSize: t.size.meta }}>{unit}</Text>
-                    </Text>
-                  </View>
-                ) : (
-                  <Text style={{ color: c.faint, fontSize: t.size.caption }}>Log your weight</Text>
-                )}
-              </ActionTile>
-              <ActionTile label="Calculators" glyph="∑" onPress={() => router.push('/calculators')}>
-                <Text style={{ color: c.faint, fontSize: t.size.caption }}>1RM, plates, and more</Text>
-              </ActionTile>
-            </View>
-          </View>
+          {/* One quiet secondary action. The library, program creation, body weight
+              and calculators live in the left menu now: they are occasional, and the
+              home page is for today's session (owner decision 2026-10-26). */}
+          <Button
+            title="▶  Empty workout"
+            variant="secondary"
+            size="large"
+            testID="home-start-workout"
+            onPress={() => router.push('/workout/new')}
+          />
         </ScrollView>
       )}
     </SafeAreaView>

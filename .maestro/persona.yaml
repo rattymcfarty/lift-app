@@ -77,8 +77,11 @@ appId: app.lift.mobile
 # They are really in the library.
 - tapOn:
     id: "header-back"
+# Programs is a menu destination since 2026-10-26.
 - tapOn:
-    id: "tab-programs"
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-programs"
 - tapOn:
     id: "programs-segment-library"
 - assertVisible: ".*My Plan · Day 1.*"
