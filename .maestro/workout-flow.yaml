@@ -127,6 +127,13 @@ appId: app.lift.mobile
 - tapOn:
     id: "swap-search"
 - inputText: "Romanian Deadlift"
+# The bar floats over every screen now, so the list gets the full width back
+# after the keyboard closes before the row is tapped.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "swap-row-romanian-deadlift(-[0-9]+)?"
+    direction: DOWN
 - tapOn:
     id: "swap-row-romanian-deadlift(-[0-9]+)?"
 - tapOn:

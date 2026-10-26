@@ -18,8 +18,10 @@ import type { JSX } from 'react';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Animated, Keyboard, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePathname, useSegments, router, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import type { BottomTabBarProps } from 'expo-router/tabs';
+import { isCompanionHiddenRoute } from '../../companion/placement';
+import { APP_TABS, tabHref, tabKeyForPathname } from '../../nav/tabs';
 import { useTheme, withAlpha } from '../../theme';
 import { Glass } from '../ui/Glass';
 import { TabIcon, type TabIconName } from './TabIcons';
@@ -53,11 +55,6 @@ export interface TabBarTab {
   testID: string;
 }
 
-/** Props of the custom bar: the navigator's own props plus the tab table. */
-export interface TabBarProps extends BottomTabBarProps {
-  tabs: ReadonlyArray<TabBarTab>;
-}
-
 /**
  * Vertical space the floating bar occupies at the bottom of a tab screen:
  * bar height + gap + safe-area bottom. Add it to a scrollable's bottom padding
@@ -82,11 +79,23 @@ function useKeyboardShown(): boolean {
   return shown;
 }
 
-/** The floating bar itself. Rendered from `Tabs`' `tabBar` prop. */
-export function TabBar({ state, emitter, navigateToTab, tabs, insets }: TabBarProps): JSX.Element {
+/**
+ * The bar itself — mounted ONCE in the root layout, above the navigator, so it is
+ * on every screen (owner decision 2026-10-26: it never disappears). It no longer
+ * receives navigator state: the active door comes from the pathname, and a press
+ * navigates through the router.
+ *
+ * A workout route highlights Train (the session belongs there) and its Train press
+ * still goes to the Train tab, so the bar is never a dead end while the workout is
+ * the main window.
+ */
+export function TabBar(): JSX.Element | null {
   const { theme } = useTheme();
   const c = theme.colors;
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+  const segments = useSegments();
   const order = useSyncExternalStore(subscribeTabOrder, getTabOrderSnapshot);
   const keyboardShown = useKeyboardShown();
 
@@ -97,8 +106,8 @@ export function TabBar({ state, emitter, navigateToTab, tabs, insets }: TabBarPr
   const iconSize = Math.round(TAB_ICON_SIZE * Math.min(1.1, Math.max(0.84, width / 390)));
   const space = TAB_BAR_SPACE + insets.bottom;
 
-  // The stock bar hid itself while typing (tabBarHideOnKeyboard); a custom bar
-  // has to do that for itself, so it slides down and stops taking touches.
+  // The stock bar hid itself while typing (tabBarHideOnKeyboard); a custom bar has
+  // to do that for itself, so it slides down and stops taking touches.
   const hidden = useRef(new Animated.Value(keyboardShown ? 1 : 0)).current;
   useEffect(() => {
     Animated.timing(hidden, {
@@ -108,12 +117,21 @@ export function TabBar({ state, emitter, navigateToTab, tabs, insets }: TabBarPr
     }).start();
   }, [hidden, keyboardShown]);
 
-  const routeByName = new Map(state.routes.map((route) => [route.name, route]));
-  const focusedName = state.routes[state.index]?.name;
+  // Onboarding and the PAR-Q+ screening are the only bare flows, like the chrome.
+  if (isCompanionHiddenRoute(pathname, segments)) return null;
+
+  const activeKey = pathname.startsWith('/workout') ? 'train' : tabKeyForPathname(pathname);
   // `order` first, then the tab table: a stored id the table no longer knows is skipped.
   const items = order
-    .map((key) => tabs.find((tab) => tab.key === key))
-    .filter((tab): tab is TabBarTab => tab != null);
+    .map((key) => APP_TABS.find((tab) => tab.key === key))
+    .filter((tab): tab is (typeof APP_TABS)[number] => tab != null);
+
+  const select = (key: (typeof APP_TABS)[number]['key']): void => {
+    Haptics.selectionAsync();
+    // Train always lands on the tab itself, even when the workout is the active
+    // window — a highlighted, inert door would strand the user in the session.
+    router.navigate((key === 'train' ? '/' : tabHref(key)) as Href);
+  };
 
   return (
     <Animated.View
@@ -136,20 +154,12 @@ export function TabBar({ state, emitter, navigateToTab, tabs, insets }: TabBarPr
     >
       <Glass shape="pill" style={[styles.pill, { paddingHorizontal: theme.spacing.xs }]}>
         {items.map((tab) => {
-          const route = routeByName.get(tab.name);
-          if (!route) return null;
-          const focused = route.name === focusedName;
-          const onPress = (): void => {
-            Haptics.selectionAsync();
-            const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigateToTab(route.key);
-          };
+          const focused = tab.key === activeKey;
           return (
             <Pressable
               key={tab.key}
               testID={tab.testID}
-              onPress={onPress}
-              onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
+              onPress={() => select(tab.key)}
               accessibilityRole="tab"
               accessibilityLabel={tab.title}
               accessibilityState={{ selected: focused }}

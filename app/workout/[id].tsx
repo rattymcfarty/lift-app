@@ -32,6 +32,7 @@ import { plannedSetsBySlot, plannedSetSlotKey, type PlannedSetRow } from '../../
 import { useTheme } from '../../src/theme';
 import { formatDuration } from '../../src/components/workout/format';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 import { ExerciseCard, type SupersetGroupInfo } from '../../src/components/workout/ExerciseCard';
 import { RpeSheet } from '../../src/components/workout/RpeSheet';
 import { TaxonomyIcon } from '../../src/components/icons';
@@ -75,6 +76,7 @@ function ElapsedTime({ startedAt }: { startedAt: Date }): JSX.Element {
 
 export default function ActiveWorkoutScreen(): JSX.Element {
   const { theme } = useTheme();
+  const tabBarSpace = useTabBarSpace();
   const params = useLocalSearchParams<{ id: string }>();
   const workoutId = Array.isArray(params.id) ? params.id[0] : params.id;
 
@@ -379,11 +381,13 @@ export default function ActiveWorkoutScreen(): JSX.Element {
     >
       <ScreenHeader
         title={detail?.workout.name ?? 'Workout'}
-        onBack={() => router.replace('/')}
+        // An ONGOING session is the main window (owner decision 2026-10-26): no
+        // back arrow, because there is nothing to go "back" to — the bar below
+        // moves between sections and the session stays open. A finished workout
+        // opened from history keeps a way out.
+        onBack={detail?.workout.endedAt ? () => router.replace('/') : undefined}
         compact
-        // The accent title marks a session that is still running (owner decision
-        // 2026-10-25); the floating badge carries the same signal on every other
-        // screen and is the way back here.
+        // The accent title marks a session that is still running.
         titleColor={theme.colors.accent}
       />
 
@@ -419,7 +423,8 @@ export default function ActiveWorkoutScreen(): JSX.Element {
           renderItem={renderExercise}
           contentContainerStyle={{
             paddingHorizontal: theme.spacing.md,
-            paddingBottom: theme.spacing.xl,
+            // The floating bar stays on this screen, so the footer clears it.
+            paddingBottom: theme.spacing.xl + tabBarSpace,
             gap: theme.spacing.md,
           }}
           ListEmptyComponent={

@@ -13,6 +13,7 @@ import { ComposerTaxonomyPicker } from '../../src/components/workout/ComposerTax
 import { createCustomExercise, getExercise } from '../../src/data/repositories';
 import { updateCustomExercise } from '../../src/data/customExercises';
 import { decodeStringArray, EXERCISE_CATEGORIES, type ExerciseCategory } from '../../src/db/schema';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 const CATEGORY_LABEL: Record<ExerciseCategory, string> = {
   strength: 'Strength',
@@ -23,6 +24,7 @@ const CATEGORY_LABEL: Record<ExerciseCategory, string> = {
 };
 
 export default function ExerciseFormScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const c = theme.colors;
@@ -124,7 +126,7 @@ export default function ExerciseFormScreen(): JSX.Element {
         <ScreenHeader title={editing ? 'Edit exercise' : 'New exercise'} onBack={cancel} compact />
         {loading ? null : (
           <ScrollView
-            contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}
+            contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpace }}
             keyboardShouldPersistTaps="handled"
           >
             <View style={{ gap: theme.spacing.xs }}>

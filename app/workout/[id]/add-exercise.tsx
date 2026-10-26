@@ -40,6 +40,7 @@ import { RecentExercises } from '../../../src/components/workout/RecentExercises
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 import { ComposerTaxonomyPicker } from '../../../src/components/workout/ComposerTaxonomyPicker';
 import { displayName } from '../../../src/kb/taxonomy';
+import { useTabBarSpace } from '../../../src/components/nav/TabBar';
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Picker search cap: covers the whole library (433 exercises); FlatList virtualizes. */
@@ -94,6 +95,7 @@ function ExerciseRow({
 }
 
 export default function AddExerciseScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string }>();
@@ -523,6 +525,7 @@ export default function AddExerciseScreen(): JSX.Element {
             {
               paddingHorizontal: theme.spacing.md,
               paddingVertical: theme.spacing.sm,
+              paddingBottom: theme.spacing.sm + tabBarSpace,
               gap: theme.spacing.sm,
               borderTopColor: theme.colors.border,
               borderTopWidth: 1,

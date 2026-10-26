@@ -11,8 +11,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../src/theme';
 import { ScreenHeader } from '../src/components/workout/ui';
 import { SettingsBody } from '../src/components/settings/SettingsBody';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 export default function SettingsScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
 
   return (
@@ -23,7 +25,7 @@ export default function SettingsScreen(): JSX.Element {
       <ScreenHeader title="Settings" onBack={() => router.back()} compact />
       <ScrollView
         contentContainerStyle={{
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl + tabBarSpace,
         }}
       >
         <SettingsBody />

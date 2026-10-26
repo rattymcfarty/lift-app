@@ -17,6 +17,7 @@ import {
 } from '../src/data/repositories';
 import { useTheme } from '../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -154,6 +155,7 @@ function ExerciseCard({ section }: { section: PRSection }): JSX.Element {
 }
 
 export default function PRsScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<PRSection[]>([]);
@@ -193,6 +195,7 @@ export default function PRsScreen(): JSX.Element {
             padding: theme.spacing.md,
             gap: theme.spacing.md,
             flexGrow: 1,
+            paddingBottom: theme.spacing.md + tabBarSpace,
           }}
           renderItem={({ item }) => <ExerciseCard section={item} />}
           ListEmptyComponent={

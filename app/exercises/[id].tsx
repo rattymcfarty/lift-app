@@ -25,10 +25,12 @@ import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/wor
 import { displayName, muscleLabel, equipmentLabel } from '../../src/kb/taxonomy';
 import { TaxonomyIcon } from '../../src/components/icons';
 import { Markdown } from '../../src/components/ui/Markdown';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 type TabId = 'guide' | 'history' | 'records' | 'charts';
 
 export default function ExerciseDetailScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const styles = getStyles(theme);
   const params = useLocalSearchParams<{ id: string }>();
@@ -140,7 +142,7 @@ export default function ExerciseDetailScreen(): JSX.Element {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScreenHeader title={displayName(exercise)} onBack={() => router.back()} />
       <ScrollView
-        contentContainerStyle={{ padding: theme.spacing.md }}
+        contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpace }}
         showsVerticalScrollIndicator={false}
       >
         {renderHeroImage()}

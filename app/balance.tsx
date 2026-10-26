@@ -15,6 +15,7 @@ import { fetchStatWorkouts } from '../src/stats/queries';
 import { startOfWeekMonday } from '../src/stats/volume';
 import { useTheme } from '../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 const WEEKS = 12;
 
@@ -75,6 +76,7 @@ function GroupBar({ group, share, volumeKg, sets, maxShare, theme, t }: {
 }
 
 export default function BalanceScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const [loading, setLoading] = useState(true);
@@ -135,7 +137,7 @@ export default function BalanceScreen(): JSX.Element {
           <Button title="Start workout" onPress={() => router.push('/workout/new')} />
         </View>
       ) : report ? (
-        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}>
+        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpace }}>
           <Card>
             <Text style={{ color: theme.colors.muted, fontSize: t.size.caption, marginBottom: theme.spacing.sm }}>
               VOLUME BY MUSCLE · LAST {WEEKS} WEEKS

@@ -28,6 +28,7 @@ import { Celebration, type CelebrationRecord } from '../../../src/components/wor
 import { listPRsWithExercises } from '../../../src/data/repositories';
 import { prKindLabel } from '../../../src/components/dashboard/prLabels';
 import { companionRecords, companionWorkoutFinished } from '../../../src/companion/triggers';
+import { useTabBarSpace } from '../../../src/components/nav/TabBar';
 
 function Stat({ label, value, size }: { label: string; value: string; size: number }): JSX.Element {
   const { theme } = useTheme();
@@ -64,6 +65,7 @@ function StatRow({ stats }: { stats: ReadonlyArray<{ label: string; value: strin
 }
 
 export default function WorkoutSummaryScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string }>();
@@ -160,7 +162,7 @@ export default function WorkoutSummaryScreen(): JSX.Element {
           style={styles.body}
           contentContainerStyle={[
             styles.bodyContent,
-            { paddingHorizontal: theme.spacing.md, gap: theme.spacing.md },
+            { paddingHorizontal: theme.spacing.md, gap: theme.spacing.md, paddingBottom: 32 + tabBarSpace },
           ]}
         >
           <View>

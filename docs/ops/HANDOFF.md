@@ -2,10 +2,10 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-26 — three main doors (Train · Analytics · Exercises) on a larger bar,
-> Programs in a decluttered left menu behind one Create door, a settings-only right panel, an
-> Analytics volume window switcher, the wheel as the numeric entry everywhere, a running workout
-> owning the chrome, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
+> Last updated: 2026-10-26 — a bar that never disappears (three doors, larger, always visible)
+> with an ongoing workout as the main window, Programs behind one Create door in a decluttered
+> left menu, a settings-only right panel, an Analytics volume window switcher, the wheel as the
+> numeric entry everywhere, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
 > guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
 > every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
@@ -720,6 +720,23 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-26 — Bar everywhere; the workout is the main window (opencode)
+
+- **The bar is mounted once in the root layout** (`app/_layout.tsx`), not in the tabs navigator
+  (`tabBar={() => null}`), so it is on every route including the workout, the guide, the pickers
+  and settings. It is now a self-contained component: active door from `usePathname`,
+  navigation through `router.navigate`, keyboard hide unchanged. `useTabBarSpace()` is applied
+  across the app (19 screens/components) so nothing is hidden behind it — including picker
+  footers and the workout's Finish/Discard block.
+- **Ongoing workout = main window.** The workout header drops its back arrow while the session
+  is open (`onBack` only when `workout.endedAt` exists, i.e. a finished workout from history).
+  Train stays highlighted on the bar while in `/workout/*`, and pressing Train still navigates to
+  the Train tab, so the bar is never a dead end. `ongoing-workout.yaml` asserts no back arrow,
+  the three doors on the workout, and leaving via Train.
+- Device PASS: `ongoing-workout`, `workout-flow` (swap list needed `hideKeyboard` +
+  `scrollUntilVisible` now that the bar overlays the list), `tabs`, `panels`, `exercise-menu`.
+  Screenshots confirm the workout footer clears the bar and the picker footer sits above it.
 
 ### 2026-10-26 — Bigger bar, one Create door, panels split by purpose (opencode)
 

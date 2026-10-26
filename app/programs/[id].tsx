@@ -38,6 +38,7 @@ import { removeRoutineExercise, updateRoutine, updateRoutineExercise } from '../
 import { displayName } from '../../src/kb/taxonomy';
 import { getParqGateStatus } from '../../src/programs/safety';
 import { ProgramError } from '../../src/programs/compile';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 import {
   addDay,
   copyWeek,
@@ -120,6 +121,7 @@ function TargetPill({
 }
 
 export default function ProgramEditorScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const c = theme.colors;
@@ -276,7 +278,7 @@ export default function ProgramEditorScreen(): JSX.Element {
         }
       />
 
-      <ScrollView contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl * 2, gap: theme.spacing.md }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl * 2 + tabBarSpace, gap: theme.spacing.md }} keyboardShouldPersistTaps="handled">
         {(() => {
           const d = detailsOf(program);
           const bits = [d.focus.join(', '), d.equipment, d.difficulty.join(', '), `${d.minutesPerWorkout} min`].filter(Boolean);

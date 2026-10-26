@@ -8,13 +8,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { HistoryList } from '../src/components/history/HistoryList';
 import { ScreenHeader } from '../src/components/workout/ui';
 import { useTheme } from '../src/theme';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 export default function HistoryScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
       <ScreenHeader title="History" onBack={() => router.back()} />
-      <HistoryList />
+      <HistoryList bottomPadding={tabBarSpace} />
     </SafeAreaView>
   );
 }

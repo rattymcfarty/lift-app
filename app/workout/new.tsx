@@ -30,6 +30,7 @@ import type { Routine } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
 import { Button, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { assertSessionLinkable, linkWorkoutToSession } from '../../src/programs/sessions';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 function defaultWorkoutName(): string {
   const now = new Date();
@@ -73,6 +74,7 @@ async function resolveActiveConflict(): Promise<'cancelled' | 'proceeded'> {
 }
 
 export default function NewWorkoutScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{
@@ -286,6 +288,7 @@ export default function NewWorkoutScreen(): JSX.Element {
           <FlatList
             data={plans}
             keyExtractor={(r) => r.id}
+            contentContainerStyle={{ paddingBottom: tabBarSpace }}
             // Same as the active screen: taps must reach rows while the
             // name-field keyboard is up (first tap would only dismiss it).
             keyboardShouldPersistTaps="handled"

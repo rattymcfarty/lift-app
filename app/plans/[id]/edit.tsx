@@ -51,6 +51,7 @@ import { parseUserInt, parseUserNumber } from '../../../src/components/workout/f
 import { RpeSheet } from '../../../src/components/workout/RpeSheet';
 import { formatTargets as formatPlanTargets } from '../../../src/components/routines/format';
 import { displayName } from '../../../src/kb/taxonomy';
+import { useTabBarSpace } from '../../../src/components/nav/TabBar';
 
 interface TargetDraft {
   sets: string;
@@ -71,6 +72,7 @@ function draftFrom(item: RoutineExercise): TargetDraft {
 }
 
 export default function PlanEditScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string }>();
@@ -331,7 +333,7 @@ export default function PlanEditScreen(): JSX.Element {
         keyExtractor={(i) => i.routineExercise.id}
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl + tabBarSpace,
           gap: theme.spacing.md,
         }}
         ListHeaderComponent={

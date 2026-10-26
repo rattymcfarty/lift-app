@@ -21,8 +21,10 @@ import { Button, ScreenHeader } from '../../src/components/workout/ui';
 import { WheelNumberField } from '../../src/components/ui/WheelNumberField';
 import { minutesItems } from '../../src/components/ui/wheelRanges';
 import { parseUserInt } from '../../src/components/workout/format';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 export default function NewPlanScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const [name, setName] = useState('');
@@ -80,7 +82,7 @@ export default function NewPlanScreen(): JSX.Element {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.body,
-          { paddingHorizontal: theme.spacing.md, gap: theme.spacing.md },
+          { paddingHorizontal: theme.spacing.md, gap: theme.spacing.md, paddingBottom: 32 + tabBarSpace },
         ]}
       >
         <View style={{ gap: theme.spacing.xs }}>

@@ -33,12 +33,14 @@ import { listExercisesWithHistory, type ExerciseHistoryOption } from '../../../s
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
 import { ExercisePickRow } from '../../../src/components/workout/ExercisePickRow';
 import { displayName } from '../../../src/kb/taxonomy';
+import { useTabBarSpace } from '../../../src/components/nav/TabBar';
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Picker search cap: covers the whole library (433 exercises); FlatList virtualizes. */
 const SEARCH_LIMIT = 500;
 
 export default function SwapExerciseScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string; workoutExerciseId: string }>();
@@ -308,7 +310,7 @@ export default function SwapExerciseScreen(): JSX.Element {
         )}
       </View>
 
-      <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.md }}>
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpace }}>
         <Button
           title="Swap Exercise"
           testID="swap-confirm"

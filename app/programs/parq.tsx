@@ -24,10 +24,12 @@ import {
   getParqGateStatus,
 } from '../../src/programs/safety';
 import { ProgramError } from '../../src/programs/compile';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 type Step = 'questionnaire' | 'clearance' | 'done';
 
 export default function ParqScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const c = theme.colors;
   const t = theme.typography;
@@ -73,7 +75,7 @@ export default function ParqScreen(): JSX.Element {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: c.background, paddingBottom: tabBarSpace }} edges={['top']}>
       <ScreenHeader
         title="Readiness check"
         subtitle="PAR-Q+ physical activity questionnaire"

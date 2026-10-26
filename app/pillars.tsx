@@ -40,6 +40,7 @@ import { useTheme } from '../src/theme';
 import { Button, Card, ScreenHeader } from '../src/components/workout/ui';
 import { WheelNumberField } from '../src/components/ui/WheelNumberField';
 import { minutesItems } from '../src/components/ui/wheelRanges';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 const QUICK_MINUTES = [15, 30, 45, 60];
 
@@ -56,6 +57,7 @@ function formatDate(d: Date): string {
 }
 
 export default function PillarsScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const [loading, setLoading] = useState(true);
@@ -204,7 +206,7 @@ export default function PillarsScreen(): JSX.Element {
           <ActivityIndicator />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md }}>
+        <ScrollView contentContainerStyle={{ padding: theme.spacing.md, gap: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpace }}>
           {error ? (
             <Text style={{ color: theme.colors.danger, fontSize: t.size.body }}>{error}</Text>
           ) : null}

@@ -15,6 +15,7 @@ import { ThemeProvider, useTheme } from '../src/theme';
 import { WorkoutLifecycleWatcher } from '../src/workouts/WorkoutLifecycleWatcher';
 import { PanelsProvider } from '../src/chrome/panels';
 import { TopBar } from '../src/components/chrome/TopBar';
+import { TabBar } from '../src/components/nav/TabBar';
 import { SidePanels } from '../src/components/chrome/SidePanels';
 
 /**
@@ -102,6 +103,9 @@ function AppShell() {
         {/* Top bar: absolute overlay above the Stack, pointerEvents='box-none'.
             It renders the companion circle in its centre slot. */}
         <TopBar />
+        {/* The floating bar is mounted above the Stack, so it survives navigation
+            and is present in the workout too (owner decision 2026-10-26). */}
+        <TabBar />
         {/* Side panels: above the bar so an open panel covers the whole app. */}
         <SidePanels />
         {statusBar}

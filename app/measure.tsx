@@ -35,6 +35,7 @@ import { formatWorkoutDay, parseUserNumber, trimNumber } from '../src/components
 import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
 import { WheelNumberField } from '../src/components/ui/WheelNumberField';
 import { measureItems, type MeasureKind } from '../src/components/ui/wheelRanges';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 interface MetricPreset {
   type: string;
@@ -160,6 +161,7 @@ function EntryRow({
 }
 
 export default function MeasureScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
 
@@ -302,7 +304,7 @@ export default function MeasureScreen(): JSX.Element {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl + tabBarSpace,
           gap: theme.spacing.md,
         }}
         keyboardShouldPersistTaps="handled"

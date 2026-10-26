@@ -15,7 +15,6 @@
 import type { JSX } from 'react';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../src/theme';
-import { TabBar } from '../../src/components/nav/TabBar';
 import { APP_TABS } from '../../src/nav/tabs';
 
 /** Opening route of the tab group (expo-router 58 moved this off the Tabs prop). */
@@ -27,7 +26,10 @@ export default function TabsLayout(): JSX.Element {
 
   return (
     <Tabs
-      tabBar={(props) => <TabBar {...props} tabs={APP_TABS} />}
+      // No bar from the navigator: the floating bar is mounted in the root
+      // layout so it is on EVERY screen, not just these three (owner decision
+      // 2026-10-26).
+      tabBar={() => null}
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: c.background },

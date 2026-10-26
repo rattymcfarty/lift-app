@@ -35,6 +35,7 @@ import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/wor
 import { trimNumber } from '../../src/components/workout/format';
 import { displayName } from '../../src/kb/taxonomy';
 import { FONT_WEIGHT } from '../../src/theme/tokens';
+import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
 /** Extra target detail shown under the name (weight / RPE / rest). */
 function targetDetail(item: RoutineDetail['items'][number]): string {
@@ -125,6 +126,7 @@ function BreakdownRow({
 }
 
 export default function PlanDetailScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string }>();
@@ -273,7 +275,7 @@ export default function PlanDetailScreen(): JSX.Element {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl + tabBarSpace,
           gap: theme.spacing.md,
         }}
       >

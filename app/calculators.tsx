@@ -26,6 +26,7 @@ import { barItems, countItems, weightItems, type Unit } from '../src/components/
 import { getLastWorkingSet } from '../src/data/repositories';
 import { getSettings } from '../src/data/settings';
 import { kgToLb, lbToKg } from '../src/lib/units';
+import { useTabBarSpace } from '../src/components/nav/TabBar';
 
 const PERCENTAGES = [100, 95, 90, 85, 80, 75, 70];
 
@@ -220,6 +221,7 @@ function PlateSection({ unit, initialTarget, initialBar }: { unit: Unit; initial
 }
 
 export default function CalculatorsScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const [unit, setUnit] = useState<Unit>('kg');
   const [seedWeight, setSeedWeight] = useState<string | null>(null);
@@ -248,7 +250,7 @@ export default function CalculatorsScreen(): JSX.Element {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl + tabBarSpace,
           gap: theme.spacing.lg,
         }}
         keyboardShouldPersistTaps="handled"

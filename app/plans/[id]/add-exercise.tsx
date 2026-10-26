@@ -36,6 +36,7 @@ import { FilterChip, FilterChipRow } from '../../../src/components/workout/Filte
 import { toggleFilterPanel, type OpenFilterPanel } from '../../../src/components/workout/filterPanel';
 import { TaxonomyFilterGrid } from '../../../src/components/workout/TaxonomyFilterGrid';
 import { exerciseMatchesFilters } from '../../../src/lib/filterExercises';
+import { useTabBarSpace } from '../../../src/components/nav/TabBar';
 
 const SEARCH_DEBOUNCE_MS = 250;
 /** Picker search cap: covers the whole library (433 exercises); FlatList virtualizes. */
@@ -62,6 +63,7 @@ function ExerciseRow({
 }
 
 export default function AddPlanExerciseScreen(): JSX.Element {
+  const tabBarSpace = useTabBarSpace();
   const { theme } = useTheme();
   const t = theme.typography;
   const params = useLocalSearchParams<{ id: string; equip?: string }>();
@@ -257,6 +259,7 @@ export default function AddPlanExerciseScreen(): JSX.Element {
           data={results}
           keyExtractor={(e) => e.id}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: tabBarSpace }}
           renderItem={({ item }) => (
             <ExerciseRow
               exercise={item}

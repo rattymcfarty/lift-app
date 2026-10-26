@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, withAlpha } from '../../theme';
 import { Button, ScreenHeader } from '../workout/ui';
+import { useTabBarSpace } from '../nav/TabBar';
 
 export function WizardPage({
   title,
@@ -32,6 +33,7 @@ export function WizardPage({
   children: ReactNode;
 }): JSX.Element {
   const { theme } = useTheme();
+  const tabBarSpace = useTabBarSpace();
   const t = theme.typography;
   const c = theme.colors;
   return (
@@ -47,7 +49,7 @@ export function WizardPage({
         />
         <ScrollView
           style={{ flex: 1, backgroundColor: c.surface }}
-          contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl, gap: theme.spacing.lg }}
+          contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xl + tabBarSpace, gap: theme.spacing.lg }}
           keyboardShouldPersistTaps="handled"
         >
           {children}
@@ -164,6 +166,7 @@ export function ChipGroup<T extends string>({
   testIDPrefix?: string;
 }): JSX.Element {
   const { theme } = useTheme();
+  const tabBarSpace = useTabBarSpace();
   const t = theme.typography;
   const c = theme.colors;
   const sel: ReadonlyArray<T> = Array.isArray(selected) ? (selected as ReadonlyArray<T>) : [selected as T];

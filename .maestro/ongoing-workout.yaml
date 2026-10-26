@@ -15,15 +15,24 @@ appId: app.lift.mobile
     id: "new-workout-start-blank"
 - assertVisible:
     id: "workout-add-exercise"
-# On the workout itself: no badge (the title says it), and the title is there.
+# On the workout itself: it is the main window (no back arrow), the title says it,
+# and the floating bar stays visible — the bar never disappears (2026-10-26).
 - assertVisible:
     id: "screen-title"
 - assertNotVisible:
+    id: "header-back"
+- assertVisible:
+    id: "tab-train"
+- assertVisible:
+    id: "tab-analytics"
+- assertVisible:
+    id: "tab-exercises"
+- assertNotVisible:
     id: "topbar-workout"
 
-# Leaving the workout: the badge appears with a running clock.
+# Leaving the workout through the bar: the badge appears with a running clock.
 - tapOn:
-    id: "header-back"
+    id: "tab-train"
 - assertVisible:
     id: "topbar-workout"
 - assertVisible:
