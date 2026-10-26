@@ -2,6 +2,19 @@
 
 ## Unreleased (addendum)
 
+- **The wheel is now the numeric keypad of the whole app.** Set rows were the start; every other
+  number follows the same rule: the in-workout plate calculator (target and bar), the
+  Calculators screen (1RM weight/reps, plate target/bar), plan targets (sets, weight, RPE, rest),
+  plan and session duration, measurements, warm-up working weight and each warm-up row, body
+  weight/height/birth year in onboarding, and cardio minutes. Each opens the drum and offers
+  "Type instead" for a precise jump. The Calculators screen is also seeded from your last working
+  set and your saved bar weight, so it answers the moment it opens instead of showing an empty
+  form. Ranges live in one unit-tested module (`wheelRanges`, `test:wheel-ranges` 74).
+- **Sheets are readable.** The floating "glass" is translucent; at 85–96% the screen behind a
+  sheet stayed legible through the drum and the settings panel. Sheets now sit on an opaque base
+  under the glass, and fields *inside* a sheet use an inline drum (`InlineDrum`) rather than a
+  nested modal — closing a nested wheel used to dismiss the sheet underneath on Android.
+
 - **A running workout now outranks everything.** While a session is open, the workout's title is
   in the live accent colour and a small "● 12:34" badge sits in the floating chrome on every
   other screen — Train, Analytics, Browse, History, the learn pages, anywhere reachable from

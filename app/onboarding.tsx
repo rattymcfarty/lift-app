@@ -43,6 +43,9 @@ import { getSettings, setWeightUnit, type WeightUnit } from '../src/data/setting
 import { buildPlansFromProfile, GOAL_LABEL } from '../src/data/generatedPlan';
 import { logMeasurement, getLatestMeasurement } from '../src/data/repositories';
 import { kgToLb, lbToKg } from '../src/lib/units';
+import { WheelNumberField } from '../src/components/ui/WheelNumberField';
+import { birthYearItems, heightCmItems, weightItems } from '../src/components/ui/wheelRanges';
+
 
 type StepKey = 'welcome' | 'about' | 'experience' | 'goal' | 'schedule' | 'limits' | 'done';
 const ORDER: StepKey[] = ['welcome', 'about', 'experience', 'goal', 'schedule', 'limits', 'done'];
@@ -316,20 +319,37 @@ export default function OnboardingScreen(): JSX.Element {
               </View>
             </Field>
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <View style={{ flex: 1 }}>
-                <Field label={`Weight (${unit})`}>
-                  <TextInput testID="onb-weight" value={weightText} onChangeText={setWeightText} keyboardType="decimal-pad" placeholder="e.g. 72" placeholderTextColor={c.faint} style={input} />
-                </Field>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Field label="Height (cm)">
-                  <TextInput testID="onb-height" value={heightText} onChangeText={setHeightText} keyboardType="number-pad" placeholder="e.g. 175" placeholderTextColor={c.faint} style={input} />
-                </Field>
-              </View>
+              <WheelNumberField
+                testID="onb-weight"
+                label={`weight (${unit})`}
+                value={weightText}
+                onChangeText={setWeightText}
+                items={weightItems(unit)}
+                unit={unit}
+                placeholder={unit === 'kg' ? 'e.g. 72' : 'e.g. 160'}
+                decimal
+                style={{ flex: 1 }}
+              />
+              <WheelNumberField
+                testID="onb-height"
+                label="height (cm)"
+                value={heightText}
+                onChangeText={setHeightText}
+                items={heightCmItems()}
+                unit="cm"
+                placeholder="e.g. 175"
+                style={{ flex: 1 }}
+              />
             </View>
-            <Field label="Birth year">
-              <TextInput testID="onb-year" value={yearText} onChangeText={setYearText} keyboardType="number-pad" maxLength={4} placeholder="e.g. 1985" placeholderTextColor={c.faint} style={input} />
-            </Field>
+            <WheelNumberField
+              testID="onb-year"
+              label="birth year"
+              value={yearText}
+              onChangeText={setYearText}
+              items={birthYearItems()}
+              placeholder="e.g. 1985"
+              maxLength={4}
+            />
             <Field label="Sex (optional)">
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
                 {(['female', 'male', 'other'] as Sex[]).map((s) => (

@@ -63,5 +63,6 @@ check "test:filter-panel" "npm run test:filter-panel"
 check "test:persona" "npm run test:persona"
 check "test:quiz" "npm run test:quiz"
 check "test:active-session" "npm run test:active-session"
+check "test:wheel-ranges" "npm run test:wheel-ranges"
 check "test:agents" "npm run test:agents"
 if [ "$OVERALL" -eq 0 ]; then echo "ALL GREEN"; else echo "SOME FAILURES (exit 1)"; exit 1; fi

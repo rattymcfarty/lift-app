@@ -295,6 +295,33 @@ export async function listRecentWorkouts(limit = 20): Promise<Workout[]> {
     .limit(limit);
 }
 
+/**
+ * The most recent working set, in kg, or null.
+ *
+ * Used by the calculators and anything that wants a sensible starting number
+ * instead of an empty field. Warm-ups, deleted sets and deleted workouts are
+ * excluded, so this is a set the user actually trained with.
+ */
+export async function getLastWorkingSet(): Promise<{ weightKg: number; reps: number | null } | null> {
+  const [row] = await db
+    .select({ weightKg: sets.weightKg, reps: sets.reps })
+    .from(sets)
+    .innerJoin(workoutExercises, eq(sets.workoutExerciseId, workoutExercises.id))
+    .innerJoin(workouts, eq(workoutExercises.workoutId, workouts.id))
+    .where(
+      and(
+        isNull(workouts.deletedAt),
+        isNull(sets.deletedAt),
+        eq(sets.isWarmup, false),
+        isNotNull(sets.weightKg),
+        gt(sets.weightKg, 0),
+      ),
+    )
+    .orderBy(desc(sets.updatedAt))
+    .limit(1);
+  return row?.weightKg != null ? { weightKg: row.weightKg, reps: row.reps } : null;
+}
+
 /** The in-progress workout (started, not ended), if any. */
 export async function getActiveWorkout(): Promise<WorkoutDetail | null> {
   const [active] = await db

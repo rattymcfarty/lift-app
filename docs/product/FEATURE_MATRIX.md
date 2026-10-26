@@ -38,7 +38,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 ## 3. During the workout
 | Need | Status | Notes |
 |---|---|---|
-| Fast set logging, carry-over of last numbers | ✅ | Grid + carry-over (this session); tapping a value opens the scroll wheel, with "Type instead" for the keypad |
+| Fast set logging, carry-over of last numbers | ✅ | Grid + carry-over (this session); tapping a value opens the scroll wheel, with "Type instead" for the keypad — and the same wheel is used for every numeric field in the app (plate calculator, calculators, plan targets, measurements, warm-ups, onboarding, cardio minutes) |
 | The running session outranks everything | ✅ | Accent title on the workout, plus a live "● 12:34" badge in the floating chrome on every other screen; one tap returns to it. Clears the moment the workout is finished or discarded (`src/workout/activeSession.ts`, `WorkoutBadge`) |
 | Exercise and workout names are never shrunk or cut | ✅ | Names wrap to as many lines as they need and rows grow; the shared `ScreenHeader` sizes its title once from the screen width and never shrinks per title |
 | Warm-up sets, supersets, swap, add exercise | ✅ | Heading from the actions sheet — the warmups ramp at 50/70/85% ahead of the working sets; supersets group linked exercises |

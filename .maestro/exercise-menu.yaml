@@ -87,7 +87,7 @@ appId: app.lift.mobile
 # shows 50/70/85% of 20 kg (10, 14, 17). No retyping: tapping the middle of a
 # prefilled field puts the caret between the digits and typing corrupts it.
 - assertVisible:
-    id: "warmup-weight-input"
+    id: "warmup-weight"
 - tapOn:
     id: "warmup-add"
 # The sheet closes; the ramp rows appear above the working set: the W badge

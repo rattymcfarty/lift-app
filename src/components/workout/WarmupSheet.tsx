@@ -23,9 +23,13 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { useTheme, withAlpha } from '../../theme';
 import { decodeStringArray } from '../../db/schema';
 import { buildWarmupPreview, type WarmupPreviewRow } from '../../lib/exerciseMenu';
-import { formatWeight, parseWeightInput } from '../../lib/units';
+import { kgToLb, parseWeightInput } from '../../lib/units';
+import { trimNumber } from './format';
 import { ActionIcon } from '../icons';
 import { BottomSheet } from '../ui/BottomSheet';
+import { InlineDrum } from '../ui/InlineDrum';
+import { ValuePill } from '../ui/ValuePill';
+import { countItems, weightItems } from '../ui/wheelRanges';
 import * as Haptics from 'expo-haptics';
 
 export interface WarmupSheetProps {
@@ -72,21 +76,21 @@ function PreviewRow({
   index,
   unit,
   isBodyweight,
-  onRepsChange,
-  onWeightChange,
-  theme,
+  onEdit,
+  activeField,
 }: {
   row: WarmupPreviewRow;
   index: number;
   unit: 'kg' | 'lb';
   isBodyweight: boolean;
-  onRepsChange: (index: number, reps: string) => void;
-  onWeightChange: (index: number, weightKg: number | null) => void;
-  theme: ReturnType<typeof useTheme>['theme'];
+  onEdit: (field: 'reps' | 'weight') => void;
+  activeField: 'reps' | 'weight' | null;
 }): JSX.Element {
+  const { theme } = useTheme();
   const t = theme.typography;
+  // A bare number for the wheel (the unit is in the drum's band), not "20 kg".
   const displayWeight = row.weightKg != null
-    ? formatWeight(row.weightKg, unit)
+    ? trimNumber(unit === 'kg' ? row.weightKg : kgToLb(row.weightKg))
     : '';
 
   return (
@@ -95,52 +99,23 @@ function PreviewRow({
         {index + 1}.
       </Text>
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
-        <TextInput
+        <ValuePill
           testID={`warmup-preview-reps-${index}`}
           value={row.reps}
-          onChangeText={(v) => onRepsChange(index, v)}
           placeholder="Reps"
-          keyboardType="numeric"
-          maxLength={3}
-          maxFontSizeMultiplier={1.15}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.surfaceMuted,
-            color: theme.colors.text,
-            borderRadius: theme.radius.md,
-            padding: theme.spacing.xs,
-            fontSize: t.size.body,
-            textAlign: 'center',
-            minWidth: 60,
-          }}
+          active={activeField === 'reps'}
+          onPress={() => onEdit('reps')}
         />
         {!isBodyweight && !row.isBodyweight ? (
-          <TextInput
+          <ValuePill
             testID={`warmup-preview-weight-${index}`}
             value={displayWeight}
-            onChangeText={(v) => {
-              const kg = parseWeightInput(v, unit);
-              onWeightChange(index, kg ?? null);
-            }}
+            unit={unit}
             placeholder="Weight"
-            keyboardType="decimal-pad"
-            maxFontSizeMultiplier={1.15}
-            style={{
-              flex: 1,
-              backgroundColor: theme.colors.surfaceMuted,
-              color: theme.colors.text,
-              borderRadius: theme.radius.md,
-              padding: theme.spacing.xs,
-              fontSize: t.size.body,
-              textAlign: 'center',
-              minWidth: 80,
-            }}
+            active={activeField === 'weight'}
+            onPress={() => onEdit('weight')}
           />
-        ) : (
-          <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: theme.spacing.xs }}>
-            <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>Bodyweight</Text>
-          </View>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -238,6 +213,12 @@ export function WarmupSheet({
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
   };
 
+  /**
+   * Which value's inline drum is open. Sheets cannot host the modal wheel (closing
+   * it dismisses the sheet on Android), so the drum renders in place.
+   */
+  const [editing, setEditing] = useState<'working' | { index: number; field: 'reps' | 'weight' } | null>(null);
+
   const canAdd = previewRows.some((r) => r.weightKg != null && r.weightKg > 0) || forceBodyweight;
 
   return (
@@ -256,28 +237,31 @@ export function WarmupSheet({
             <Text style={{ color: theme.colors.text, fontSize: t.size.body, fontWeight: t.weight.medium }}>
               Working weight
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
-              <TextInput
-                testID="warmup-weight-input"
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: theme.spacing.sm }}>
+              <ValuePill
+                testID="warmup-weight"
+                label={`working weight (${unit})`}
                 value={workingWeightInput}
-                onChangeText={handleWeightChange}
-                placeholder={isBodyweightExercise ? 'Bodyweight \u2014 no weight needed' : 'e.g., 100'}
-                keyboardType="decimal-pad"
-                maxFontSizeMultiplier={1.15}
-                editable={!forceBodyweight && !isBodyweightExercise}
-                style={{
-                  flex: 1,
-                  backgroundColor: theme.colors.surfaceMuted,
-                  color: theme.colors.text,
-                  borderRadius: theme.radius.md,
-                  padding: theme.spacing.sm,
-                  fontSize: t.size.body,
-                  textAlign: 'center',
-                  opacity: (forceBodyweight || isBodyweightExercise) ? 0.5 : 1,
-                }}
+                placeholder={isBodyweightExercise ? 'bodyweight' : unit === 'kg' ? '100' : '225'}
+                unit={unit}
+                active={editing === 'working'}
+                disabled={forceBodyweight || isBodyweightExercise}
+                onPress={() => setEditing((e) => (e === 'working' ? null : 'working'))}
+                style={{ flex: 1 }}
               />
               <UnitLabel unit={unit} theme={theme} />
             </View>
+            {editing === 'working' ? (
+              <InlineDrum
+                testID="warmup-weight-drum"
+                label={`working weight (${unit})`}
+                items={weightItems(unit)}
+                value={workingWeightInput}
+                unit={unit}
+                onChange={handleWeightChange}
+                onDone={() => setEditing(null)}
+              />
+            ) : null}
           </View>
 
           {/* No weight toggle */}
@@ -334,23 +318,58 @@ export function WarmupSheet({
           <Text style={{ color: theme.colors.faint, fontSize: t.size.caption, marginTop: theme.spacing.xs }}>
             Preview ({previewRows.length} set{previewRows.length === 1 ? '' : 's'})
           </Text>
-          {previewRows.map((row, idx) => (
-            <View key={idx} testID={`warmup-row-${idx}`}>
-              <PreviewRow
-                row={row}
-                index={idx}
-                unit={unit}
-                isBodyweight={forceBodyweight || isBodyweightExercise}
-                onRepsChange={(i, reps) => {
-                  setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, reps } : r)));
-                }}
-                onWeightChange={(i, weightKg) => {
-                  setPreviewRows((prev) => prev.map((r, j) => (j === i ? { ...r, weightKg } : r)));
-                }}
-                theme={theme}
-              />
-            </View>
-          ))}
+          {previewRows.map((row, idx) => {
+            const activeField =
+              editing && typeof editing === 'object' && editing.index === idx ? editing.field : null;
+            const rowWeight =
+              row.weightKg != null
+                ? trimNumber(unit === 'kg' ? row.weightKg : kgToLb(row.weightKg))
+                : '';
+            return (
+              <View key={idx} testID={`warmup-row-${idx}`}>
+                <PreviewRow
+                  row={row}
+                  index={idx}
+                  unit={unit}
+                  isBodyweight={forceBodyweight || isBodyweightExercise}
+                  onEdit={(field) => setEditing((e) =>
+                    e && typeof e === 'object' && e.index === idx && e.field === field
+                      ? null
+                      : { index: idx, field },
+                  )}
+                  activeField={activeField}
+                />
+                {activeField === 'reps' ? (
+                  <InlineDrum
+                    testID={`warmup-reps-drum-${idx}`}
+                    label={`set ${idx + 1} reps`}
+                    items={countItems(1, 50)}
+                    value={row.reps}
+                    onChange={(reps) =>
+                      setPreviewRows((prev) => prev.map((r, j) => (j === idx ? { ...r, reps } : r)))
+                    }
+                    onDone={() => setEditing(null)}
+                  />
+                ) : null}
+                {activeField === 'weight' ? (
+                  <InlineDrum
+                    testID={`warmup-weight-drum-${idx}`}
+                    label={`set ${idx + 1} weight (${unit})`}
+                    items={weightItems(unit)}
+                    value={rowWeight}
+                    unit={unit}
+                    onChange={(text) => {
+                      const kg = parseWeightInput(text, unit);
+                      setPreviewRows((prev) =>
+                        prev.map((r, j) => (j === idx ? { ...r, weightKg: kg ?? null } : r)),
+                      );
+                    }}
+                    onDone={() => setEditing(null)}
+                  />
+                ) : null}
+              </View>
+            );
+          })}
 
           {/* Add button */}
           <Pressable

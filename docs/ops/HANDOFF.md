@@ -2,11 +2,11 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-25 — the wheel is the default numeric entry, a running workout owns the
-> chrome (live title + return badge), and names never shrink or truncate. Before that: queue 2b
-> complete (persona editor, guided interview, filter caret), the Plans/Programs explainer,
-> exercise info sheet, chrome on every page and uniform section headers. Repo HEAD at the time:
-> see `git log -1`.
+> Last updated: 2026-10-25 — the wheel is the numeric entry for the whole app (including the
+> in-sheet drums), sheets are opaque, a running workout owns the chrome (live title + return
+> badge) and names never shrink or truncate. Before that: queue 2b complete (persona editor,
+> guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
+> every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
@@ -713,6 +713,22 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-25 — Wheels everywhere, readable sheets (opencode)
+
+- **Owner decision: wheels everywhere.** `WheelNumberField` (one labelled pill → drum → optional
+  keypad) is now used by the plate calculator, the Calculators screen, plan targets, plan/session
+  minutes, measurements, onboarding body stats and cardio minutes; ranges are centralised in
+  `src/components/ui/wheelRanges.ts` (`test:wheel-ranges`, 74). The Calculators screen seeds the
+  1RM from the last working **set** (weight + reps) and the plate card from the saved bar weight,
+  so it computes on arrival — the old screen looked inert with placeholder text.
+- **Fields inside a sheet use an inline drum.** A nested modal wheel dismisses the parent sheet on
+  Android (seen on the device: the plate calculator vanished and left a bare keyboard), so
+  `InlineDrum` (drum + Done, rendered in place) is used by the plate calculator and the warm-up
+  sheet; `WheelNumberField` remains for whole screens. Sheets also got an opaque base under the
+  glass — the workout behind a sheet was legible through it, including through the drum.
+- Device: `wheels-everywhere` (plate drum, seeded 1RM 50.67 kg / plate load, measurement entry),
+  `exercise-menu`, `wheel` and `onboarding` PASS on a release APK.
 
 ### 2026-10-25 — Wheel default, ongoing-workout priority, full titles (opencode)
 

@@ -26,6 +26,8 @@ import {
   type RoutineDetail,
 } from '../../../src/data/repositories';
 import { SwipeableRow } from '../../../src/components/ui/SwipeableRow';
+import { WheelNumberField } from '../../../src/components/ui/WheelNumberField';
+import { countItems, minutesItems, restItems, rpeItems, weightItems } from '../../../src/components/ui/wheelRanges';
 import {
   removeRoutineExercise,
   reorderRoutineExercises,
@@ -407,17 +409,21 @@ export default function PlanEditScreen(): JSX.Element {
                 gap: theme.spacing.md,
               }}
             >
-              <NumberInput
+              <WheelNumberField
+                testID="plan-minutes"
+                label="minutes"
                 value={minutes}
                 onChangeText={(text) => {
                   setMinutes(text);
                   setError(null);
                   setSavedTick(false);
                 }}
+                items={minutesItems()}
+                unit="min"
                 placeholder="45"
-                label="minutes"
                 width={96}
-                editable={!saving}
+                disabled={saving}
+                sheetTestID="plan-minutes-sheet"
               />
               <View style={[styles.pillarRow, { gap: theme.spacing.xs, flex: 1 }]}>
                 {LONGEVITY_PILLARS.map((pillar) => {
@@ -582,13 +588,14 @@ export default function PlanEditScreen(): JSX.Element {
               {expanded && draft ? (
                 <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
                   <View style={[styles.targetRow, { gap: theme.spacing.sm }]}>
-                    <NumberInput
-                      value={draft.sets}
-                      onChangeText={(text) =>
-                        setDraft((d) => (d ? { ...d, sets: text } : d))
-                      }
-                      placeholder="3"
+                    <WheelNumberField
+                      testID="plan-target-sets"
                       label="sets"
+                      value={draft.sets}
+                      onChangeText={(text) => setDraft((d) => (d ? { ...d, sets: text } : d))}
+                      items={countItems(1, 10)}
+                      placeholder="3"
+                      style={{ flex: 1 }}
                     />
                     <View style={{ width: 96, gap: 2 }}>
                       <Text
@@ -621,37 +628,40 @@ export default function PlanEditScreen(): JSX.Element {
                         }}
                       />
                     </View>
-                    <NumberInput
+                    <WheelNumberField
+                      testID="plan-target-weight"
+                      label="kg"
                       value={draft.weight}
-                      onChangeText={(text) =>
-                        setDraft((d) => (d ? { ...d, weight: text } : d))
-                      }
+                      onChangeText={(text) => setDraft((d) => (d ? { ...d, weight: text } : d))}
+                      items={weightItems('kg')}
+                      unit="kg"
                       placeholder="60"
                       decimal
-                      label="kg"
                       width={80}
                     />
                   </View>
                   <View style={[styles.targetRow, { gap: theme.spacing.sm }]}>
-                    <NumberInput
+                    <WheelNumberField
+                      testID="plan-target-rpe"
+                      label="RPE"
                       value={draft.rpe}
-                      onChangeText={(text) =>
-                        setDraft((d) => (d ? { ...d, rpe: text } : d))
-                      }
+                      onChangeText={(text) => setDraft((d) => (d ? { ...d, rpe: text } : d))}
+                      items={rpeItems()}
                       placeholder="8"
                       decimal
-                      label="RPE"
+                      clearable
                       width={80}
                       onLabelPress={() => setRpeSheetVisible(true)}
                       labelTestID="plan-rpe-help"
                     />
-                    <NumberInput
-                      value={draft.rest}
-                      onChangeText={(text) =>
-                        setDraft((d) => (d ? { ...d, rest: text } : d))
-                      }
-                      placeholder="90"
+                    <WheelNumberField
+                      testID="plan-target-rest"
                       label="rest s"
+                      value={draft.rest}
+                      onChangeText={(text) => setDraft((d) => (d ? { ...d, rest: text } : d))}
+                      items={restItems()}
+                      unit="s"
+                      placeholder="90"
                       width={80}
                     />
                   </View>

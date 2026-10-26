@@ -17,7 +17,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { createRoutine } from '../../src/data/repositories';
 import { LONGEVITY_PILLARS, type LongevityPillar } from '../../src/db/schema';
 import { useTheme } from '../../src/theme';
-import { Button, NumberInput, ScreenHeader } from '../../src/components/workout/ui';
+import { Button, ScreenHeader } from '../../src/components/workout/ui';
+import { WheelNumberField } from '../../src/components/ui/WheelNumberField';
+import { minutesItems } from '../../src/components/ui/wheelRanges';
 import { parseUserInt } from '../../src/components/workout/format';
 
 export default function NewPlanScreen(): JSX.Element {
@@ -126,16 +128,20 @@ export default function NewPlanScreen(): JSX.Element {
           >
             ESTIMATED DURATION
           </Text>
-          <NumberInput
+          <WheelNumberField
+            testID="new-plan-minutes"
+            label="minutes"
             value={minutes}
             onChangeText={(text) => {
               setMinutes(text);
               setError(null);
             }}
+            items={minutesItems()}
+            unit="min"
             placeholder="45"
-            label="minutes"
             width={96}
-            editable={!creating}
+            disabled={creating}
+            sheetTestID="new-plan-minutes-sheet"
           />
         </View>
 

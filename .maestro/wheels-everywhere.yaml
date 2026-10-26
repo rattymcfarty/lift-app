@@ -1,0 +1,109 @@
+# Wheels everywhere (owner decision 2026-10-25): every numeric field outside the
+# set row uses the same drum — plate calculator (in-workout), Calculators screen
+# (seeded so it answers immediately), and Measurements. "Type instead" is the
+# keypad fallback in each.
+# Run: maestro test .maestro/wheels-everywhere.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+
+# --- seed a real working weight so the calculators have something to show
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-weight-1"
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-weight-1-input"
+    timeout: 5000
+- inputText: "40"
+- tapOn:
+    id: "set-reps-1"
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-reps-1-input"
+    timeout: 5000
+- inputText: "8"
+- tapOn:
+    id: "log-set-1"
+
+# --- in-workout plate calculator: the drum renders INSIDE the sheet (a nested
+# modal wheel used to dismiss the sheet on Android), so the value is picked in place.
+- tapOn:
+    id: "topbar-plate"
+- assertVisible:
+    id: "plate-sheet"
+- assertVisible:
+    id: "plate-target"
+- tapOn:
+    id: "plate-target"
+- assertVisible:
+    id: "plate-target-drum"
+- assertVisible:
+    id: "plate-target-drum-wheel"
+- tapOn:
+    id: "plate-target-drum-done"
+- assertNotVisible:
+    id: "plate-target-drum"
+- tapOn:
+    id: "plate-sheet-close"
+
+# --- finish, then the Calculators screen is seeded and answered on arrival
+- tapOn:
+    id: "workout-finish"
+- tapOn:
+    id: "finish-sheet-finish"
+- back
+- tapOn:
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-more-calculators"
+- assertVisible: "One-rep max estimator"
+# seeded from the 40 kg × 8 set: Epley = 40 × (1 + 8/30) = 50.67
+- assertVisible:
+    id: "calc-1rm-weight-text"
+    text: "40"
+- assertVisible: "50.67 kg"
+# the plate card is seeded from the same weight
+- assertVisible: "PER SIDE"
+- tapOn:
+    id: "header-back"
+
+# --- measurements: the value is a wheel too
+- tapOn:
+    id: "topbar-panel"
+- tapOn:
+    id: "panel-more-body-weight"
+- tapOn:
+    id: "measure-value"
+- assertVisible:
+    id: "measure-value-sheet"
+- tapOn:
+    id: "measure-value-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "measure-value-input"
+    timeout: 5000
+- inputText: "82"
+- hideKeyboard
+- tapOn: "Log body weight"
+- assertVisible: ".*82 kg.*"

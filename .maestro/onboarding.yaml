@@ -11,11 +11,24 @@ appId: app.lift.mobile
 - tapOn:
     id: "onb-name"
 - inputText: "Sam"
+# Weight and height are wheels now: type into them via "Type instead".
 - tapOn:
     id: "onb-weight"
+- tapOn:
+    id: "onb-weight-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "onb-weight-input"
+    timeout: 5000
 - inputText: "72"
 - tapOn:
     id: "onb-height"
+- tapOn:
+    id: "onb-height-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "onb-height-input"
+    timeout: 5000
 - inputText: "175"
 - hideKeyboard
 - tapOn:

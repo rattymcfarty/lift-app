@@ -4,10 +4,13 @@
  */
 
 import { useState, useCallback, useEffect, type JSX } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../theme';
 import { BottomSheet } from '../ui/BottomSheet';
-import { calcPlates, parseWeightInput, formatWeight } from '../../lib/units';
+import { InlineDrum } from '../ui/InlineDrum';
+import { ValuePill } from '../ui/ValuePill';
+import { barItems, weightItems, type Unit } from '../ui/wheelRanges';
+import { calcPlates, formatWeight, kgToLb, parseWeightInput } from '../../lib/units';
 import { getSettings, setBarWeightKg } from '../../data/settings';
 import { FONT_WEIGHT } from '../../theme/tokens';
 
@@ -23,7 +26,13 @@ interface PlateCalculatorProps {
 export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWeight }: PlateCalculatorProps): JSX.Element {
   const { theme } = useTheme();
   const [barWeight, setBarWeight] = useState<number>(20);
-  const [targetText, setTargetText] = useState<string>(initialWeightKg != null ? String(initialWeightKg) : '');
+  /** The user's weight unit — the plate maths is unit-agnostic, the entry is not. */
+  const [unit, setUnit] = useState<Unit>('kg');
+  const [targetText, setTargetText] = useState<string>(
+    initialWeightKg != null ? String(initialWeightKg) : '',
+  );
+  /** Which field's inline drum is open (sheets can't host the nested modal wheel). */
+  const [editing, setEditing] = useState<'target' | 'bar' | null>(null);
   useEffect(() => {
     setTargetText(initialWeightKg != null ? String(initialWeightKg) : '');
   }, [initialWeightKg]);
@@ -31,7 +40,18 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
   // Load bar weight from settings when modal opens
   useEffect(() => {
     if (visible) {
-      getSettings().then((s) => setBarWeight(s.barWeightKg));
+      getSettings().then((s) => {
+        setBarWeight(s.barWeightKg);
+        setUnit(s.weightUnit);
+        // Reopen in the user's unit: the value the row passed is kg.
+        if (initialWeightKg != null) {
+          setTargetText(
+            s.weightUnit === 'kg'
+              ? String(initialWeightKg)
+              : String(Math.round(kgToLb(initialWeightKg) * 10) / 10),
+          );
+        }
+      });
     }
   }, [visible]);
 
@@ -59,6 +79,14 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
     }
   };
 
+  const barText =
+    unit === 'kg' ? String(barWeight) : String(Math.round(kgToLb(barWeight) * 10) / 10);
+
+  const changeBar = (text: string): void => {
+    const kg = parseWeightInput(text, unit);
+    if (kg != null && Number.isFinite(kg) && kg >= 0 && kg <= 60) setBarWeight(kg);
+  };
+
   const handleSaveBar = async () => {
     try {
       await setBarWeightKg(barWeight);
@@ -68,55 +96,53 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
   };
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Plate Calculator" testID="plate-sheet" maxHeightRatio={0.7}>
+    <BottomSheet visible={visible} onClose={onClose} title="Plate Calculator" testID="plate-sheet" maxHeightRatio={0.85}>
       <View style={{ paddingHorizontal: theme.spacing.md }}>
-        <View style={styles.inputRow}>
-          <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }}>Target (kg)</Text>
-          <TextInput
-            testID="plate-target-input"
+        {/* The wheel is the way in; the drum renders in place because a nested
+            modal wheel would dismiss this sheet on Android. */}
+        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, paddingTop: theme.spacing.sm }}>
+          <ValuePill
+            testID="plate-target"
+            label={`Target (${unit})`}
             value={targetText}
-            onChangeText={setTargetText}
-            keyboardType="decimal-pad"
-            placeholder="60"
-            placeholderTextColor={theme.colors.faint}
-            style={{
-              backgroundColor: theme.colors.surfaceMuted,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
-              borderWidth: 1,
-              borderRadius: 8,
-              padding: 8,
-              minWidth: 120,
-              textAlign: 'center',
-            }}
+            placeholder={unit === 'kg' ? '60' : '135'}
+            unit={unit}
+            active={editing === 'target'}
+            onPress={() => setEditing((e) => (e === 'target' ? null : 'target'))}
+          />
+          <ValuePill
+            testID="plate-bar"
+            label={`Bar (${unit})`}
+            value={barText}
+            placeholder={unit === 'kg' ? '20' : '45'}
+            unit={unit}
+            active={editing === 'bar'}
+            onPress={() => setEditing((e) => (e === 'bar' ? null : 'bar'))}
           />
         </View>
 
-        <View style={styles.inputRow}>
-          <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }}>Bar (kg)</Text>
-          <TextInput
-            testID="plate-bar-input"
-            value={String(barWeight)}
-            onChangeText={(t) => {
-              const n = Number(t);
-              if (!Number.isNaN(n) && Number.isFinite(n) && n >= 0 && n <= 50) setBarWeight(n);
-            }}
-            onBlur={handleSaveBar}
-            keyboardType="decimal-pad"
-            placeholder="20"
-            placeholderTextColor={theme.colors.faint}
-            style={{
-              backgroundColor: theme.colors.surfaceMuted,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
-              borderWidth: 1,
-              borderRadius: 8,
-              padding: 8,
-              minWidth: 120,
-              textAlign: 'center',
-            }}
+        {editing === 'target' ? (
+          <InlineDrum
+            testID="plate-target-drum"
+            label={`Target (${unit})`}
+            items={weightItems(unit)}
+            value={targetText}
+            unit={unit}
+            onChange={setTargetText}
+            onDone={() => setEditing(null)}
           />
-        </View>
+        ) : null}
+        {editing === 'bar' ? (
+          <InlineDrum
+            testID="plate-bar-drum"
+            label={`Bar (${unit})`}
+            items={barItems(unit)}
+            value={barText}
+            unit={unit}
+            onChange={changeBar}
+            onDone={() => setEditing(null)}
+          />
+        ) : null}
 
         {result && (
           <View style={{ gap: 8, marginTop: 12 }}>
@@ -124,11 +150,11 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
               Per side: {result.perSide.map((p) => `${p}`).join(' + ') || 'none'}
             </Text>
             <Text style={{ color: theme.colors.muted, fontSize: theme.typography.size.body }} testID="plate-total">
-              Total loaded: {formatWeight(result.loadedKg, 'kg')} · Bar: {formatWeight(barWeight, 'kg')}
+              Total loaded: {formatWeight(result.loadedKg, unit)} · Bar: {formatWeight(barWeight, unit)}
             </Text>
             {result.remainderKg > 0 && (
               <Text style={{ color: theme.colors.warning, fontSize: theme.typography.size.meta }}>
-                Add {formatWeight(result.remainderKg, 'kg')} — no plate combination
+                Add {formatWeight(result.remainderKg, unit)} — no plate combination
               </Text>
             )}
           </View>
@@ -160,12 +186,6 @@ export function PlateCalculator({ visible, onClose, initialWeightKg, onSelectWei
 }
 
 const styles = StyleSheet.create({
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 6,
-  },
   actionRow: {
     marginTop: 16,
   },

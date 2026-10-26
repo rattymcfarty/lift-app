@@ -32,7 +32,9 @@ import type { Measurement } from '../src/db/schema';
 import { SwipeableRow } from '../src/components/ui/SwipeableRow';
 import { useTheme } from '../src/theme';
 import { formatWorkoutDay, parseUserNumber, trimNumber } from '../src/components/workout/format';
-import { Button, Card, EmptyState, NumberInput, ScreenHeader } from '../src/components/workout/ui';
+import { Button, Card, EmptyState, ScreenHeader } from '../src/components/workout/ui';
+import { WheelNumberField } from '../src/components/ui/WheelNumberField';
+import { measureItems, type MeasureKind } from '../src/components/ui/wheelRanges';
 
 interface MetricPreset {
   type: string;
@@ -57,6 +59,23 @@ function slugify(name: string): string {
     .replace(/\s+/g, '_')
     .replace(/[^a-z0-9_]/g, '')
     .slice(0, 40);
+}
+
+/** Which wheel range a metric uses. Custom metrics get the generic range. */
+function kindOf(type: string): MeasureKind {
+  switch (type) {
+    case 'body_weight':
+      return 'weight';
+    case 'waist':
+    case 'chest':
+      return 'length';
+    case 'body_fat_pct':
+      return 'bodyFat';
+    case 'resting_hr':
+      return 'heartRate';
+    default:
+      return 'custom';
+  }
 }
 
 function TrendStrip({ entries, unit }: { entries: Measurement[]; unit: string }): JSX.Element {
@@ -434,13 +453,17 @@ export default function MeasureScreen(): JSX.Element {
                 {(editing ? 'EDIT ENTRY' : 'LOG') + ` · ${activeLabel.toUpperCase()}`}
               </Text>
               <View style={styles.logRow}>
-                <NumberInput
+                <WheelNumberField
+                  testID="measure-value"
+                  label={activeUnit || 'value'}
                   value={valueStr}
                   onChangeText={setValueStr}
+                  items={measureItems(kindOf(activeType), 'kg')}
+                  unit={activeUnit || undefined}
                   placeholder="0"
                   decimal
-                  width={110}
-                  label={activeUnit || 'value'}
+                  width={130}
+                  sheetTestID="measure-value-sheet"
                 />
                 <View style={{ flex: 1 }}>
                   <Button

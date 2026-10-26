@@ -76,6 +76,12 @@ export function BottomSheet({
             {
               maxHeight: `${Math.round(maxHeightRatio * 100)}%`,
               transform: [{ translateY }],
+              // Opaque base UNDER the glass. The Android "glass" is a translucent
+              // surface, and at 85–96% the screen behind stayed legible through a
+              // sheet the user must read (the warm-up drum and the settings panel
+              // both showed the workout underneath). The glass now supplies the
+              // border and the iOS blur; legibility no longer depends on it.
+              backgroundColor: theme.colors.surface,
             },
           ]}
         >

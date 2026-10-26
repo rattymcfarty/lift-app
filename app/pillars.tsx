@@ -38,6 +38,8 @@ import {
 } from '../src/stats/pillars';
 import { useTheme } from '../src/theme';
 import { Button, Card, ScreenHeader } from '../src/components/workout/ui';
+import { WheelNumberField } from '../src/components/ui/WheelNumberField';
+import { minutesItems } from '../src/components/ui/wheelRanges';
 
 const QUICK_MINUTES = [15, 30, 45, 60];
 
@@ -236,23 +238,15 @@ export default function PillarsScreen(): JSX.Element {
               ))}
             </View>
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
-              <TextInput
+              <WheelNumberField
+                testID="cardio-minutes"
+                label="minutes"
                 value={customMin}
                 onChangeText={setCustomMin}
-                placeholder="Minutes"
-                placeholderTextColor={theme.colors.faint}
-                keyboardType="number-pad"
-                style={{
-                  flex: 1,
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                  borderWidth: 1,
-                  borderRadius: 8,
-                  paddingHorizontal: theme.spacing.sm,
-                  paddingVertical: theme.spacing.sm,
-                  color: theme.colors.text,
-                  fontSize: t.size.body,
-                }}
+                items={minutesItems()}
+                unit="min"
+                placeholder="30"
+                style={{ flex: 1 }}
               />
               <TextInput
                 value={customActivity}
