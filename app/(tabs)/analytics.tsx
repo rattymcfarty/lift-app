@@ -33,6 +33,7 @@ import { useTheme } from '../../src/theme';
 import { trimNumber } from '../../src/components/workout/format';
 import { displayName } from '../../src/kb/taxonomy';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
+import { ChoiceChip } from '../../src/components/ui/ChoiceChip';
 import { AnalyticsOverview } from '../../src/components/analytics/Overview';
 import {
   ProgressionLineChart,
@@ -155,6 +156,8 @@ export default function ProgressScreen(): JSX.Element {
   const tabBarSpace = useTabBarSpace();
 
   const [weekly, setWeekly] = useState<WeeklyVolumePoint[] | null>(null);
+  /** The volume chart's window. 12 weeks is the long-standing default. */
+  const [volumeWeeks, setVolumeWeeks] = useState<4 | 12 | 26>(12);
   const [exerciseOptions, setExerciseOptions] = useState<ExerciseHistoryOption[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chart, setChart] = useState<StrengthChartData | null>(null);
@@ -172,7 +175,7 @@ export default function ProgressScreen(): JSX.Element {
 
   const loadOverview = useCallback(async () => {
     try {
-      const [w, opts] = await Promise.all([getWeeklyVolume(12), listExercisesWithHistory()]);
+      const [w, opts] = await Promise.all([getWeeklyVolume(volumeWeeks), listExercisesWithHistory()]);
       setWeekly(w);
       setExerciseOptions(opts);
       if (opts.length > 0) {
@@ -182,7 +185,7 @@ export default function ProgressScreen(): JSX.Element {
       setWeekly([]);
       setExerciseOptions([]);
     }
-  }, []);
+  }, [volumeWeeks]);
 
   // Stale-response guard for the exercise chart (tapping chips quickly
   // must not render A's series under B's name).
@@ -273,8 +276,12 @@ export default function ProgressScreen(): JSX.Element {
   );
 
   const loading = weekly == null || exerciseOptions == null;
-  // Weeks are always seeded (12 entries), so emptiness = no workouts at all.
-  const hasData = weekly?.some((w) => w.workoutCount > 0) ?? false;
+  // Weeks are always seeded, so emptiness = no workouts in the window. The
+  // muscle chart always covers 12 weeks, so it is the more stable signal: a user
+  // who trained last month should not see "no data" because they picked 4 weeks.
+  const hasData =
+    (weekly?.some((w) => w.workoutCount > 0) ?? false) ||
+    (muscleWeeks?.some((w) => w.segments.length > 0) ?? false);
   const selectedExercise = exerciseOptions?.find((o) => o.exercise.id === selectedId)?.exercise;
   const selectedName = selectedExercise ? displayName(selectedExercise) : undefined;
 
@@ -318,13 +325,25 @@ export default function ProgressScreen(): JSX.Element {
             <View style={{ paddingHorizontal: theme.spacing.md }}>
               <SectionTitle>WEEKLY VOLUME</SectionTitle>
             </View>
+            <View style={{ paddingHorizontal: theme.spacing.md, flexDirection: 'row', gap: theme.spacing.sm }}>
+              {([4, 12, 26] as const).map((weeks) => (
+                <ChoiceChip
+                  key={weeks}
+                  label={`${weeks} wk`}
+                  selected={volumeWeeks === weeks}
+                  onPress={() => setVolumeWeeks(weeks)}
+                  testID={`analytics-weeks-${weeks}`}
+                />
+              ))}
+            </View>
             <View style={{ paddingHorizontal: theme.spacing.md }}>
               <Card>
                 <VolumeBarChart
+                  key={`volume-${volumeWeeks}`}
                   data={weekly.map((w) => ({ label: shortDay(w.weekStart), value: w.volumeKg }))}
                 />
                 <Text style={{ color: theme.colors.faint, fontSize: t.size.caption }}>
-                  Total kg lifted per week · last 12 weeks
+                  Total kg lifted per week · last {volumeWeeks} weeks
                 </Text>
               </Card>
             </View>

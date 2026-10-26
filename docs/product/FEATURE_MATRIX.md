@@ -59,7 +59,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Summary: volume, duration, sets | ✅ | |
 | PRs celebrated | ✅ P9 | Detected; celebration animation added |
 | History & per-exercise progress | ✅ | |
-| Analytics: lifetime, week, balance, pillars | ✅ | |
+| Analytics: lifetime, week, balance, pillars | ✅ | Volume chart with a 4 / 12 / 26-week window, per-exercise strength chart, muscle balance, body-weight and waist trends, and the insight rows into Balance / Pillars / PRs / Measurements |
 | Save as plan from a freeform workout | ❌ → backlog | |
 
 ## 5. Ownership & trust

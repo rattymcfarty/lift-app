@@ -3,8 +3,8 @@
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
 > Last updated: 2026-10-26 — three main doors (Train · Analytics · Exercises) with Programs in
-> the left menu, the wheel as the numeric entry everywhere, a running workout owning the chrome,
-> and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
+> a decluttered left menu, an Analytics volume window switcher, the wheel as the numeric entry
+> everywhere, a running workout owning the chrome, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
 > guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
 > every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
@@ -719,6 +719,21 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-26 — Menu decluttered; Analytics window switcher (opencode)
+
+- **Removed the panel's "Tabs" reorder block** (the 3 rows + "long-press and drag" hint). With
+  three fixed doors it expressed nothing and was a third of the menu. `TabOrderList` is deleted;
+  `src/nav/tabOrder.ts` stays because the bar still reads the saved order (older backups may
+  contain `programs`, which the normaliser drops) — `test:tab-order` still covers it.
+  `panels.yaml` now checks the bar for the three doors and the menu for the feature rows.
+- **Analytics has a window switcher** on the volume chart (4 / 12 / 26 weeks). `volumeWeeks`
+  drives `getWeeklyVolume(n)`; the caption names the window. The "no data" state now also reads
+  the 12-week muscle series, so a monthly trainer choosing 4 weeks is not told they have no
+  history. New `.maestro/analytics.yaml` logs a session, switches 12 → 4 → 26 and asserts the
+  copy plus the STRENGTH section.
+- Device PASS: `panels`, `analytics`, `tabs` (after a transient Gradle/JVM crash on the first
+  build attempt; the retry was clean).
 
 ### 2026-10-26 — Three main doors; Programs moves to the menu (opencode)
 

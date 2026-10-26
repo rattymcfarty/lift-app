@@ -2,6 +2,16 @@
 
 ## Unreleased (addendum)
 
+- **The left menu lost its dead weight.** With three fixed doors the "Tabs — long-press and drag
+  to reorder the bar" block had nothing left to express, so it is gone: the menu is now New
+  workout · Search exercises · Programs, then the secondary screens. The bar itself still reads
+  the saved order from older backups, safely ignoring the retired "programs" id.
+- **Analytics: pick the window for the volume chart.** The weekly volume card has a 4 / 12 / 26
+  week switcher, and the caption names the window you chose. Changing it re-reads that range
+  without disturbing the rest of the page, and the "no data yet" state no longer appears just
+  because the short window is empty for someone who trains monthly. `.maestro/analytics.yaml`
+  logs a session and proves the switcher plus the deeper charts.
+
 - **Three main doors: Train · Analytics · Exercises.** The floating bar now holds the three things
   people actually open the app for (owner decision 2026-10-26, Apple Health's shape). Programs is
   no longer a tab: it opens from the left menu as a page with its own back arrow — it is a

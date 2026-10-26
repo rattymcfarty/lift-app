@@ -1,15 +1,16 @@
 /**
  * LeftPanel — the slide-in menu (top-left button).
  *
- * A quick "New workout" action, a search shortcut, the four sections (jump to
- * one, or long-press and drag to reorder the floating bar) and a "More" list of
- * the secondary screens. Everything here is TAP ONLY apart from the tab drag;
- * the panel itself closes on scrim tap, the close button, any item tap, or
- * Android back (handled by the host).
+ * A quick "New workout" action, a search shortcut, Programs, and the secondary
+ * screens under "More". The three main doors live on the floating bar itself, so
+ * there is nothing to jump to or reorder here (owner decision 2026-10-26: the
+ * menu is for features, the right panel is for settings). Everything is tap only;
+ * the panel closes on scrim tap, the close button, any item tap, or Android back
+ * (handled by the host).
  */
-import { useCallback, useEffect, useState, useSyncExternalStore, type JSX } from 'react';
+import { useCallback, type JSX } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { usePathname, useRouter, type Href } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { Button } from '../workout/ui';
@@ -17,9 +18,6 @@ import { ActionIcon, type ActionIconName } from '../icons';
 import { GlassButton } from '../ui/Glass';
 import { usePanels } from '../../chrome/panels';
 import { PANEL_MORE_LINKS } from '../../chrome/panelLinks';
-import { TabOrderList } from './TabOrderList';
-import { tabHref, tabKeyForPathname } from '../../nav/tabs';
-import { getTabOrderSnapshot, loadTabOrder, subscribeTabOrder, type TabKey } from '../../nav/tabOrder';
 
 export function LeftPanel(): JSX.Element {
   const { theme } = useTheme();
@@ -27,30 +25,11 @@ export function LeftPanel(): JSX.Element {
   const c = theme.colors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const pathname = usePathname();
   const { closePanel } = usePanels();
-  const order = useSyncExternalStore(subscribeTabOrder, getTabOrderSnapshot);
-  // Freeze the panel's scroll while a tab is being dragged.
-  const [dragging, setDragging] = useState(false);
-
-  useEffect(() => {
-    void loadTabOrder();
-  }, []);
-
   const go = useCallback(
     (href: string) => {
       closePanel();
       router.push(href as Href);
-    },
-    [closePanel, router],
-  );
-
-  const openSection = useCallback(
-    (key: TabKey) => {
-      closePanel();
-      // `navigate` reuses the section if it is already mounted, so tapping the
-      // current tab does not stack a second copy.
-      router.navigate(tabHref(key) as Href);
     },
     [closePanel, router],
   );
@@ -60,7 +39,6 @@ export function LeftPanel(): JSX.Element {
     router.push({ pathname: '/exercises', params: { focus: 'search' } } as Href);
   }, [closePanel, router]);
 
-  const activeKey = tabKeyForPathname(pathname);
 
   return (
     <View style={{ flex: 1 }}>
@@ -85,7 +63,6 @@ export function LeftPanel(): JSX.Element {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        scrollEnabled={!dragging}
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
           paddingBottom: insets.bottom + theme.spacing.xl,
@@ -107,19 +84,6 @@ export function LeftPanel(): JSX.Element {
             testID="panel-programs"
             divider={false}
             onPress={() => go('/programs')}
-          />
-        </View>
-
-        <View>
-          <SectionTitle>Tabs</SectionTitle>
-          <Text style={{ color: c.faint, fontSize: t.size.caption, marginBottom: theme.spacing.sm }}>
-            Long-press and drag to reorder the bar.
-          </Text>
-          <TabOrderList
-            order={order}
-            activeKey={activeKey}
-            onSelect={openSection}
-            onDragChange={setDragging}
           />
         </View>
 

@@ -1,13 +1,12 @@
 # Side panels smoke test.
 #
 # The two top-bar buttons open the left menu (features) and the right settings
-# panel; tapping a section jumps to it; the close button and a tap on the scrim
-# dismiss the panel; a "More" item navigates and dismisses it.
+# panel; the close button and a tap on the scrim dismiss either; a "More" item
+# navigates and dismisses the menu.
 #
-# Since 2026-10-26 the bar has three main doors (Train · Analytics · Exercises);
-# Programs is a menu destination that opens as a page with a back arrow.
-#
-# Note the order: the "More" step leaves the tab routes, so it comes last.
+# Since 2026-10-26 the bar has three main doors (Train · Analytics · Exercises)
+# and the menu neither lists nor reorders them; Programs is a menu destination
+# that opens as a page with a back arrow.
 #
 # Run: maestro test .maestro/panels.yaml
 appId: app.lift.mobile
@@ -18,17 +17,19 @@ appId: app.lift.mobile
 - assertVisible:
     id: "home-start-workout"
 
-# --- left panel opens and lists the three doors, the features and the scrim ---
+# --- the three doors are on the bar, where they belong ---
+- assertVisible:
+    id: "tab-train"
+- assertVisible:
+    id: "tab-analytics"
+- assertVisible:
+    id: "tab-exercises"
+- assertNotVisible:
+    id: "tab-programs"
+
+# --- the left menu lists features, not sections ---
 - tapOn:
     id: "topbar-panel"
-- assertVisible:
-    id: "panel-tab-train"
-- assertVisible:
-    id: "panel-tab-analytics"
-- assertVisible:
-    id: "panel-tab-exercises"
-- assertNotVisible:
-    id: "panel-tab-programs"
 - assertVisible:
     id: "panel-programs"
 - assertVisible:
@@ -37,15 +38,18 @@ appId: app.lift.mobile
     id: "panel-search"
 - assertVisible:
     id: "panel-scrim"
+- assertVisible:
+    id: "panel-close"
+# The old "Tabs" reorder block is gone with the four-door bar.
+- assertNotVisible: "Long-press and drag to reorder the bar"
 
-# --- a section row jumps to that tab, and the panel closes behind it ---
+# --- the close button dismisses it ---
 - tapOn:
-    id: "panel-tab-analytics"
-- assertVisible: "Analytics"
+    id: "panel-close"
 - assertNotVisible:
-    id: "panel-tab-analytics"
+    id: "panel-programs"
 
-# --- Programs is a page now: opened from the menu, closed with its own back ---
+# --- Programs opens from the menu as a page, and back returns ---
 - tapOn:
     id: "topbar-panel"
 - tapOn:
@@ -54,40 +58,30 @@ appId: app.lift.mobile
     id: "programs-segment-explore"
 - tapOn:
     id: "header-back"
-# Back returns to the screen the menu was opened from (Analytics at this point).
-- assertVisible: "Analytics"
+- assertVisible:
+    id: "home-start-workout"
 
-# --- the close button dismisses the panel ---
+# --- a tap outside the left panel closes it ---
 - tapOn:
     id: "topbar-panel"
+- assertVisible:
+    id: "panel-programs"
 - tapOn:
-    id: "panel-close"
+    point: "95%,50%"
 - assertNotVisible:
-    id: "panel-tab-analytics"
+    id: "panel-programs"
 
-# --- the right panel shows settings; a tap on the bare strip dismisses it ---
+# --- the right panel shows settings; a tap on the bare strip closes it ---
 - tapOn:
     id: "topbar-settings"
 - assertVisible:
     id: "settings-profile"
-- assertNotVisible:
-    id: "panel-tab-analytics"
 - tapOn:
     point: "5%,50%"
 - assertNotVisible:
     id: "settings-profile"
 
-# --- the left panel also closes on a tap outside it ---
-- tapOn:
-    id: "topbar-panel"
-- assertVisible:
-    id: "panel-tab-analytics"
-- tapOn:
-    point: "95%,50%"
-- assertNotVisible:
-    id: "panel-tab-analytics"
-
-# --- a More item navigates, and the panel is gone (last: it leaves the tabs) ---
+# --- a More item navigates, and the menu is gone (last: it leaves the tabs) ---
 - tapOn:
     id: "topbar-panel"
 - scrollUntilVisible:

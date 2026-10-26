@@ -174,8 +174,7 @@ check('.maestro/panels.yaml uses panel test ids the panels actually render', () 
   const src =
     readFileSync(join(root, 'src/components/chrome/LeftPanel.tsx'), 'utf8') +
     readFileSync(join(root, 'src/components/chrome/RightPanel.tsx'), 'utf8') +
-    readFileSync(join(root, 'src/components/chrome/SidePanels.tsx'), 'utf8') +
-    readFileSync(join(root, 'src/components/chrome/TabOrderList.tsx'), 'utf8');
+    readFileSync(join(root, 'src/components/chrome/SidePanels.tsx'), 'utf8');
   const flow = readFileSync(join(root, '.maestro/panels.yaml'), 'utf8');
   const ids = [...flow.matchAll(/id:\s*"([^"]+)"/g)]
     .map((m) => m[1])
@@ -184,9 +183,7 @@ check('.maestro/panels.yaml uses panel test ids the panels actually render', () 
   for (const id of ids) {
     // A literal test id, or a row id built from a template in the sources.
     const literal = src.includes(`testID="${id}"`);
-    const template =
-      (id.startsWith('panel-tab-') && src.includes('`panel-tab-${tabKey}`')) ||
-      (id.startsWith('panel-more-') && src.includes('`panel-more-${link.key}`'));
+    const template = id.startsWith('panel-more-') && src.includes('`panel-more-${link.key}`');
     assert.ok(literal || template, `${id} is referenced by .maestro/panels.yaml but not rendered`);
   }
 });

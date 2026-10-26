@@ -1,0 +1,74 @@
+# Analytics: the volume chart's window switcher (4 · 12 · 26 weeks) works on real
+# data, and the screen keeps its shape above it.
+# Run: maestro test .maestro/analytics.yaml   (fresh state; logs one workout)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+
+# One short session so the charts have a bar.
+- tapOn:
+    id: "home-start-workout"
+- tapOn:
+    id: "new-workout-start-blank"
+- tapOn:
+    id: "workout-add-exercise"
+- tapOn:
+    id: "add-exercise-search"
+- inputText: "Goblet Squat"
+- hideKeyboard
+- tapOn:
+    id: "add-exercise-row-goblet-squat"
+- tapOn:
+    id: "picker-add-exercises"
+- tapOn:
+    id: "add-set"
+- tapOn:
+    id: "set-weight-1"
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-weight-1-input"
+    timeout: 5000
+- inputText: "40"
+- tapOn:
+    id: "set-reps-1"
+- tapOn:
+    id: "wheel-sheet-type"
+- extendedWaitUntil:
+    visible:
+      id: "set-reps-1-input"
+    timeout: 5000
+- inputText: "8"
+- tapOn:
+    id: "log-set-1"
+- tapOn:
+    id: "workout-finish"
+- tapOn:
+    id: "finish-sheet-finish"
+- back
+
+# The overview and the volume window switcher.
+- tapOn:
+    id: "tab-analytics"
+- assertVisible: "Lifetime"
+# The volume card sits below the overview; scroll to it before asserting.
+- scrollUntilVisible:
+    element: "Total kg lifted per week · last 12 weeks"
+    direction: DOWN
+- tapOn:
+    id: "analytics-weeks-4"
+- scrollUntilVisible:
+    element: "Total kg lifted per week · last 4 weeks"
+    direction: DOWN
+- tapOn:
+    id: "analytics-weeks-26"
+- scrollUntilVisible:
+    element: "Total kg lifted per week · last 26 weeks"
+    direction: DOWN
+# The deeper charts are still there below.
+- scrollUntilVisible:
+    element: "STRENGTH"
+    direction: DOWN
