@@ -23,11 +23,11 @@ Principles: longevity first · everything on device · no accounts · MIT.
 ## 2. Deciding what to do today
 | Need | Status | Notes |
 |---|---|---|
-| "What's my workout today?" | ✅ | The Train page leads with UP NEXT and one Start button; an ongoing session takes that spot, and a live badge follows you elsewhere |
+| "What's my workout today?" | ✅ | The Train page leads with UP NEXT and one Start button; while a session is open the Train door goes straight back into it, and a live badge follows you elsewhere |
 | Week at a glance + weekly goal | ✅ P9 | Week strip + goal progress on Train |
 | Readiness check-in (energy / sleep / soreness) | ✅ P9 | 3 taps; advice adjusts effort, stored locally |
 | Reminders on my training days | ✅ P9 | Local notifications, no server |
-| Move between sections with one thumb | ✅ | Three main doors — Train · Analytics · Exercises — on a floating glass pill mounted in the root layout, so it is visible on EVERY screen (owner decision 2026-10-26: it never disappears), sized like a modern system bar (64 dp, 30 dp icons, 62 × 44 capsules). Programs is a menu page, not a tab |
+| Move between sections with one thumb | ✅ | Three main doors — Train · Analytics · Exercises — on a floating glass pill mounted in the root layout, so it is visible on EVERY screen (owner decision 2026-10-26: it never disappears), sized like a modern system bar (64 dp, 30 dp icons, 62 × 44 capsules). Programs is a menu page, not a tab. With a workout open, Train goes to that workout (owner decision 2026-10-26) |
 | Reach anything from one menu | ✅ | Glass **side panels**, split by purpose (owner decision 2026-10-26): left = features (New workout, Search, Programs, History, Records, Balance, Calculators, Body weight, Plans vs programs, Your profile); right = settings only (check-ins, reminders, companion, appearance, units, data). Tap-only dismissal (scrim, close button, item tap, Android back) |
 | Sheets and dialogs that look like one app | ✅ C | Every bottom sheet is the same glass component (`BottomSheet` + shared `SheetHeader`: grabber, title, close); the option pickers, the plate calculator, the muscle sheet and the rest timer all render it, and the rename dialog is glass. Dismiss by the header close, a backdrop tap, a pull down on the header, or Android back |
 | Find exercises by muscle or equipment at a glance | ✅ D | 2-column tile + label grid (`TaxonomyFilterGrid`) with original LIFT artwork: 21 muscle-group and 10 equipment icons, figure in the theme's muted colour with the worked muscle or the implement in the theme highlight (light and dark), so the set follows the app theme rather than a fixed accent (`docs/design/ICON_STYLE.md`) |
@@ -39,7 +39,7 @@ Principles: longevity first · everything on device · no accounts · MIT.
 | Need | Status | Notes |
 |---|---|---|
 | Fast set logging, carry-over of last numbers | ✅ | Grid + carry-over (this session); tapping a value opens the scroll wheel, with "Type instead" for the keypad — and the same wheel is used for every numeric field in the app (plate calculator, calculators, plan targets, measurements, warm-ups, onboarding, cardio minutes) |
-| The running session outranks everything | ✅ | The workout is the main window while it runs — no back arrow, Train highlighted on the always-visible bar — plus an accent title and a live "● 12:34" badge elsewhere; one tap returns. Clears on finish/discard (`src/workout/activeSession.ts`, `WorkoutBadge`) |
+| The running session outranks everything | ✅ | The workout is the main window while it runs — no back arrow, Train goes to it (from any door or a relaunch), accent title, live "● 12:34" badge elsewhere; one tap returns. Nothing pauses it; it clears on finish/discard or the idle reminders (`src/workout/activeSession.ts`, `WorkoutBadge`) |
 | Exercise and workout names are never shrunk or cut | ✅ | Names wrap to as many lines as they need and rows grow; the shared `ScreenHeader` sizes its title once from the screen width and never shrinks per title |
 | Warm-up sets, supersets, swap, add exercise | ✅ | Heading from the actions sheet — the warmups ramp at 50/70/85% ahead of the working sets; supersets group linked exercises |
 | Rest timer + alert | ✅ | |

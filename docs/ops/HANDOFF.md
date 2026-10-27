@@ -3,17 +3,28 @@
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
 > Last updated: 2026-10-26 — a bar that never disappears (three doors, larger, always visible)
-> with an ongoing workout as the main window, Programs behind one Create door in a decluttered
-> left menu, a settings-only right panel, an Analytics volume window switcher, the wheel as the
-> numeric entry everywhere, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
+> where Train IS the running workout (no Resume step, no paused-looking stop), Programs behind one
+> Create door in a decluttered left menu, a settings-only right panel, an Analytics volume window
+> switcher, the wheel as the numeric entry everywhere, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
 > guided interview, filter caret), the Plans/Programs explainer, exercise info sheet, chrome on
 > every page and uniform section headers. Repo HEAD at the time: see `git log -1`.
 
 ## 0. In-flight work (update before every commit)
 
-> Nothing uncommitted as of 2026-10-24: the round below is committed and pushed (`git log -1`),
+> Nothing uncommitted as of 2026-10-26: everything below is committed and pushed (`git log -1`),
 > `npm run verify` is ALL GREEN, and the device re-run is done (see "Verified at last session"
 > in §1). The durable record of the round is §6 (session log).
+
+- [opencode] **Train IS the running session — 2026-10-26 (committed).** Tapping the bar's Train
+  door while a workout is open used to land on the Train page's "WORKOUT IN PROGRESS" card with
+  a Resume button, which read as the workout being paused. Now `TabBar` reads
+  `useActiveSession()` and sends Train to `/workout/<id>`, and `app/(tabs)/index.tsx` redirects
+  there after `reconcileWorkouts()` too — so a relaunch lands in the session, not on a card. The
+  exception is an *idle* session: the "WORKOUT PAUSED — STILL TRAINING?" card (with Finish
+  now / Discard) stays reachable, because that is where the check-in decision belongs. Nothing
+  paused the workout before and nothing does now; it ends only on Finish, Discard, or the idle
+  reminders. Device PASS: `ongoing-workout` (now also proves the Train loop and a relaunch
+  landing in the session), `workout-flow`, `tabs`, `_zoom-fixture +60min _idle-prompt`.
 
 - [opencode] **RPE explainer + the last two 3D icons — 2026-10-24 (committed).** Two
   independent pieces from the same session:
@@ -676,6 +687,11 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   only the daily content, and the quick actions (library, create program, body weight,
   calculators) moved into the menu.
 
+- **2026-10-26 (owner): Train means the running workout.** While a session is open, the Train
+  door (and the Train screen, on launch or refocus) goes straight into that session — never to a
+  "Resume workout" card, which made the workout look paused. The session runs until Finish,
+  Discard, or the idle reminders; only an *idle* session shows the "still training?" card.
+
 - **2026-10-25 (owner): an ongoing workout has priority over everything.** Its title uses the
   live accent colour, a badge with the elapsed time sits in the floating chrome on every other
   screen, and one tap returns to it; finishing or discarding clears it. Back on other screens
@@ -720,6 +736,27 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-26 — Train = the running workout (opencode)
+
+- **The complaint:** leaving the workout for Train parked it on the "Resume workout" card, so
+  every trip to the "main page" looked like a pause and cost an extra tap to get back in.
+- **Fix, two halves.** `src/components/nav/TabBar.tsx` now takes the live session from
+  `useActiveSession()`: the Train door navigates to `/workout/<id>` while one exists (and is a
+  no-op when already there); Analytics/Exercises behave as before. `app/(tabs)/index.tsx`
+  redirects to the open workout right after `reconcileWorkouts()` + `getActiveWorkout()` loads,
+  unless the reconcile says the session is `idle` — the paused card is the check-in decision and
+  must stay visible. So launch → session, Train → session, badge → session.
+- **Unchanged by design:** the workout still ends only on Finish, Discard, or the idle policy
+  (45 min check-in, 180 min auto-finish); no navigation pauses or closes it. A finished workout
+  opened from history still has its back arrow.
+- **Flows:** `ongoing-workout.yaml` now proves the loop — start → Analytics (badge + live clock)
+  → Train (same open workout, no `home-resume-workout`, no badge) → Exercises → badge → session
+  → panel/history → relaunch lands in the session → finish clears everything. `_resume.yaml`
+  became "relaunch lands in the live session". `_idle-prompt.yaml` still passes: idle sessions
+  keep the card.
+- Device PASS: `ongoing-workout`, `workout-flow`, `tabs`, `_zoom-fixture +60min _idle-prompt`;
+  `npm run verify` ALL GREEN.
 
 ### 2026-10-26 — Bar everywhere; the workout is the main window (opencode)
 

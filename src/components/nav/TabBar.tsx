@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, useSegments, router, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { isCompanionHiddenRoute } from '../../companion/placement';
+import { useActiveSession } from '../../workout/activeSession';
 import { APP_TABS, tabHref, tabKeyForPathname } from '../../nav/tabs';
 import { useTheme, withAlpha } from '../../theme';
 import { Glass } from '../ui/Glass';
@@ -85,9 +86,11 @@ function useKeyboardShown(): boolean {
  * receives navigator state: the active door comes from the pathname, and a press
  * navigates through the router.
  *
- * A workout route highlights Train (the session belongs there) and its Train press
- * still goes to the Train tab, so the bar is never a dead end while the workout is
- * the main window.
+ * A workout route highlights Train (the session belongs there). While a session is
+ * open, Train PRESSES go to that session too (owner decision 2026-10-26): leaving
+ * for the Train tab used to park the user on a "Resume workout" card, which read as
+ * the workout being paused. The session keeps running until it is finished,
+ * discarded, or the idle reminders close it.
  */
 export function TabBar(): JSX.Element | null {
   const { theme } = useTheme();
@@ -98,6 +101,8 @@ export function TabBar(): JSX.Element | null {
   const segments = useSegments();
   const order = useSyncExternalStore(subscribeTabOrder, getTabOrderSnapshot);
   const keyboardShown = useKeyboardShown();
+  // Mirrored on every route change by the TopBar (`refreshActiveSession`).
+  const session = useActiveSession();
 
   useEffect(() => {
     void loadTabOrder();
@@ -128,9 +133,11 @@ export function TabBar(): JSX.Element | null {
 
   const select = (key: (typeof APP_TABS)[number]['key']): void => {
     Haptics.selectionAsync();
-    // Train always lands on the tab itself, even when the workout is the active
-    // window — a highlighted, inert door would strand the user in the session.
-    router.navigate((key === 'train' ? '/' : tabHref(key)) as Href);
+    // Train MEANS the running session while one is open — never the "Resume"
+    // card, which made the workout look paused. With nothing open it is the
+    // ordinary Train tab.
+    const target = key === 'train' && session ? `/workout/${session.id}` : key === 'train' ? '/' : tabHref(key);
+    if (target !== pathname) router.navigate(target as Href);
   };
 
   return (

@@ -1,7 +1,9 @@
-# The ongoing workout outranks everything (owner decision 2026-10-25):
-#   - its title is the live (accent) one,
+# The ongoing workout outranks everything (owner decisions 2026-10-25/26):
+#   - its title is the live (accent) one, and it has no back arrow,
 #   - a floating badge with the elapsed time is on every other screen,
 #   - one tap from anywhere returns to it,
+#   - Train ALWAYS means the running session: tapping that door never parks it
+#     behind a "Resume workout" card and never pauses it,
 #   - finishing/discarding ends the state everywhere.
 # Run: maestro test .maestro/ongoing-workout.yaml   (fresh state)
 appId: app.lift.mobile
@@ -30,20 +32,39 @@ appId: app.lift.mobile
 - assertNotVisible:
     id: "topbar-workout"
 
-# Leaving the workout through the bar: the badge appears with a running clock.
+# Another door: the session keeps running and the badge shows a live clock.
 - tapOn:
-    id: "tab-train"
+    id: "tab-analytics"
 - assertVisible:
     id: "topbar-workout"
 - assertVisible:
     id: "topbar-workout-elapsed"
     text: ".*:.*"
 
-# It survives the tabs and the left panel's destinations…
+# Train = the running session. No "Workout in progress" card, no Resume step:
+# the same open screen is back, and the badge goes away with it.
 - tapOn:
-    id: "tab-analytics"
+    id: "tab-train"
+- assertVisible:
+    id: "workout-add-exercise"
+- assertNotVisible:
+    id: "home-resume-workout"
+- assertNotVisible:
+    id: "topbar-workout"
+
+# The badge is still the one-tap way back from anywhere else.
+- tapOn:
+    id: "tab-exercises"
 - assertVisible:
     id: "topbar-workout"
+- tapOn:
+    id: "topbar-workout"
+- assertVisible:
+    id: "workout-add-exercise"
+
+# It survives the left panel's destinations too…
+- tapOn:
+    id: "tab-analytics"
 - tapOn:
     id: "topbar-panel"
 - scrollUntilVisible:
@@ -55,13 +76,13 @@ appId: app.lift.mobile
 - assertVisible:
     id: "topbar-workout"
 
-# …and one tap from anywhere lands back in the session.
-- tapOn:
-    id: "topbar-workout"
+# …and a relaunch lands IN the session, not on a Resume card (the workout is the
+# home page while it is open).
+- launchApp
 - assertVisible:
     id: "workout-add-exercise"
 - assertNotVisible:
-    id: "topbar-workout"
+    id: "home-resume-workout"
 
 # Finish: the priority state clears everywhere.
 - tapOn:

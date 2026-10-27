@@ -1,8 +1,8 @@
-# Re-opens the in-progress workout (used by the zoom-inspection script).
+# Re-opens the in-progress workout (used when inspecting a live session).
+# Since 2026-10-26 a running workout IS the home page, so relaunching the app
+# lands in it directly — there is no "Resume workout" card to tap any more.
 appId: app.lift.mobile
 ---
 - launchApp
-- tapOn:
-    id: "home-resume-workout"
 - assertVisible:
     id: "add-set"

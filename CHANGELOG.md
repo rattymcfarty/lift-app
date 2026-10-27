@@ -8,9 +8,11 @@
   slides away while the keyboard is up, and every screen now reserves its space so nothing is
   hidden behind it.
 - **While a workout is running, the workout is home.** Its header has no back arrow any more —
-  there is nothing to go "back" to — and the bar's Train door stays highlighted. Pressing Train
-  still goes to the Train tab (never inert), so the session, the tabs and the "Workout in
-  progress" card are one loop. A finished workout opened from history keeps its back arrow.
+  there is nothing to go "back" to. **Train now means the running session:** from another door,
+  or after relaunching the app, Train goes straight back into the workout, so it never looks
+  paused and there is no "Resume workout" step in the middle of training. The session keeps
+  running until you finish it, discard it, or the idle reminders ask. A finished workout opened
+  from history keeps its back arrow.
 
 - **A calmer, slightly larger bottom bar.** The three doors are taller and their capsules/icons are
   bigger (64 dp bar, 30 dp icons, 62 × 44 capsules, a 10 dp float) — the proportions of a modern

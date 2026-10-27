@@ -139,8 +139,10 @@ export default function TrainScreen(): JSX.Element {
     const alive = () => loadIdRef.current === loadId;
     // Close anything abandoned BEFORE reading the active workout, so a
     // forgotten session never shows up as "Resume workout".
+    let openStatus: OpenWorkoutStatus | null = null;
     try {
       const r = await reconcileWorkouts();
+      openStatus = r.current;
       if (alive()) setStatus(r.current);
       const n = await getNotices();
       if (alive()) setNotices(n);
@@ -150,6 +152,14 @@ export default function TrainScreen(): JSX.Element {
     try {
       const a = await getActiveWorkout();
       if (alive()) setActive(a);
+      // A LIVE session is the home page (owner decision 2026-10-26): landing on
+      // Train must continue the workout, never park it behind a "Resume workout"
+      // card. An idle session keeps the card, because that is where the "still
+      // training?" decision belongs.
+      if (a && alive() && openStatus?.state !== 'idle') {
+        router.replace(`/workout/${a.workout.id}`);
+        return;
+      }
     } catch {
       if (alive()) setActive(null);
     } finally {
