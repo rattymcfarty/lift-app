@@ -3,7 +3,7 @@
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
 > Last updated: 2026-10-31 — the second exercise movement clip (Dumbbell Bench Press) approved and
-> bundled, the natural-motion validation added to the animation skill, and the 631-exercise
+> bundled, the natural-motion validation added to the animation skill, and the 581-live-exercise
 > animation queue planned in `docs/product/ANIMATION_PLAN.md`. Before that: the first clip
 > (Bench Press - Powerlifting) in the guide, now full-width with a tap-to-expand full-screen
 > viewer, a platform-safe loop component, a generated clip registry, a placeholder for every
@@ -28,7 +28,7 @@
   inward tilt/yaw (slight left/right difference). The animation skill now has a permanent
   `natural_motion_check()`: a perfectly rigid or perfectly mirrored implement fails, and the rule
   is in **SKILL.md** under non-negotiable rules and feedback history. The queue for the remaining
-  629 exercises — pattern anchors → the 50 foundational → the long tail, batched by set kit — is
+  579 live exercises — pattern anchors → the 50 foundational → the long tail, batched by set kit — is
   `docs/product/ANIMATION_PLAN.md`. Next: `barbell-squat` (rack kit), then `front-barbell-squat`
   and `overhead-press`; each clip is posted in chat for review and only registered after approval.
 
@@ -788,7 +788,7 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   skill now has `natural_motion_check()` and a permanent rule: a perfectly rigid or perfectly
   mirrored implement fails; the variation must stay ≤1.5°/frame. This is the owner's human-motion
   validation, recorded in the skill, not a one-off.
-- **Queue:** `docs/product/ANIMATION_PLAN.md` covers all **631** exercises (2 done): 10 pattern
+- **Queue:** `docs/product/ANIMATION_PLAN.md` covers all **581 live** exercises (2 done; 631 catalogue entries): 10 pattern
   anchors → the 50 foundational in owner order → the common 100 → the long tail. Production is
   batched by set kit (rack, floor+barbell, pull-up bar, mat, dumbbells, cable, machines, cardio)
   so a new variant reuses the scene. First batch: rack — `barbell-squat`, `front-barbell-squat`,

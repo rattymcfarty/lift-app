@@ -61,8 +61,8 @@ black with a close button), so there is no second asset to ship.
   lunge, carry, core, mobility) at ~0.4 MB each is ~4 MB and gives every
   exercise a moving demo from day one. The KB already carries
   `movementPattern` for this mapping.
-- **Do not bundle one clip per exercise.** 631 exercises × ~0.42 MB is
-  ~265 MB; app stores and users will not accept that. Bundle the 50 curated
+- **Do not bundle one clip per exercise.** 581 live exercises × ~0.42 MB is
+  ~244 MB (the full 631 catalogue entries would be ~265 MB); app stores and users will not accept that. Bundle the 50 curated
   foundational clips first (~21 MB), then the movement-pattern loops.
 - **Per-exercise overrides, when they exist, should be hosted** (the KB's own
   CDN / object storage, same trust domain as `channel.json`) with a manifest and

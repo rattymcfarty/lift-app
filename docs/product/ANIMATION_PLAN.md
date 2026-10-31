@@ -1,6 +1,6 @@
 # Exercise animation plan
 
-**Status 2026-10-31:** 2 of 631 exercises have an approved, bundled movement clip.
+**Status 2026-10-31:** 2 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
 
 | KB id | Exercise | Status |
 |---|---|---|
@@ -8,7 +8,7 @@
 | `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled |
 
 Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon").
-This document is the queue, the priority order and the review contract for the remaining 629.
+This document is the queue, the priority order and the review contract for the remaining 579 live exercises.
 
 ## The review gate (one clip at a time)
 
@@ -92,7 +92,7 @@ from the strength rig; they are **Tier 3b** and not part of the first 40.
 
 ### Tier 2 — the next 100 common non-foundational exercises
 
-After the 50, rank the remaining 581 by:
+After the 50, rank the remaining 531 non-foundational live exercises by:
 
 1. the same movement pattern as an approved anchor (a variant of a shelf-ready pose);
 2. equipment family (barbell, dumbbell, bodyweight, cable, machine, kettlebell);
@@ -103,7 +103,7 @@ After the 50, rank the remaining 581 by:
 The generated order is reviewed in 10–15 clip batches. A variant reuses its anchor's set kit,
 camera and physics rules; only the implement path, support points and worked muscles change.
 
-### Tier 3 — the long tail (the remaining ~481)
+### Tier 3 — the long tail (the remaining 431)
 
 Produced by set kit, not one-by-one from scratch. Set kits, in build order:
 
@@ -141,7 +141,7 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 - **Bundle the 50 foundational clips** (~21 MB at ~0.42 MB each). That covers the app's promise
   and keeps the guide offline with no new network call.
-- **Do not bundle all 631** (~265 MB). App stores and users will not accept it.
+- **Do not bundle all 581 live** (~244 MB; 631 catalogue entries would be ~265 MB). App stores and users will not accept it.
 - **Tier 2/3 clips are hosted** on the KB's own CDN (same trust domain as `channel.json`) with a
   manifest, downloaded on demand into `expo-file-system` and cached. The bundled pattern anchor is
   the offline fallback.
@@ -156,7 +156,7 @@ Each batch is submitted for review **in the foundational order**, even when prod
   human review. Post 1–2 clips per review round.
 - The 10 pattern anchors are the highest-value work: they cover every movement pattern and make the
   long tail a series of variants.
-- 631 clips is a long programme (roughly 4–6 months at 4–6 approved clips per day, including
+- 581 live clips is a long programme (roughly 4–6 months at 4–6 approved clips per day, including
   reviews). The pattern anchors and the 50 foundational are the near-term deliverable.
 
 ## Current next step
