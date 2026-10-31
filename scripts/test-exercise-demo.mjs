@@ -53,12 +53,19 @@ eq(demo.DEMO_SPEC, { size: 720, fps: 24, seconds: 3, maxBytes: 500_000 }, 'the c
 const files = readdirSync(demosDir)
   .filter((f) => f.toLowerCase().endsWith('.mp4'))
   .sort();
-const ids = files.map((f) => f.slice(0, -4));
+const baseId = (f) => f.replace(/\.mp4$/, '').replace(/__\d+$/, '');
+const ids = [...new Set(files.map(baseId))].sort();
 eq(demo.bundledDemoIds(), ids, 'the generated registry matches the MP4s on disk');
+ok(files.includes('dumbbell-bench-press__2.mp4'), 'the second dumbbell version is bundled');
+ok(!files.some((f) => f.includes(' - ')), 'clip files are named by KB id, not display name');
 ok(ids.includes('bench-press-powerlifting'), 'the bench press clip is bundled');
 ok(ids.includes('dumbbell-bench-press'), 'the dumbbell bench press clip is bundled');
 ok(demo.resolveExerciseDemo('bench-press-powerlifting'), 'the bench press resolves to an asset');
 ok(demo.resolveExerciseDemo('dumbbell-bench-press'), 'the dumbbell bench press resolves to an asset');
+eq(demo.exerciseDemoCount('dumbbell-bench-press'), 2, 'the dumbbell bench press has two versions');
+eq(demo.resolveExerciseDemos('dumbbell-bench-press').length, 2, 'both dumbbell versions resolve');
+eq(demo.resolveExerciseDemos('bench-press-powerlifting').length, 1, 'the bench press has one version');
+eq(demo.resolveExerciseDemos('barbell-squat').length, 0, 'an exercise without a clip has no versions');
 eq(demo.resolveExerciseDemo('barbell-squat'), null, 'an exercise without a clip resolves to null');
 eq(demo.resolveExerciseDemo(null), null, 'a missing id resolves to null');
 ok(!demo.hasExerciseDemo('barbell-squat'), 'hasExerciseDemo is false for a missing clip');
@@ -130,6 +137,9 @@ ok(/Movement demo coming soon/.test(component), 'the placeholder says a demo is 
 ok(/width: '100%'/.test(component) && /aspectRatio: 1/.test(component), 'the tile fills the guide width and stays square');
 ok(/maxWidth: maxSize/.test(component), 'the tile is capped so a tablet does not get a wall of video');
 ok(/exercise-demo-expand/.test(component), 'the tile is tappable to expand');
+ok(/resolveExerciseDemos/.test(component), 'the component uses every demo version');
+ok(/exercise-demo-version/.test(component), 'the tile has a version switcher');
+ok(/exercise-demo-fullscreen-version/.test(component), 'the viewer has its own version switcher');
 ok(/<Modal/.test(component) && /onRequestClose=\{onClose\}/.test(component), 'the full-screen viewer is a dismissible modal');
 ok(/exercise-demo-fullscreen/.test(component), 'the full-screen viewer has its own test id');
 ok(/exercise-demo-close/.test(component), 'the full-screen viewer has a close control');
@@ -145,6 +155,9 @@ ok(/id: "exercise-demo-close"/.test(flow), 'the Maestro flow closes the full-scr
 const dumbbellFlow = readFileSync(join(root, '.maestro', 'exercise-demo-dumbbell.yaml'), 'utf8');
 ok(/dumbbell-bench-press/.test(dumbbellFlow), 'the dumbbell flow opens the dumbbell guide');
 ok(/id: "exercise-demo"/.test(dumbbellFlow), 'the dumbbell flow checks the clip tile');
+ok(/id: "exercise-demo-version-2"/.test(dumbbellFlow), 'the dumbbell flow switches to demo 2');
+ok(/2 of 2/.test(dumbbellFlow), 'the dumbbell flow checks the second version caption');
+ok(/id: "exercise-demo-fullscreen-version-1"/.test(dumbbellFlow), 'the viewer switches back to demo 1');
 ok(/id: "exercise-demo-fullscreen"/.test(dumbbellFlow), 'the dumbbell flow checks the full-screen viewer');
 ok(/id: "exercise-demo-close"/.test(dumbbellFlow), 'the dumbbell flow closes the full-screen viewer');
 

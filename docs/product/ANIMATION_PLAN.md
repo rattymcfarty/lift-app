@@ -5,9 +5,9 @@
 | KB id | Exercise | Status |
 |---|---|---|
 | `bench-press-powerlifting` | Bench Press - Powerlifting | approved / bundled |
-| `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled |
+| `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled — 2 demo versions |
 
-Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon").
+Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon"). An exercise may carry several demo versions; the guide adds a Demo 1 / Demo 2 switcher.
 This document is the queue, the priority order and the review contract for the remaining 579 live exercises.
 
 ## The review gate (one clip at a time)

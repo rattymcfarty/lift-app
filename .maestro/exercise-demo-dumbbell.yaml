@@ -1,5 +1,6 @@
-# Dumbbell Bench Press: the second bundled movement clip. This guide opens the
-# dumbbell loop, expands it full screen, and returns to the guide.
+# Dumbbell Bench Press: two demo versions. The guide opens demo 1, switches to
+# demo 2, expands it full screen, switches back to demo 1 inside the viewer, and
+# returns to the guide.
 # Run: maestro test .maestro/exercise-demo-dumbbell.yaml   (fresh state)
 appId: app.lift.mobile
 ---
@@ -17,13 +18,20 @@ appId: app.lift.mobile
     id: "browse-exercise-row-dumbbell-bench-press"
 - assertVisible:
     id: "exercise-demo"
-- assertVisible: ".*Movement demo.*"
+- assertVisible: ".*Movement demo 1 of 2.*"
+- tapOn:
+    id: "exercise-demo-version-2"
+- assertVisible: ".*Movement demo 2 of 2.*"
 - tapOn:
     id: "exercise-demo-expand"
 - assertVisible:
     id: "exercise-demo-fullscreen"
 - assertVisible:
     id: "exercise-demo-close"
+- assertVisible: ".*Movement demo 2 of 2.*"
+- tapOn:
+    id: "exercise-demo-fullscreen-version-1"
+- assertVisible: ".*Movement demo 1 of 2.*"
 - tapOn:
     id: "exercise-demo-close"
 - assertNotVisible:

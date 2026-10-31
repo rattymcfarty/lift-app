@@ -2,6 +2,14 @@
 
 ## Unreleased (addendum)
 
+- **A second demo version for Dumbbell Bench Press.** The guide now carries two loops for the
+  same exercise: the original front view and a second, wider camera version (`dumbbell-bench-press__2.mp4`).
+  A **Demo 1 / Demo 2** switcher appears under the tile and inside the full-screen viewer; switching
+  remounts the player so the new loop starts cleanly. The registry is now an array per exercise, the
+  generator understands `<kb-id>__2.mp4` naming, and `test:exercise-demo` enforces the version
+  contract (90 assertions). `exercise-demo-dumbbell` switches versions, expands, switches back in
+  the viewer and closes.
+
 - **The Dumbbell Bench Press demo.** The second bundled clip (`dumbbell-bench-press`, 720 × 720,
   3 s, 415 KB) opens the same full-width tile and full-screen viewer. The flat bench has a rear
   post and T-foot so it stands on the floor, the dumbbells are 210 mm heads on 38 mm handles, and

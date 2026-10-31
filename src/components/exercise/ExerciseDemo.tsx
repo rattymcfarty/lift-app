@@ -5,8 +5,10 @@
  * does not become a wall on a tablet). With a bundled clip it is a muted,
  * silent 3 s loop: no controls, no audio, no inline fullscreen, cover-cropped,
  * clipped to the tile's radius. Tapping it opens the same loop in a black
- * full-screen viewer. Without a clip it is the primary-muscle icon plus a quiet
- * "coming soon" line, so every exercise has the same media slot from day one.
+ * full-screen viewer. An exercise can have several demo versions; a small
+ * "Demo 1 / Demo 2" switcher appears under the tile and in the viewer. Without
+ * a clip it is the primary-muscle icon plus a quiet "coming soon" line, so
+ * every exercise has the same media slot from day one.
  *
  * Platform notes:
  * - iOS autoplay requires `muted`; the player is muted before `play()`.
@@ -34,7 +36,7 @@ import { StatusBar } from 'expo-status-bar';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useTheme, type Theme } from '../../theme';
 import { ActionIcon, TaxonomyIcon } from '../icons';
-import { resolveExerciseDemo } from '../../kb/exerciseDemo';
+import { resolveExerciseDemos } from '../../kb/exerciseDemo';
 
 export interface ExerciseDemoProps {
   /** The exercise's permanent KB id (seeded rows use it as the row id too). */
@@ -60,7 +62,7 @@ export function ExerciseDemo({
 }: ExerciseDemoProps): JSX.Element {
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  const source = resolveExerciseDemo(exerciseId);
+  const sources = resolveExerciseDemos(exerciseId);
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -90,7 +92,7 @@ export function ExerciseDemo({
     </View>
   );
 
-  if (!source) {
+  if (sources.length === 0) {
     return (
       <View style={styles.wrap} testID="exercise-demo-placeholder">
         {still}
@@ -108,86 +110,55 @@ export function ExerciseDemo({
     );
   }
 
-  return <VideoDemo source={source} exerciseName={exerciseName} maxSize={maxSize} />;
+  return (
+    <VideoDemo
+      sources={sources}
+      exerciseName={exerciseName}
+      maxSize={maxSize}
+    />
+  );
 }
 
 function VideoDemo({
-  source,
+  sources,
   exerciseName,
   maxSize,
 }: {
-  source: number;
+  sources: readonly number[];
   exerciseName: string;
   maxSize: number;
 }): JSX.Element {
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  const [index, setIndex] = useState(0);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const focused = useRef(false);
-  const player = useVideoPlayer(source, (p) => {
-    p.loop = true;
-    p.muted = true;
-    p.play();
-  });
-
-  useFocusEffect(
-    useCallback(() => {
-      focused.current = true;
-      player.play();
-      return () => {
-        focused.current = false;
-        player.pause();
-      };
-    }, [player]),
-  );
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && focused.current && !viewerOpen) player.play();
-      else player.pause();
-    });
-    return () => sub.remove();
-  }, [player, viewerOpen]);
-
-  // The full-screen viewer has its own player; keep the tile's loop quiet
-  // underneath it, and resume only when the guide is still in front.
-  useEffect(() => {
-    if (viewerOpen) player.pause();
-    else if (focused.current && AppState.currentState === 'active') player.play();
-  }, [player, viewerOpen]);
+  const multiple = sources.length > 1;
+  const selected = sources[Math.min(index, sources.length - 1)];
 
   return (
     <View style={styles.wrap} testID="exercise-demo">
       <View style={[styles.tile, styles.square, { maxWidth: maxSize }]}>
-        <VideoView
-          player={player}
-          style={styles.video}
-          nativeControls={false}
-          contentFit="cover"
-          fullscreenOptions={{ enable: false }}
-          allowsPictureInPicture={false}
-          surfaceType="textureView"
-          pointerEvents="none"
-          testID="exercise-demo-video"
-          accessibilityRole="image"
-          accessibilityLabel={`${exerciseName} movement demo`}
+        <TilePlayer
+          key={selected}
+          source={selected}
+          exerciseName={exerciseName}
+          paused={viewerOpen}
+          onExpand={() => setViewerOpen(true)}
         />
-        <Pressable
-          onPress={() => setViewerOpen(true)}
-          testID="exercise-demo-expand"
-          accessibilityRole="button"
-          accessibilityLabel={`Open the ${exerciseName} movement demo full screen`}
-          style={({ pressed }) => [styles.expandPress, { opacity: pressed ? 0.8 : 1 }]}
-        >
-          <View style={styles.expandBadge}>
-            <ActionIcon name="expand" color="#ffffff" size={16} />
-          </View>
-        </Pressable>
       </View>
-      <Text style={styles.caption}>Movement demo · 3 s loop · tap to expand</Text>
+      <Text style={styles.caption}>
+        {multiple
+          ? `Movement demo ${index + 1} of ${sources.length} · 3 s loop · tap to expand`
+          : 'Movement demo · 3 s loop · tap to expand'}
+      </Text>
+      {multiple ? (
+        <VersionSwitcher count={sources.length} index={index} onChange={setIndex} />
+      ) : null}
       {viewerOpen ? (
         <DemoViewer
-          source={source}
+          sources={sources}
+          index={index}
+          onIndex={setIndex}
           exerciseName={exerciseName}
           onClose={() => setViewerOpen(false)}
         />
@@ -196,37 +167,159 @@ function VideoDemo({
   );
 }
 
+/** The looping tile itself. Remounted (keyed by source) when the version changes. */
+function TilePlayer({
+  source,
+  exerciseName,
+  paused,
+  onExpand,
+}: {
+  source: number;
+  exerciseName: string;
+  paused: boolean;
+  onExpand: () => void;
+}): JSX.Element {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  const focused = useRef(false);
+  const player = useVideoPlayer(source, (p) => {
+    p.loop = true;
+    p.muted = true;
+    if (!paused) p.play();
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      focused.current = true;
+      if (!paused) player.play();
+      return () => {
+        focused.current = false;
+        player.pause();
+      };
+    }, [player, paused]),
+  );
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && focused.current && !paused) player.play();
+      else player.pause();
+    });
+    return () => sub.remove();
+  }, [player, paused]);
+
+  // The full-screen viewer has its own player; keep the tile's loop quiet
+  // underneath it, and resume only when the guide is still in front.
+  useEffect(() => {
+    if (paused) player.pause();
+    else if (focused.current && AppState.currentState === 'active') player.play();
+  }, [player, paused]);
+
+  return (
+    <>
+      <VideoView
+        player={player}
+        style={styles.video}
+        nativeControls={false}
+        contentFit="cover"
+        fullscreenOptions={{ enable: false }}
+        allowsPictureInPicture={false}
+        surfaceType="textureView"
+        pointerEvents="none"
+        testID="exercise-demo-video"
+        accessibilityRole="image"
+        accessibilityLabel={`${exerciseName} movement demo`}
+      />
+      <Pressable
+        onPress={onExpand}
+        testID="exercise-demo-expand"
+        accessibilityRole="button"
+        accessibilityLabel={`Open the ${exerciseName} movement demo full screen`}
+        style={({ pressed }) => [styles.expandPress, { opacity: pressed ? 0.8 : 1 }]}
+      >
+        <View style={styles.expandBadge}>
+          <ActionIcon name="expand" color="#ffffff" size={16} />
+        </View>
+      </Pressable>
+    </>
+  );
+}
+
+/** "Demo 1 / Demo 2" pills. `viewer` switches to the light-on-black palette. */
+function VersionSwitcher({
+  count,
+  index,
+  onChange,
+  viewer = false,
+  testIDPrefix = 'exercise-demo-version',
+}: {
+  count: number;
+  index: number;
+  onChange: (index: number) => void;
+  viewer?: boolean;
+  testIDPrefix?: string;
+}): JSX.Element | null {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  if (count < 2) return null;
+  return (
+    <View style={[styles.versions, viewer && styles.versionsViewer]}>
+      {Array.from({ length: count }, (_, i) => {
+        const active = i === index;
+        return (
+          <Pressable
+            key={i}
+            onPress={() => onChange(i)}
+            testID={`${testIDPrefix}-${i + 1}`}
+            accessibilityRole="button"
+            accessibilityLabel={`Show demo ${i + 1} of ${count}`}
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [
+              styles.versionPill,
+              viewer && styles.versionPillViewer,
+              active && (viewer ? styles.versionPillViewerActive : styles.versionPillActive),
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text
+              style={[
+                styles.versionLabel,
+                viewer && styles.versionLabelViewer,
+                active && (viewer ? styles.versionLabelViewerActive : styles.versionLabelActive),
+              ]}
+            >
+              Demo {i + 1}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 /**
  * Full-screen viewer. Black in both themes so the footage is the only thing
  * that glows; the header keeps the exercise name and a close button. The
  * square clip is letterboxed with `contain`, which fills the width on a phone
- * (the app is portrait-locked).
+ * (the app is portrait-locked). Multiple versions can be switched here too.
  */
 function DemoViewer({
-  source,
+  sources,
+  index,
+  onIndex,
   exerciseName,
   onClose,
 }: {
-  source: number;
+  sources: readonly number[];
+  index: number;
+  onIndex: (index: number) => void;
   exerciseName: string;
   onClose: () => void;
 }): JSX.Element {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   const insets = useSafeAreaInsets();
-  const player = useVideoPlayer(source, (p) => {
-    p.loop = true;
-    p.muted = true;
-    p.play();
-  });
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') player.play();
-      else player.pause();
-    });
-    return () => sub.remove();
-  }, [player]);
+  const selected = sources[Math.min(index, sources.length - 1)];
+  const multiple = sources.length > 1;
 
   return (
     <Modal
@@ -254,29 +347,69 @@ function DemoViewer({
           </Pressable>
         </View>
         <View style={styles.viewerBody}>
-          <VideoView
-            player={player}
-            style={styles.viewerVideo}
-            nativeControls={false}
-            contentFit="contain"
-            fullscreenOptions={{ enable: false }}
-            allowsPictureInPicture={false}
-            surfaceType="textureView"
-            testID="exercise-demo-fullscreen-video"
-            accessibilityRole="image"
-            accessibilityLabel={`${exerciseName} movement demo, full screen`}
-          />
+          <ViewerPlayer key={selected} source={selected} exerciseName={exerciseName} />
         </View>
+        {multiple ? (
+          <VersionSwitcher
+            count={sources.length}
+            index={index}
+            onChange={onIndex}
+            viewer
+            testIDPrefix="exercise-demo-fullscreen-version"
+          />
+        ) : null}
         <Text
           style={[
             styles.viewerCaption,
             { paddingBottom: insets.bottom + theme.spacing.md },
           ]}
         >
-          Movement demo · 3 s loop · silent
+          {multiple
+            ? `Movement demo ${index + 1} of ${sources.length} · 3 s loop · silent`
+            : 'Movement demo · 3 s loop · silent'}
         </Text>
       </View>
     </Modal>
+  );
+}
+
+/** The viewer's player; remounted (keyed by source) when the version changes. */
+function ViewerPlayer({
+  source,
+  exerciseName,
+}: {
+  source: number;
+  exerciseName: string;
+}): JSX.Element {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  const player = useVideoPlayer(source, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') player.play();
+      else player.pause();
+    });
+    return () => sub.remove();
+  }, [player]);
+
+  return (
+    <VideoView
+      player={player}
+      style={styles.viewerVideo}
+      nativeControls={false}
+      contentFit="contain"
+      fullscreenOptions={{ enable: false }}
+      allowsPictureInPicture={false}
+      surfaceType="textureView"
+      testID="exercise-demo-fullscreen-video"
+      accessibilityRole="image"
+      accessibilityLabel={`${exerciseName} movement demo, full screen`}
+    />
   );
 }
 
@@ -333,6 +466,52 @@ function getStyles(theme: Theme) {
       fontSize: theme.typography.size.caption,
       color: theme.colors.muted,
       textAlign: 'center',
+    },
+    versions: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+    versionsViewer: {
+      marginTop: 0,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.xs,
+    },
+    versionPill: {
+      minWidth: 76,
+      height: 30,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: theme.radius.pill,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'transparent',
+    },
+    versionPillActive: {
+      backgroundColor: theme.colors.surfaceMuted,
+      borderColor: theme.colors.text,
+    },
+    versionPillViewer: {
+      borderColor: 'rgba(255,255,255,0.35)',
+    },
+    versionPillViewerActive: {
+      backgroundColor: 'rgba(255,255,255,0.18)',
+      borderColor: 'rgba(255,255,255,0.7)',
+    },
+    versionLabel: {
+      fontSize: theme.typography.size.caption,
+      color: theme.colors.muted,
+      fontWeight: theme.typography.weight.medium,
+    },
+    versionLabelActive: {
+      color: theme.colors.text,
+    },
+    versionLabelViewer: {
+      color: 'rgba(255,255,255,0.65)',
+    },
+    versionLabelViewerActive: {
+      color: '#ffffff',
     },
     // The viewer is a black cinema surface in both themes, so its text and
     // controls are fixed light-on-dark rather than theme tokens.

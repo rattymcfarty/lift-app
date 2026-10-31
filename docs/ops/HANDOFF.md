@@ -3,7 +3,7 @@
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
 > Last updated: 2026-10-31 — the second exercise movement clip (Dumbbell Bench Press) approved and
-> bundled, the natural-motion validation added to the animation skill, and the 581-live-exercise
+> bundled with a second demo version, the natural-motion validation added to the animation skill, and the 581-live-exercise
 > animation queue planned in `docs/product/ANIMATION_PLAN.md`. Before that: the first clip
 > (Bench Press - Powerlifting) in the guide, now full-width with a tap-to-expand full-screen
 > viewer, a platform-safe loop component, a generated clip registry, a placeholder for every
@@ -22,7 +22,8 @@
 > in §1). The durable record of the round is §6 (session log).
 
 - [opencode] **Dumbbell Bench Press + animation queue — 2026-10-31 (committed).** The owner
-  approved `dumbbell-bench-press`; it is registered in `src/kb/exerciseDemo.ts` and covered by
+  approved `dumbbell-bench-press`; it is registered in `src/kb/exerciseDemo.ts` with **two demo
+  versions** (`dumbbell-bench-press.mp4` and `dumbbell-bench-press__2.mp4`) and covered by
   `.maestro/exercise-demo-dumbbell.yaml`. The clip is 720² / 24 fps / 3 s / H.264 / yuv420p /
   silent / 415 KB, with a rear bench leg pair, 210 mm dumbbell heads, and a few degrees of natural
   inward tilt/yaw (slight left/right difference). The animation skill now has a permanent
@@ -42,7 +43,7 @@
   `expand` ActionIcon marks the affordance. Exercises without a clip get the same full-width tile
   with the primary-muscle icon + "Movement demo coming soon". Clips live in
   `assets/exercises/demos/<kb-id>.mp4`; `scripts/gen-exercise-demo-registry.mjs` regenerates the
-  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (66 assertions)
+  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (90 assertions)
   enforces 720² / 24 fps / 3 s / H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match and the
   expand/close wiring. Storage decision: bundle the small set now (offline, no new network call);
   433 per-exercise clips (~195 MB) would not ship, so future scale is bundled movement-pattern
@@ -781,8 +782,11 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 ### 2026-10-31 — Dumbbell demo approved; animation queue planned (opencode)
 
 - **Approved:** the owner accepted the Dumbbell Bench Press clip after the natural-motion pass.
-  It is registered (`src/kb/exerciseDemo.ts`), has its own `exercise-demo-dumbbell` Maestro flow,
-  and joins the bench press in the guide. 720² / 24 fps / 3 s / 415 KB.
+  It is registered (`src/kb/exerciseDemo.ts`) with **two demo versions** (the original and
+  `dumbbell-bench-press__2.mp4`), has its own `exercise-demo-dumbbell` Maestro flow (switch,
+  expand, switch back in the viewer), and joins the bench press in the guide. 720² / 24 fps /
+  3 s / 415 KB + 348 KB. The registry is now an array per exercise; the generator understands
+  `<kb-id>__2.mp4`, and `test:exercise-demo` is 90 assertions.
 - **Natural motion:** the dumbbells tilt inward a few degrees at the top, carry a small yaw and a
   slow drift, and the two sides differ slightly. The hands roll with the handles. The animation
   skill now has `natural_motion_check()` and a permanent rule: a perfectly rigid or perfectly

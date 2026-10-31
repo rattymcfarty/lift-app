@@ -1,9 +1,11 @@
 # Exercise demo clips
 
 Short, silent movement loops shown at the top of an exercise guide. The first
-two are `bench-press-powerlifting.mp4` and `dumbbell-bench-press.mp4`; every
-other exercise currently gets the placeholder tile (its primary-muscle icon +
-"Movement demo coming soon"). The queue and priority order live in
+two are `bench-press-powerlifting.mp4` and `dumbbell-bench-press.mp4`;
+Dumbbell Bench Press also has a second version, `dumbbell-bench-press__2.mp4`,
+and the guide shows a Demo 1 / Demo 2 switcher. Every other exercise currently
+gets the placeholder tile (its primary-muscle icon + "Movement demo coming
+soon"). The queue and priority order live in
 `docs/product/ANIMATION_PLAN.md`.
 
 ## Contract
@@ -36,6 +38,8 @@ black with a close button), so there is no second asset to ship.
 2. Name the file after the exercise's **permanent KB id**, not its display
    name: `assets/exercises/demos/<kb-id>.mp4`. The id is in
    `assets/kb/snapshot/bundle.json` and the guide resolves the clip by it.
+   A second version of the same exercise is `<kb-id>__2.mp4`, a third is
+   `<kb-id>__3.mp4`; the base file is version 1 and the guide shows a switcher.
 3. Regenerate the static registry (Metro cannot `require()` a dynamic path):
 
    ```bash
@@ -54,6 +58,15 @@ black with a close button), so there is no second asset to ship.
    the implement needs a small, smooth attitude variation (e.g. a few degrees
    of inward tilt) and a slight left/right difference. A perfectly rigid or
    perfectly mirrored implement is rejected before encoding.
+
+## Multiple demo versions
+
+An exercise can carry more than one loop. `dumbbell-bench-press.mp4` is demo 1
+and `dumbbell-bench-press__2.mp4` is demo 2. The registry stores an array per
+exercise; the guide shows a **Demo 1 / Demo 2** pill row under the tile and in
+the full-screen viewer. The `exercise-demo-dumbbell` Maestro flow switches
+versions, expands, switches back inside the viewer, and closes. Add a version
+by dropping the file and re-running the generator; no code change is needed.
 
 ## Where future clips live
 
