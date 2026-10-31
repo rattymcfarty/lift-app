@@ -24,7 +24,8 @@
       "./plugins/withAndroidBackupRules",
       "./plugins/withIosBackupExclusion",
       "expo-notifications",
-      "./plugins/withAndroidReleaseSigning"
+      "./plugins/withAndroidReleaseSigning",
+      "expo-video"
     ],
     "scheme": "liftapp",
     "slug": "lift-app",

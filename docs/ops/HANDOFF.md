@@ -2,7 +2,10 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-26 — a bar that never disappears (three doors, larger, always visible)
+> Last updated: 2026-10-31 — the first exercise movement clip (Bench Press - Powerlifting) in the
+> guide, with a platform-safe loop component, a generated clip registry, a placeholder for every
+> other exercise, and the storage plan for future clips. Before that: a bar that never disappears
+> (three doors, larger, always visible)
 > where Train IS the running workout (no Resume step, no paused-looking stop), Programs behind one
 > Create door in a decluttered left menu, a settings-only right panel, an Analytics volume window
 > switcher, the wheel as the numeric entry everywhere, and titles that never shrink or truncate. Before that: queue 2b complete (persona editor,
@@ -11,9 +14,25 @@
 
 ## 0. In-flight work (update before every commit)
 
-> Nothing uncommitted as of 2026-10-26: everything below is committed and pushed (`git log -1`),
+> Nothing uncommitted as of 2026-10-31: everything below is committed and pushed (`git log -1`),
 > `npm run verify` is ALL GREEN, and the device re-run is done (see "Verified at last session"
 > in §1). The durable record of the round is §6 (session log).
+
+- [opencode] **First exercise demo clip — 2026-10-31 (committed).** `Bench Press - Powerlifting`
+  now has a bundled 3 s silent movement loop at the top of its guide. `ExerciseDemo`
+  (`src/components/exercise/ExerciseDemo.tsx`) uses `expo-video`: muted autoplay, loop, no
+  controls, no fullscreen, cover crop, `textureView` on Android so the rounded tile clips, pause
+  on blur and app background, and Reduce Motion falls back to the still muscle icon. Exercises
+  without a clip get the same 120 pt tile with the primary-muscle icon + "Movement demo coming
+  soon". Clips live in `assets/exercises/demos/<kb-id>.mp4`;
+  `scripts/gen-exercise-demo-registry.mjs` regenerates the static registry
+  (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` enforces 720² / 24 fps / 3 s /
+  H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match. Storage decision: bundle the small
+  set now (offline, no new network call); 433 per-exercise clips (~195 MB) would not ship, so
+  future scale is bundled movement-pattern loops + per-exercise overrides hosted on the KB CDN
+  with on-demand cache (owner decision — it adds a network call). Device PASS: `exercise-demo`
+  (release APK, Android emulator; the tile visibly animates); Metro restarted with `--clear`
+  after the native module was added. `npm run verify` ALL GREEN.
 
 - [opencode] **Train IS the running session — 2026-10-26 (committed).** Tapping the bar's Train
   door while a workout is open used to land on the Train page's "WORKOUT IN PROGRESS" card with
@@ -736,6 +755,30 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-31 — First movement clip in the guide (opencode)
+
+- **Shipped:** the first exercise animation — `Bench Press - Powerlifting` (720², 24 fps, 3 s,
+  H.264 High 3.1, yuv420p, no audio, 458 KB) — at the top of its guide. `ExerciseDemo` is the one
+  media slot: video when a clip is bundled, the primary-muscle icon + "Movement demo coming soon"
+  otherwise. It autoplays muted, loops, hides controls/fullscreen, cover-crops the rounded tile,
+  pauses on blur/background, and respects Reduce Motion. Android uses `textureView` for the
+  rounded clip; iOS gets muted autoplay.
+- **Storage:** `assets/exercises/demos/<kb-id>.mp4` (bundled, offline). The registry is static
+  because Metro cannot require a dynamic path; `scripts/gen-exercise-demo-registry.mjs` generates
+  it, and `npm run test:exercise-demo` (36 assertions) checks the registry↔files↔KB ids and the
+  clip contract. `assets/exercises/demos/README.md` records the naming/contract and the scale
+  plan: bundle 8–12 pattern loops (~4 MB); do not bundle 433 clips (~195 MB); hosted per-exercise
+  overrides would be a network call and need the owner.
+- **Expo restart:** the dev server had been running since before `expo-video` was installed, so
+  Metro held a stale module graph. Restarted with `--clear`; manifest + Android bundle return 200
+  (9.7 MB dev bundle). Expo Go URL: `exp://<lan-ip>:8081` (the rig's LAN address).
+- **Device:** `exercise-demo` PASS on a release APK (the tile's pixels change between frames, so
+  it is actually looping). Two Maestro gotchas re-learned: text selectors are full-match
+  (`".*Movement demo.*"`, not `"Movement demo"`), and `eraseText` only deletes left of the tap
+  position — do not reuse a search field across checks; the flow now checks the placeholder on
+  the first browse row and searches only once.
+- `npm run verify` ALL GREEN (test:exercise-demo 36).
 
 ### 2026-10-26 — Train = the running workout (opencode)
 

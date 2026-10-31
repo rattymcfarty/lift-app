@@ -24,6 +24,7 @@ import { useTheme, type Theme } from '../../src/theme';
 import { Button, Card, EmptyState, ScreenHeader } from '../../src/components/workout/ui';
 import { displayName, muscleLabel, equipmentLabel } from '../../src/kb/taxonomy';
 import { TaxonomyIcon } from '../../src/components/icons';
+import { ExerciseDemo } from '../../src/components/exercise/ExerciseDemo';
 import { Markdown } from '../../src/components/ui/Markdown';
 import { useTabBarSpace } from '../../src/components/nav/TabBar';
 
@@ -83,25 +84,18 @@ export default function ExerciseDetailScreen(): JSX.Element {
   }
 
   const primaryMuscles = decodeStringArray(exercise.primaryMuscles);
-  const secondaryMuscles = decodeStringArray(exercise.secondaryMuscles);
-  const equipmentList = decodeStringArray(exercise.equipment);
 
-  const renderHeroImage = () => {
-    // The ScreenHeader above already shows the exercise name as the large
-    // title — the hero shows only the primary-muscle icon, no duplicate name.
-    return (
-      <View style={styles.heroContainer}>
-        <View style={styles.heroPlaceholder}>
-          <TaxonomyIcon
-            kind="muscle"
-            id={primaryMuscles.length > 0 ? primaryMuscles[0] : 'Other'}
-            size={96}
-            tiled={false}
-          />
-        </View>
-      </View>
-    );
-  };
+  // The ScreenHeader above already shows the exercise name as the large
+  // title — the hero shows the movement, not a duplicate name. Exercises with
+  // no bundled clip get the same tile with the muscle icon and a quiet
+  // "coming soon" line, so every guide has one media slot.
+  const renderHeroImage = () => (
+    <ExerciseDemo
+      exerciseId={exercise.kbId ?? exercise.id}
+      exerciseName={exercise.name}
+      primaryMuscle={primaryMuscles.length > 0 ? primaryMuscles[0] : 'Other'}
+    />
+  );
 
   // Tabs scroll horizontally so every tab stays reachable at 320pt
   // (fixed flex:1 tabs clipped "Charts" off the right edge).
@@ -422,19 +416,6 @@ const ChartsTab = ({ exerciseId }: { exerciseId: string }) => {
 };
 
 const getStyles = (theme: Theme) => StyleSheet.create({
-  heroContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  heroPlaceholder: {
-    width: 120,
-    height: 120,
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.sm,
-  },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,

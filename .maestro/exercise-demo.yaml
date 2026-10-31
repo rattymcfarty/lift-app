@@ -1,0 +1,33 @@
+# Exercise demo clips: the bench press guide loops its bundled movement clip,
+# and an exercise with no clip keeps the same media slot as a placeholder.
+# Run: maestro test .maestro/exercise-demo.yaml   (fresh state)
+appId: app.lift.mobile
+---
+- launchApp:
+    clearState: true
+- runFlow: _skip-onboarding.yaml
+- tapOn:
+    id: "tab-exercises"
+- assertVisible: "Browse Exercises"
+
+# An exercise without a clip still has the media slot, clearly marked. Barbell
+# Squat is the first row of the curated foundational list, so no search needed.
+- assertVisible:
+    id: "browse-exercise-row-barbell-squat"
+- tapOn:
+    id: "browse-exercise-row-barbell-squat"
+- assertVisible:
+    id: "exercise-demo-placeholder"
+- assertVisible: "Movement demo coming soon"
+- pressKey: back
+
+# The one clip that ships today.
+- tapOn:
+    id: "browse-exercises-search"
+- inputText: "Bench Press - Powerlifting"
+- hideKeyboard
+- tapOn:
+    id: "browse-exercise-row-bench-press-powerlifting"
+- assertVisible:
+    id: "exercise-demo"
+- assertVisible: ".*Movement demo.*"
