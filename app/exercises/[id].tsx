@@ -92,7 +92,7 @@ export default function ExerciseDetailScreen(): JSX.Element {
   const renderHeroImage = () => (
     <ExerciseDemo
       exerciseId={exercise.kbId ?? exercise.id}
-      exerciseName={exercise.name}
+      exerciseName={displayName(exercise)}
       primaryMuscle={primaryMuscles.length > 0 ? primaryMuscles[0] : 'Other'}
     />
   );

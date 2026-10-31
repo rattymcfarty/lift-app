@@ -3,8 +3,9 @@
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
 > Last updated: 2026-10-31 — the first exercise movement clip (Bench Press - Powerlifting) in the
-> guide, with a platform-safe loop component, a generated clip registry, a placeholder for every
-> other exercise, and the storage plan for future clips. Before that: a bar that never disappears
+> guide, now full-width with a tap-to-expand full-screen viewer, a platform-safe loop component, a
+> generated clip registry, a placeholder for every other exercise, and the storage plan for future
+> clips. Before that: a bar that never disappears
 > (three doors, larger, always visible)
 > where Train IS the running workout (no Resume step, no paused-looking stop), Programs behind one
 > Create door in a decluttered left menu, a settings-only right panel, an Analytics volume window
@@ -21,18 +22,21 @@
 - [opencode] **First exercise demo clip — 2026-10-31 (committed).** `Bench Press - Powerlifting`
   now has a bundled 3 s silent movement loop at the top of its guide. `ExerciseDemo`
   (`src/components/exercise/ExerciseDemo.tsx`) uses `expo-video`: muted autoplay, loop, no
-  controls, no fullscreen, cover crop, `textureView` on Android so the rounded tile clips, pause
-  on blur and app background, and Reduce Motion falls back to the still muscle icon. Exercises
-  without a clip get the same 120 pt tile with the primary-muscle icon + "Movement demo coming
-  soon". Clips live in `assets/exercises/demos/<kb-id>.mp4`;
-  `scripts/gen-exercise-demo-registry.mjs` regenerates the static registry
-  (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` enforces 720² / 24 fps / 3 s /
-  H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match. Storage decision: bundle the small
-  set now (offline, no new network call); 433 per-exercise clips (~195 MB) would not ship, so
-  future scale is bundled movement-pattern loops + per-exercise overrides hosted on the KB CDN
-  with on-demand cache (owner decision — it adds a network call). Device PASS: `exercise-demo`
-  (release APK, Android emulator; the tile visibly animates); Metro restarted with `--clear`
-  after the native module was added. `npm run verify` ALL GREEN.
+  controls, no inline fullscreen, cover crop, `textureView` on Android so the rounded tile clips,
+  pause on blur and app background, and Reduce Motion falls back to the still muscle icon. The
+  tile fills the guide width (capped at 420 pt) and opens a black full-screen viewer on tap (its
+  own player; the tile pauses underneath; Android back and the close button both dismiss). The
+  `expand` ActionIcon marks the affordance. Exercises without a clip get the same full-width tile
+  with the primary-muscle icon + "Movement demo coming soon". Clips live in
+  `assets/exercises/demos/<kb-id>.mp4`; `scripts/gen-exercise-demo-registry.mjs` regenerates the
+  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (46 assertions)
+  enforces 720² / 24 fps / 3 s / H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match and the
+  expand/close wiring. Storage decision: bundle the small set now (offline, no new network call);
+  433 per-exercise clips (~195 MB) would not ship, so future scale is bundled movement-pattern
+  loops + per-exercise overrides hosted on the KB CDN with on-demand cache (owner decision — it
+  adds a network call). Device PASS: `exercise-demo` (release APK, Android emulator; the tile
+  visibly animates and the viewer opens/closes); Metro restarted with `--clear` after the native
+  module was added. `npm run verify` ALL GREEN.
 
 - [opencode] **Train IS the running session — 2026-10-26 (committed).** Tapping the bar's Train
   door while a workout is open used to land on the Train page's "WORKOUT IN PROGRESS" card with
@@ -755,6 +759,26 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-31 — Full-width demo tile + full-screen viewer (opencode)
+
+- **The complaint:** the 120 pt tile read as a thumbnail; the owner asked for a
+  responsive tile that fills the area and a way to see it properly on the phone.
+- **Tile:** `ExerciseDemo` now uses `width: '100%'` + `aspectRatio: 1` with a
+  420 pt cap, so it is the guide's content width on a phone and stops growing on
+  a tablet. The placeholder and Reduce Motion tiles share the same geometry.
+- **Viewer:** tapping the tile (or the new `expand` ActionIcon badge) opens a
+  black full-screen `Modal` with the exercise name, a close button, and the
+  clip letterboxed with `contentFit="contain"`. It has its own player; the tile
+  pauses underneath, resumes when the viewer closes if the guide is focused,
+  and Android back closes it. The status bar goes light while it is open.
+- **Source:** the 720² clip is unchanged. At full width on a 3× phone it
+  upscales ~1.5×; that is fine for the soft studio render. Do not upscale it to
+  1080 — author future clips at 1080² if pixel-perfect full width matters.
+- **Tests:** `test:exercise-demo` now 46 assertions (responsive geometry, tap,
+  modal, close, affordance). The `exercise-demo` flow taps expand, asserts the
+  viewer and close, closes it, asserts it is gone, and still checks the
+  placeholder. `npm run verify` ALL GREEN.
 
 ### 2026-10-31 — First movement clip in the guide (opencode)
 

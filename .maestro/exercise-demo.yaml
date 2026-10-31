@@ -31,3 +31,15 @@ appId: app.lift.mobile
 - assertVisible:
     id: "exercise-demo"
 - assertVisible: ".*Movement demo.*"
+- tapOn:
+    id: "exercise-demo-expand"
+- assertVisible:
+    id: "exercise-demo-fullscreen"
+- assertVisible:
+    id: "exercise-demo-close"
+- tapOn:
+    id: "exercise-demo-close"
+- assertNotVisible:
+    id: "exercise-demo-fullscreen"
+- assertVisible:
+    id: "exercise-demo"

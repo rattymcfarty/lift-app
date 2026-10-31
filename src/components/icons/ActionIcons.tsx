@@ -25,6 +25,7 @@ export type ActionIconName =
   | 'chevron-down'
   | 'close'
   | 'chevron-right'
+  | 'expand'
   | 'arrow-up'
   | 'arrow-down'
   | 'grip'
@@ -137,6 +138,13 @@ export function ActionIcon({ name, color, size = 22 }: { name: ActionIconName; c
         </>
       ) : name === 'chevron-right' ? (
         <Polyline points="9.5 6 15.5 12 9.5 18" {...c} />
+      ) : name === 'expand' ? (
+        <>
+          <Polyline points="4.5 9 4.5 4.5 9 4.5" {...c} />
+          <Polyline points="15 4.5 19.5 4.5 19.5 9" {...c} />
+          <Polyline points="19.5 15 19.5 19.5 15 19.5" {...c} />
+          <Polyline points="9 19.5 4.5 19.5 4.5 15" {...c} />
+        </>
       ) : name === 'arrow-up' ? (
         <>
           <Line x1={12} y1={19} x2={12} y2={5} {...c} />

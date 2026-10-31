@@ -17,9 +17,14 @@ placeholder tile (its primary-muscle icon + "Movement demo coming soon").
 | Size cap | 500 KB (aim 300–400 KB) |
 | Container | MP4, `+faststart` (index at the front) |
 
-720 px is deliberate: the tile is 120 pt, so 720 covers a 3× screen and still
-leaves headroom for a 160 pt hero later. 1080 is wasted bytes; 480 is soft when
-previewed on a desktop.
+720 px is deliberate: the tile fills the guide's content width (capped at 420 pt)
+so it is crisp at 2× and upscales about 1.5× on a 3× phone — acceptable for the
+soft studio render. Do not upscale an existing 720 clip to 1080: the bytes grow
+without new detail. If a future pass wants a pixel-perfect full-width tile on
+3× screens, author those clips at 1080² and relax the contract then.
+
+The guide also opens the clip full screen on tap (the same file, letterboxed on
+black with a close button), so there is no second asset to ship.
 
 ## Adding a clip
 

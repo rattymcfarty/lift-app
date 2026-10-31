@@ -118,15 +118,25 @@ ok(/p\.muted = true/.test(component), 'the loop is muted (iOS autoplay requires 
 ok(/nativeControls=\{false\}/.test(component), 'the loop shows no native controls');
 ok(/contentFit="cover"/.test(component), 'the clip cover-crops the square tile');
 ok(/surfaceType="textureView"/.test(component), 'Android clips the video to the rounded tile');
-ok(/fullscreenOptions=\{\{ enable: false \}\}/.test(component), 'the tile cannot open fullscreen');
+ok(/fullscreenOptions=\{\{ enable: false \}\}/.test(component), 'the inline tile cannot open native fullscreen');
 ok(/useFocusEffect/.test(component), 'the loop pauses when the screen loses focus');
 ok(/AppState\.addEventListener/.test(component), 'the loop pauses when the app backgrounds');
 ok(/reduceMotionChanged/.test(component), 'Reduce Motion is observed');
 ok(/exercise-demo-placeholder/.test(component), 'a placeholder exists for exercises without a clip');
 ok(/Movement demo coming soon/.test(component), 'the placeholder says a demo is coming');
+ok(/width: '100%'/.test(component) && /aspectRatio: 1/.test(component), 'the tile fills the guide width and stays square');
+ok(/maxWidth: maxSize/.test(component), 'the tile is capped so a tablet does not get a wall of video');
+ok(/exercise-demo-expand/.test(component), 'the tile is tappable to expand');
+ok(/<Modal/.test(component) && /onRequestClose=\{onClose\}/.test(component), 'the full-screen viewer is a dismissible modal');
+ok(/exercise-demo-fullscreen/.test(component), 'the full-screen viewer has its own test id');
+ok(/exercise-demo-close/.test(component), 'the full-screen viewer has a close control');
+ok(/name="expand"/.test(component), 'the tile shows the expand affordance');
 
 const flow = readFileSync(join(root, '.maestro', 'exercise-demo.yaml'), 'utf8');
 ok(/id: "exercise-demo"/.test(flow), 'the Maestro flow checks the clip tile');
 ok(/id: "exercise-demo-placeholder"/.test(flow), 'the Maestro flow checks the placeholder');
+ok(/id: "exercise-demo-expand"/.test(flow), 'the Maestro flow opens the full-screen viewer');
+ok(/id: "exercise-demo-fullscreen"/.test(flow), 'the Maestro flow checks the full-screen viewer');
+ok(/id: "exercise-demo-close"/.test(flow), 'the Maestro flow closes the full-screen viewer');
 
 console.log(`test:exercise-demo — ${n} assertions passed`);
