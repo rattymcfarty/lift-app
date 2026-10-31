@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- **The Dumbbell Bench Press demo.** The second bundled clip (`dumbbell-bench-press`, 720 × 720,
+  3 s, 415 KB) opens the same full-width tile and full-screen viewer. The flat bench has a rear
+  post and T-foot so it stands on the floor, the dumbbells are 210 mm heads on 38 mm handles, and
+  each wrist gives the dumbbells a few degrees of inward tilt with a slight left/right difference
+  — they are never rigidly mirror-locked. The animation skill's `natural_motion_check()` now
+  rejects a perfectly rigid or perfectly mirrored implement, with a small smooth attitude
+  variation required. The queue for the rest of the catalogue is in
+  `docs/product/ANIMATION_PLAN.md`.
+
 - **The first movement demo: Bench Press - Powerlifting.** The exercise guide now opens with a
   silent 3-second loop of the lift — 720 × 720, H.264, 458 KB — in the house "neon studio" look.
   The tile fills the guide width (capped at 420 pt), autoplays muted, has no controls or audio,

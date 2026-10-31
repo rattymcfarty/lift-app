@@ -1,8 +1,10 @@
 # Exercise demo clips
 
 Short, silent movement loops shown at the top of an exercise guide. The first
-one is `bench-press-powerlifting.mp4`; every other exercise currently gets the
-placeholder tile (its primary-muscle icon + "Movement demo coming soon").
+two are `bench-press-powerlifting.mp4` and `dumbbell-bench-press.mp4`; every
+other exercise currently gets the placeholder tile (its primary-muscle icon +
+"Movement demo coming soon"). The queue and priority order live in
+`docs/product/ANIMATION_PLAN.md`.
 
 ## Contract
 
@@ -48,6 +50,10 @@ black with a close button), so there is no second asset to ship.
 
    It checks the registry against the files, that every id is a real KB
    exercise, and the size/codec/duration/audio limits.
+5. Every clip must also pass the animation skill's `natural_motion_check()`:
+   the implement needs a small, smooth attitude variation (e.g. a few degrees
+   of inward tilt) and a slight left/right difference. A perfectly rigid or
+   perfectly mirrored implement is rejected before encoding.
 
 ## Where future clips live
 
@@ -55,8 +61,9 @@ black with a close button), so there is no second asset to ship.
   lunge, carry, core, mobility) at ~0.4 MB each is ~4 MB and gives every
   exercise a moving demo from day one. The KB already carries
   `movementPattern` for this mapping.
-- **Do not bundle one clip per exercise.** 433 exercises × ~0.45 MB is ~195 MB;
-  app stores and users will not accept that.
+- **Do not bundle one clip per exercise.** 631 exercises × ~0.42 MB is
+  ~265 MB; app stores and users will not accept that. Bundle the 50 curated
+  foundational clips first (~21 MB), then the movement-pattern loops.
 - **Per-exercise overrides, when they exist, should be hosted** (the KB's own
   CDN / object storage, same trust domain as `channel.json`) with a manifest and
   downloaded on demand into `expo-file-system`, cached, with the bundled pattern

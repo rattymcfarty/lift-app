@@ -56,11 +56,14 @@ const files = readdirSync(demosDir)
 const ids = files.map((f) => f.slice(0, -4));
 eq(demo.bundledDemoIds(), ids, 'the generated registry matches the MP4s on disk');
 ok(ids.includes('bench-press-powerlifting'), 'the bench press clip is bundled');
+ok(ids.includes('dumbbell-bench-press'), 'the dumbbell bench press clip is bundled');
 ok(demo.resolveExerciseDemo('bench-press-powerlifting'), 'the bench press resolves to an asset');
+ok(demo.resolveExerciseDemo('dumbbell-bench-press'), 'the dumbbell bench press resolves to an asset');
 eq(demo.resolveExerciseDemo('barbell-squat'), null, 'an exercise without a clip resolves to null');
 eq(demo.resolveExerciseDemo(null), null, 'a missing id resolves to null');
 ok(!demo.hasExerciseDemo('barbell-squat'), 'hasExerciseDemo is false for a missing clip');
 ok(demo.hasExerciseDemo('bench-press-powerlifting'), 'hasExerciseDemo is true for the bench press');
+ok(demo.hasExerciseDemo('dumbbell-bench-press'), 'hasExerciseDemo is true for the dumbbell bench press');
 
 const bundle = JSON.parse(readFileSync(join(root, 'assets/kb/snapshot/bundle.json'), 'utf8'));
 const kbIds = new Set(bundle.exercises.map((e) => e.id));
@@ -138,5 +141,11 @@ ok(/id: "exercise-demo-placeholder"/.test(flow), 'the Maestro flow checks the pl
 ok(/id: "exercise-demo-expand"/.test(flow), 'the Maestro flow opens the full-screen viewer');
 ok(/id: "exercise-demo-fullscreen"/.test(flow), 'the Maestro flow checks the full-screen viewer');
 ok(/id: "exercise-demo-close"/.test(flow), 'the Maestro flow closes the full-screen viewer');
+
+const dumbbellFlow = readFileSync(join(root, '.maestro', 'exercise-demo-dumbbell.yaml'), 'utf8');
+ok(/dumbbell-bench-press/.test(dumbbellFlow), 'the dumbbell flow opens the dumbbell guide');
+ok(/id: "exercise-demo"/.test(dumbbellFlow), 'the dumbbell flow checks the clip tile');
+ok(/id: "exercise-demo-fullscreen"/.test(dumbbellFlow), 'the dumbbell flow checks the full-screen viewer');
+ok(/id: "exercise-demo-close"/.test(dumbbellFlow), 'the dumbbell flow closes the full-screen viewer');
 
 console.log(`test:exercise-demo — ${n} assertions passed`);

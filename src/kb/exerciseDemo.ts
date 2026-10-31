@@ -29,6 +29,7 @@ export const DEMO_SPEC = {
 // === BEGIN GENERATED REGISTRY ===
 const REGISTRY: Record<string, number> = {
   'bench-press-powerlifting': require('../../assets/exercises/demos/bench-press-powerlifting.mp4'),
+  'dumbbell-bench-press': require('../../assets/exercises/demos/dumbbell-bench-press.mp4'),
 };
 // === END GENERATED REGISTRY ===
 

@@ -2,10 +2,12 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-31 — the first exercise movement clip (Bench Press - Powerlifting) in the
-> guide, now full-width with a tap-to-expand full-screen viewer, a platform-safe loop component, a
-> generated clip registry, a placeholder for every other exercise, and the storage plan for future
-> clips. Before that: a bar that never disappears
+> Last updated: 2026-10-31 — the second exercise movement clip (Dumbbell Bench Press) approved and
+> bundled, the natural-motion validation added to the animation skill, and the 631-exercise
+> animation queue planned in `docs/product/ANIMATION_PLAN.md`. Before that: the first clip
+> (Bench Press - Powerlifting) in the guide, now full-width with a tap-to-expand full-screen
+> viewer, a platform-safe loop component, a generated clip registry, a placeholder for every
+> other exercise, and the storage plan for future clips. Before that: a bar that never disappears
 > (three doors, larger, always visible)
 > where Train IS the running workout (no Resume step, no paused-looking stop), Programs behind one
 > Create door in a decluttered left menu, a settings-only right panel, an Analytics volume window
@@ -19,6 +21,17 @@
 > `npm run verify` is ALL GREEN, and the device re-run is done (see "Verified at last session"
 > in §1). The durable record of the round is §6 (session log).
 
+- [opencode] **Dumbbell Bench Press + animation queue — 2026-10-31 (committed).** The owner
+  approved `dumbbell-bench-press`; it is registered in `src/kb/exerciseDemo.ts` and covered by
+  `.maestro/exercise-demo-dumbbell.yaml`. The clip is 720² / 24 fps / 3 s / H.264 / yuv420p /
+  silent / 415 KB, with a rear bench leg pair, 210 mm dumbbell heads, and a few degrees of natural
+  inward tilt/yaw (slight left/right difference). The animation skill now has a permanent
+  `natural_motion_check()`: a perfectly rigid or perfectly mirrored implement fails, and the rule
+  is in **SKILL.md** under non-negotiable rules and feedback history. The queue for the remaining
+  629 exercises — pattern anchors → the 50 foundational → the long tail, batched by set kit — is
+  `docs/product/ANIMATION_PLAN.md`. Next: `barbell-squat` (rack kit), then `front-barbell-squat`
+  and `overhead-press`; each clip is posted in chat for review and only registered after approval.
+
 - [opencode] **First exercise demo clip — 2026-10-31 (committed).** `Bench Press - Powerlifting`
   now has a bundled 3 s silent movement loop at the top of its guide. `ExerciseDemo`
   (`src/components/exercise/ExerciseDemo.tsx`) uses `expo-video`: muted autoplay, loop, no
@@ -29,7 +42,7 @@
   `expand` ActionIcon marks the affordance. Exercises without a clip get the same full-width tile
   with the primary-muscle icon + "Movement demo coming soon". Clips live in
   `assets/exercises/demos/<kb-id>.mp4`; `scripts/gen-exercise-demo-registry.mjs` regenerates the
-  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (46 assertions)
+  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (66 assertions)
   enforces 720² / 24 fps / 3 s / H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match and the
   expand/close wiring. Storage decision: bundle the small set now (offline, no new network call);
   433 per-exercise clips (~195 MB) would not ship, so future scale is bundled movement-pattern
@@ -451,6 +464,11 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ## 2. Next up (priority order)
 
+**Active programme — exercise animations.** The queue is `docs/product/ANIMATION_PLAN.md`:
+2 of 631 clips are done (bench press, dumbbell bench press). The next batch is the **rack kit** —
+`barbell-squat` first, then `front-barbell-squat` and `overhead-press`. Every clip is posted in
+the chat for human review; only approved clips are registered, tested, built and committed.
+
 00. **Owner actions from `docs/ops/SECRETS_POLICY.md` §6** — GitHub email privacy
     (a personal Gmail address is in 42 + 39 historical commits; decision A/B/C in §4),
     2FA, Dependabot, and an off-rig encrypted keystore backup.
@@ -759,6 +777,26 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-10-31 — Dumbbell demo approved; animation queue planned (opencode)
+
+- **Approved:** the owner accepted the Dumbbell Bench Press clip after the natural-motion pass.
+  It is registered (`src/kb/exerciseDemo.ts`), has its own `exercise-demo-dumbbell` Maestro flow,
+  and joins the bench press in the guide. 720² / 24 fps / 3 s / 415 KB.
+- **Natural motion:** the dumbbells tilt inward a few degrees at the top, carry a small yaw and a
+  slow drift, and the two sides differ slightly. The hands roll with the handles. The animation
+  skill now has `natural_motion_check()` and a permanent rule: a perfectly rigid or perfectly
+  mirrored implement fails; the variation must stay ≤1.5°/frame. This is the owner's human-motion
+  validation, recorded in the skill, not a one-off.
+- **Queue:** `docs/product/ANIMATION_PLAN.md` covers all **631** exercises (2 done): 10 pattern
+  anchors → the 50 foundational in owner order → the common 100 → the long tail. Production is
+  batched by set kit (rack, floor+barbell, pull-up bar, mat, dumbbells, cable, machines, cardio)
+  so a new variant reuses the scene. First batch: rack — `barbell-squat`, `front-barbell-squat`,
+  `overhead-press`. Storage: bundle the 50 foundational (~21 MB); host the long tail on the KB CDN
+  with on-demand cache (owner decision — adds a network call); 631 bundled would be ~265 MB.
+- **Review contract:** every candidate is posted in the chat as the 3 s MP4 + a contact sheet;
+  the owner approves before registry/test/build/commit. No unapproved clip is committed.
+- `npm run verify` ALL GREEN; `exercise-demo` and `exercise-demo-dumbbell` Maestro flows PASS.
 
 ### 2026-10-31 — Full-width demo tile + full-screen viewer (opencode)
 
