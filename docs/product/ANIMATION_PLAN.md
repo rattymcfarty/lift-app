@@ -86,7 +86,28 @@ touch; grip; worked muscles; the camera that shows them; any rule that must be a
 |---|---|---|
 | Bench + rack | skill `lift_toon_scene.py` (bench, in the private package) | `bench-press-powerlifting`, `dumbbell-bench-press` |
 | Rack + barbell on the back | `scripts/animation/lift_squat.py` | `barbell-squat` (done) |
-| Floor + barbell, straight arms | `scripts/animation/lift_deadlift.py` | `barbell-deadlift` (in progress) |
+| Floor + barbell, straight arms | `scripts/animation/lift_deadlift.py` | `barbell-deadlift` (in progress — see "Deadlift: where it stands") |
+
+## Deadlift: where it stands (2026-11-01, for the next agent)
+
+Not rendered yet; nothing to review. Run the fast check, never the full render, until it passes:
+`blender -b --factory-startup --disable-autoexec ~/lift/animation-work/assets/character/blender/Blender.blend --python scripts/animation/lift_deadlift.py -- /tmp/chk check style=neon`
+(≈ 6 min with the emulator paused; report in `/tmp/chk/physics_report.txt`). Stills: `-- /tmp/s 0.55 nolayers --debug` (depth 1 = floor, 0 = lockout).
+
+Fixed: grip, fingers, hand-roll flips, foot contact; **both elbows now stay ≈ 15°** (trunk rolls with the bar tilt
+and the hip height is solved for both arms); knees now straighten steadily off the floor (`hold=0.6`).
+
+Still failing (last check: 37 entries):
+1. **Bar 0.8–1.4 cm into the shins/knees** at the floor (frames 1–9, 66–72, knee ≈ 116°) and as it passes the knees
+   (frames 16–19, 56–58). `--debug` shows the nearest vertex is the front of the knee/shin, so the test is right.
+   Root cause: hip height is solved from arm reach, so pushing the bar out lowers the hips and the knees follow it.
+   Tried and rejected: more `kneeclear` (no effect), `barfwd` (noisy), steeper `lean1` (worse), an automatic
+   per-frame hip setback (`adapt`, opt-in now: it made the floor frames worse). **Next idea:** solve the shin angle
+   directly: put the knee where the shin stays ~1 cm behind the bar (two-bone leg from ankle to hip with the knee
+   constrained), then derive the hip; or start shallower (bar higher on the shin is not allowed — plates fix it).
+2. **Trunk lean changes too fast** around frames 20–26 / 52–55 (`lean jumps 8°/frame`, arm twist steps 4°): the
+   `hold` curve compresses the back-angle change into depth 0–0.6. Spread it (e.g. `hold=0.8` or a gentler curve).
+3. Elbows reach 25° for one frame at 25 and 52 (same cause as 2).
 
 ## Priority order
 
@@ -99,7 +120,7 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 | # | KB id | Exercise | Pattern | Status |
 |---|---|---|---|---|
 | 1 | `barbell-squat` | Barbell Squat | squat | **done** |
-| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | **in progress** (claude) |
+| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | **in progress** (claude) — checks failing, see "Deadlift: where it stands" |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | **done** |
 | 4 | `overhead-press` | Overhead Press | vertical push | queued · brief ready |
 | 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued · brief ready |

@@ -41,6 +41,14 @@
   analytics, accounts or PII. The squat stills from the earlier attempt are not shipped; the other
   agent's `Barbell Squat` clip will match automatically.
 
+- [claude] **Render pipeline hardened + deadlift diagnosis — 2026-11-01 (in flight).** `scripts/animation/render_clip.sh`
+  now does preflight (memory, disk, no second Blender), freezes the Android emulator for the run (SIGSTOP, resumed on
+  exit), runs a 72-frame **check pass with no render** first, then renders under a watchdog with `progress.txt`
+  (exit codes 0 ready · 1 check failed · 2 tooling · 3 resources · 4 stall/timeout). The Craft Suite **is** installed
+  (`/usr/bin/filmcraft-cli`, `effectcraft-cli`, `vectorcraft-cli`); `lift_tile_encode_fc.sh` is the bash FilmCraft
+  encoder (verified; ffmpeg stays default, `LIFT_ENCODER=filmcraft` to use it). EEVEE already renders on the GTX 1070.
+  Toolchain table: `scripts/animation/README.md`. **Deadlift is not passing yet** — exact failures, what was tried
+  and the next idea are in `docs/product/ANIMATION_PLAN.md` → "Deadlift: where it stands".
 - [claude] **Animation production team — 2026-11-01.** Claude Code (lead: scripts, renders, review posts, registration and push after
   the owner approves) and OpenCode (helper: exercise briefs, KB checks, doc upkeep; cannot run Blender) now work the clip queue together
   on this rig. The protocol, claim rule (Status cell), one-render-at-a-time lock and the how-to-delegate command are in

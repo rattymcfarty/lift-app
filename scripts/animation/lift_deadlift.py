@@ -22,14 +22,15 @@ from mathutils import Matrix, Vector
 argv = sys.argv[sys.argv.index("--") + 1:]
 OUT = Path(argv[0])
 TILE = len(argv) > 1 and argv[1] == "tile"     # app tile, spec in lift_palette.json "tile"
-ANIM = len(argv) > 1 and argv[1] in ("anim", "tile")
+CHECK_ONLY = len(argv) > 1 and argv[1] == "check"   # solve + check all 72 frames, no render (about a minute)
+ANIM = len(argv) > 1 and argv[1] in ("anim", "tile", "check")
 P = 0.0 if ANIM or len(argv) < 2 or "=" in argv[1] else float(argv[1])
 DEBUG = "--debug" in argv
 # Look: every colour, light and effect comes from lift_palette.json (style=neon by default, or studio).
 STYLE = next((a.split("=")[1] for a in argv if a.startswith("style=")), "neon")
 PALETTES = json.loads((Path(__file__).with_name("lift_palette.json")).read_text())
 PAL, TILE_SPEC = PALETTES[STYLE], PALETTES["tile"]
-FPS, SECONDS = (TILE_SPEC["fps"], float(TILE_SPEC["seconds"])) if TILE else (30, 6.0)
+FPS, SECONDS = (TILE_SPEC["fps"], float(TILE_SPEC["seconds"])) if (TILE or CHECK_ONLY) else (30, 6.0)
 OUT.mkdir(parents=True, exist_ok=True)
 TEX = Path(bpy.data.filepath).parent.parent / "textures" / "Textures"
 
@@ -392,6 +393,7 @@ L1 = RIG.data.bones["ORG-thigh.L"].length
 L2 = RIG.data.bones["ORG-shin.L"].length
 SH0 = (wb("ORG-upper_arm.L") + wb("ORG-upper_arm.R")) / 2
 SHL0 = wb("ORG-upper_arm.L")
+SHR0 = wb("ORG-upper_arm.R")
 ARM_LEN = RIG.data.bones["ORG-upper_arm.L"].length + RIG.data.bones["ORG-forearm.L"].length
 _rest = [BODY.matrix_world @ v.co for v in BODY.data.vertices]
 FOOT_IDX = [i for i, p in enumerate(_rest) if p.z < 0.12]
@@ -590,7 +592,7 @@ def wrap_fingers(bar_pts):
 # --- the movement: depth 0 standing lockout, 1 the bar on the floor
 ss_ = lambda u: u * u * (3 - 2 * u)
 TH_TOP, TH_BOT = float(next((a.split("=")[1] for a in argv if a.startswith("lean0=")), "2.0")), float(next((a.split("=")[1] for a in argv if a.startswith("lean1=")), "62.0"))
-HY_TOP, HY_BOT = -0.02, float(next((a.split("=")[1] for a in argv if a.startswith("hipback=")), "0.16"))   # hip y relative to the ankles
+HY_TOP, HY_BOT = -0.02, float(next((a.split("=")[1] for a in argv if a.startswith("hipback=")), "0.20"))   # hip y relative to the ankles
 TILT_DEG = float(next((a.split("=")[1] for a in argv if a.startswith("tilt=")), "1.2"))
 BAR_Y_FLOOR = MIDFOOT_Y - float(next((a.split("=")[1] for a in argv if a.startswith("barfwd=")), "0.03"))
 BAR_Y_TOP = THIGH_FRONT - BAR_R + 0.004
@@ -613,6 +615,9 @@ def max_hip_z(hy):
 
 def trunk_T(h, th, roll=0.0):
     return Matrix.Translation(h) @ ry4(roll) @ Matrix.Rotation(th, 4, "X") @ Matrix.Translation(-HIP0)
+
+
+BAR_EXTRA = [float(next((a.split("=")[1] for a in argv if a.startswith("hipx=")), "0"))]   # per-frame extra hip setback (m), found by a first pass: moving the hips back takes the knees off the bar (moving the bar out does not: the knees follow it)
 
 
 def bar_path(d, z_top):
@@ -638,18 +643,25 @@ def need_reach(shL, barL):
     return (barL - o - shL).length
 
 
+HOLD_FROM = float(next((a.split("=")[1] for a in argv if a.startswith("hold=")), "0.6"))
+
+
 def hips_for(d, bar):
     """Hip centre for depth d: trunk lean and hip setback follow the depth; the hip height is the one value
     that puts the straight arms from the shoulders exactly onto the bar."""
-    th = math.radians(TH_TOP + (TH_BOT - TH_TOP) * d)
-    hy = AY + HY_TOP + (HY_BOT - HY_TOP) * d
-    barL = bar + Vector((GRIP, 0, 0))
+    k = ss_(min(max(d / HOLD_FROM, 0.0), 1.0))          # back angle holds off the floor (knees straighten first), then the hips come through
+    th = math.radians(TH_TOP + (TH_BOT - TH_TOP) * k)
+    hy = AY + HY_TOP + (HY_BOT - HY_TOP) * k + BAR_EXTRA[0]
+    a = math.radians(tilt_of(d))
+    barL = bar + Vector((GRIP * math.cos(a), 0, -GRIP * math.sin(a)))
+    barRm = bar + Vector((GRIP * math.cos(a), 0, GRIP * math.sin(a)))      # right grip, mirrored into the left arm's frame
     lo, hi = 0.15, 1.2
     for _ in range(40):
         zh = (lo + hi) / 2
-        T = trunk_T(Vector((0.0, hy, zh)), th)
+        T = trunk_T(Vector((0.0, hy, zh)), th, tilt_of(d))
         shL = T @ SHL0
-        if need_reach(shL, barL) > ARM_LEN * 0.99:
+        shR = T @ SHR0
+        if max(need_reach(shL, barL), need_reach(Vector((-shR.x, shR.y, shR.z)), barRm)) > ARM_LEN * 0.99:
             hi = zh                                      # shoulders too far from the bar: lower the hips
         else:
             lo = zh
@@ -681,7 +693,7 @@ def pose_body(d, bar, roll=0.0):
     """Legs, trunk and head for depth d (arms are solved separately)."""
     reset(SPINE_MOVERS + LEG_MOVERS)
     h, th = hips_for(d, bar)
-    T = trunk_T(h, th, roll)
+    T = trunk_T(h, th, roll if roll else tilt_of(d))      # shoulders follow the bar's tilt, so both arms stay straight
     move_bone("torso", T)
     rotate_about("neck", X_AXIS, -0.45 * th)             # eyes stay forward-down, neck in line with the spine
     rotate_about("head", X_AXIS, -0.3 * th)
@@ -837,6 +849,9 @@ def physics_check(bar, d, tilt_deg):
     dist = np.linalg.norm(v - np.outer(v @ np.array(X_AXIS), np.array(X_AXIS)), axis=1)
     gap = (float(dist.min()) - BAR_R) * 100
     out["bar_leg_gap_cm"] = round(gap, 2)
+    if DEBUG:
+        j = int(dist.argmin()); r = _rest[LEG_IDX[j]]
+        print("GAPDBG nearest vertex rest", [round(r.x, 3), round(r.y, 3), round(r.z, 3)], "world", [round(float(c), 3) for c in pts[j]], "bar", [round(c, 3) for c in bar])
     if gap < -0.8:
         fails.append(f"bar passes through the legs ({gap:.2f} cm)")
     if d < 0.02 and gap > 2.5:
@@ -1000,7 +1015,11 @@ def key_frame(f, bar, tilt_deg, d):
     glow.keyframe_insert("default_value", frame=f)
 
 
+EXTRA = {}
+
+
 def solve_frame(f, d):
+    BAR_EXTRA[0] = EXTRA.get(f, 0.0) if ANIM else BAR_EXTRA[0]
     bar = bar_path(d, Z_TOP)
     tilt = tilt_of(d)
     T, th = pose_body(d, bar)
@@ -1022,6 +1041,16 @@ if ANIM:
     sc0 = bpy.context.scene
     sc0.render.fps = FPS
     sc0.frame_start, sc0.frame_end = 1, int(FPS * SECONDS)
+    NF = sc0.frame_end
+    gaps = {}
+    for f in (range(1, NF + 1) if "adapt" in argv else ()):     # opt-in: 2026-11-01 the setback made the floor frames worse                     # pass 1: where does the bar press into the legs?
+        gaps[f] = solve_frame(f, rep((f - 1) / FPS))[2].get("bar_leg_gap_cm", 1.0)
+    need = [0.0] * NF if not gaps else [min(0.06, 1.5 * max(0.0, 0.30 - gaps[f]) / 100.0) for f in range(1, NF + 1)]
+    dil = [max(need[(i + k) % NF] for k in range(-4, 5)) for i in range(NF)]       # widen, then smooth: the bar glides, never jerks
+    smooth = [sum(dil[(i + k) % NF] for k in range(-2, 3)) / 5.0 for i in range(NF)]
+    EXTRA.update({i + 1: smooth[i] for i in range(NF)})
+    print("CLEARANCE extra cm max", round(max(smooth) * 100, 2))
+    PREV_TWIST.clear(); PREV_STEP.clear(); SERIES.clear()
     for f in range(sc0.frame_start, sc0.frame_end + 1):
         sc0.frame_set(f)
         d = rep((f - 1) / FPS)
@@ -1033,6 +1062,12 @@ if ANIM:
     nm = natural_motion_check(SERIES)
     if nm:
         FAILS.append(("motion", {"fails": nm}))
+    if CHECK_ONLY:
+        OUT.mkdir(parents=True, exist_ok=True)
+        lines = [f"frame {f}: {c['fails']} bar_leg_gap={c.get('bar_leg_gap_cm')} joints={c.get('joints_deg')}" if f != "motion" else f"motion: {c['fails']}" for f, c in FAILS]
+        (OUT / "physics_report.txt").write_text("\n".join(lines) + "\n" if lines else "all 72 frames pass the grip, arm, gravity, proportion and smoothness rules\n")
+        print("CHECK-ONLY", "FAILED on %d entries" % len(FAILS) if FAILS else "PASSED")
+        raise SystemExit(1 if FAILS else 0)
 else:
     bar, tilt, chk = solve_frame(1, P)
     print("PHYSICS", chk)

@@ -2,6 +2,13 @@
 
 ## Unreleased (addendum)
 
+- **Animation render pipeline hardened (tooling only, no app change).** `scripts/animation/render_clip.sh` checks
+  memory/disk and a second Blender before starting, pauses the Android emulator for the run, checks all 72 frames
+  before rendering, and watches the render (progress file, stall/timeout kill, distinct exit codes). New
+  `lift_tile_encode_fc.sh` encodes tiles with FilmCraft as an option; ffmpeg stays the default. The README documents
+  the rig's toolchain (Blender on the GPU, Craft Suite paths). Deadlift work in progress: elbows and knee motion fixed,
+  bar–shin clearance still failing (see `docs/product/ANIMATION_PLAN.md`).
+
 - **Barbell Squat demo (pattern anchor 1 of 10).** Third bundled movement clip, `barbell-squat.mp4`
   (3 s, 720², 413 KB): back squat in the rack kit, bar on the upper back, knees 11° to 128°. Passed
   `physics_check()` and `natural_motion_check()` on all 72 frames. `test:exercise-demo` now has 111
