@@ -36,6 +36,58 @@ perfectly rigid, perfectly straight or perfectly mirrored; `natural_motion_check
 small smooth attitude variation (a few degrees of inward tilt, a slight left/right difference) and
 rejects twitch. The physics report is attached to every review.
 
+## Production team and handoff (Claude Code + OpenCode)
+
+Two agents produce the clips on this rig (one machine, one Blender at a time). The owner is the only reviewer.
+
+| Role | Who | Does | Never does |
+|---|---|---|---|
+| **Lead / renderer** | Claude Code | Writes and debugs exercise scripts, runs `scripts/animation/render_clip.sh`, posts the MP4 + contact sheet, and after the owner's approval registers, tests, documents, commits and pushes | Pushes a clip the owner has not approved |
+| **Helper** | OpenCode (free models, `scripts/delegate.sh`) | Prepares everything that is safe without Blender: exercise **briefs** (`docs/product/animation/<kb-id>.md`, template `_TEMPLATE.md`), KB checks (id, aliases, equipment, primary muscles), queue/plan upkeep, doc and test updates after an approval | Run Blender (its shell is deny-by-default), push, or merge; any non-free model |
+| **Reviewer** | The owner | Approves or rejects each clip from the posted MP4; says what to change | — |
+
+**Why this split:** the helper's sandbox cannot (and should not) run arbitrary code such as Blender scripts. Briefs make
+each exercise a short, well-specified edit of a reference script, so the lead's time goes into pose debugging, not research.
+
+### Handoff rules
+
+1. **One render at a time.** `render_clip.sh` holds `/tmp/lift-render.lock`. A tile takes ~7 min. Do not start a second Blender.
+2. **Claims.** The *Status* cell in the queue tables is the claim: "in progress (claude)" = being scripted/rendered, "brief (opencode)" = brief being
+   written, "queued" = free. Take a free row by writing your name in its Status cell in your commit; never work a row someone else holds.
+3. **Order.** Follow the tier order below. Briefs run **ahead** of the renderer by about 10 exercises so the lead never waits.
+4. **A brief is done** when every template field is filled from the KB entry (`~/lift/lift-kb`) and the closest done clip is named.
+   Brief status goes to `brief`; the lead flips it to `scripted` / `rendered` / `in review` / `approved`.
+5. **Review gate unchanged** (above). On approval the lead copies the MP4 to `assets/exercises/demos/<kb-id>.mp4`,
+   runs `node scripts/gen-exercise-demo-registry.mjs`, `npm run test:exercise-demo`, `npm run verify`, updates this file,
+   CHANGELOG, HANDOFF and FEATURE_MATRIX, commits and pushes to `main`. Only bundled clips (the 50 foundational) take the registry step;
+   later clips are published under their display name (see `assets/exercises/demos/README.md`).
+6. **Free models only** for OpenCode; keep its sessions (owner can open them); one delegation at a time.
+7. **The character model is private.** It stays in `~/lift/animation-work/assets/character/` and is never committed or described to external services.
+
+### How to hand a task to OpenCode (lead)
+
+```bash
+scripts/delegate.sh run briefs-tier0-a "Write animation briefs for barbell-deadlift, overhead-press, pull-up-bodyweight \
+  using docs/product/animation/_TEMPLATE.md, the KB entries in ~/lift/lift-kb, scripts/animation/README.md and the two reference \
+  scripts. One file per exercise in docs/product/animation/. Do not edit anything else." -t 20
+```
+
+The lead reviews the branch (`scripts/delegate.sh diff <slug>`), runs `npm run verify`, and merges. If the owner wants to continue a
+task in OpenCode, leave its worktree (`cd ~/lift/delegations/<slug> && opencode -c`).
+
+### What the lead needs from a brief (so scripting is mostly editing)
+
+Pattern and kit; the reference script to copy; start and end pose in joint angles; where the implement travels; the supports that must
+touch; grip; worked muscles; the camera that shows them; any rule that must be added or relaxed *with the reason*.
+
+### Reference scripts and kits built so far
+
+| Kit | Script | Clips |
+|---|---|---|
+| Bench + rack | skill `lift_toon_scene.py` (bench, in the private package) | `bench-press-powerlifting`, `dumbbell-bench-press` |
+| Rack + barbell on the back | `scripts/animation/lift_squat.py` | `barbell-squat` (done) |
+| Floor + barbell, straight arms | `scripts/animation/lift_deadlift.py` | `barbell-deadlift` (in progress) |
+
 ## Priority order
 
 The owner's curated order is `src/lib/foundational.ts` (50 exercises). It is the spine: those are
@@ -47,7 +99,7 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 | # | KB id | Exercise | Pattern | Status |
 |---|---|---|---|---|
 | 1 | `barbell-squat` | Barbell Squat | squat | **done** |
-| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | next |
+| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | **in progress** (claude) |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | **done** |
 | 4 | `overhead-press` | Overhead Press | vertical push | queued |
 | 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued |

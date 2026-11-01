@@ -41,6 +41,12 @@
   analytics, accounts or PII. The squat stills from the earlier attempt are not shipped; the other
   agent's `Barbell Squat` clip will match automatically.
 
+- [claude] **Animation production team — 2026-11-01.** Claude Code (lead: scripts, renders, review posts, registration and push after
+  the owner approves) and OpenCode (helper: exercise briefs, KB checks, doc upkeep; cannot run Blender) now work the clip queue together
+  on this rig. The protocol, claim rule (Status cell), one-render-at-a-time lock and the how-to-delegate command are in
+  `docs/product/ANIMATION_PLAN.md` ("Production team and handoff"); the pipeline is `scripts/animation/` (`render_clip.sh`, reference scripts
+  `lift_squat.py` / `lift_deadlift.py`, README). Briefs go in `docs/product/animation/<kb-id>.md`. The private character file stays in
+  `~/lift/animation-work/assets/character/` and is never committed.
 - [opencode] **Dumbbell Bench Press + animation queue — 2026-10-31 (committed).** The owner
   approved `dumbbell-bench-press`; it is registered in `src/kb/exerciseDemo.ts` with **two demo
   versions** (`dumbbell-bench-press.mp4` and `dumbbell-bench-press__2.mp4`) and covered by
