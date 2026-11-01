@@ -32,6 +32,9 @@ export const DEMO_SPEC = {
 
 // === BEGIN GENERATED REGISTRY ===
 const REGISTRY: Record<string, number[]> = {
+  'barbell-deadlift': [
+    require('../../assets/exercises/demos/barbell-deadlift.mp4'),
+  ],
   'barbell-squat': [
     require('../../assets/exercises/demos/barbell-squat.mp4'),
   ],
@@ -44,6 +47,7 @@ const REGISTRY: Record<string, number[]> = {
   ],
 };
 const BUNDLED_FILES: readonly string[] = [
+  'barbell-deadlift.mp4',
   'barbell-squat.mp4',
   'bench-press-powerlifting.mp4',
   'dumbbell-bench-press.mp4',

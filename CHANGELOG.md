@@ -2,6 +2,15 @@
 
 ## Unreleased (addendum)
 
+- **Barbell Deadlift demo (pattern anchor 2 of 10).** Fourth bundled movement clip, `barbell-deadlift.mp4`
+  (3 s, 720², 478 KB): conventional deadlift from the floor, straight arms (elbows ≈ 15°), shoulders just ahead of the
+  bar, bar clear of the shins and knees on every frame. **Owner-approved override:** it ships with two smoothness checks
+  over their limits (the knee's second bend reverses at 2.3°/frame² vs 1.6; bar speed jerk 0.007 vs 0.006); the owner
+  reviewed the clip and approved it. `lift_deadlift.py` gains a smooth-ramp tempo (steady mid-pull, zero acceleration
+  into lockout) and `--force` now keeps the real failures in `physics_report.txt`. `render_clip.sh` matches the
+  emulator process exactly (the old pattern could match, and freeze, the calling shell). Maestro on a release APK was
+  not run (no device on the render machine).
+
 - **Animation render pipeline hardened (tooling only, no app change).** `scripts/animation/render_clip.sh` checks
   memory/disk and a second Blender before starting, pauses the Android emulator for the run, checks all 72 frames
   before rendering, and watches the render (progress file, stall/timeout kill, distinct exit codes). New

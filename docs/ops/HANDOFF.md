@@ -41,7 +41,12 @@
   analytics, accounts or PII. The squat stills from the earlier attempt are not shipped; the other
   agent's `Barbell Squat` clip will match automatically.
 
-- [claude] **Render pipeline hardened + deadlift diagnosis — 2026-11-01 (in flight).** `scripts/animation/render_clip.sh`
+- [claude] **Barbell Deadlift approved and shipped — 2026-11-01.** `barbell-deadlift.mp4` is the 4th bundled clip
+  (registry regenerated, `test:exercise-demo` 123 assertions, verify ALL GREEN). The owner approved it with two
+  smoothness checks over their limits (knee reversal, bar-speed jerk); details in `docs/product/ANIMATION_PLAN.md` →
+  "Deadlift: how it was solved". Next clip: `overhead-press` (barbell vs dumbbell needs the owner's answer). Proposal
+  `docs/product/animation/PRODUCTION_SYSTEM.md` (template + equipment library + Rigify IK + specs) awaits the owner's go.
+- [claude] **Render pipeline hardened + deadlift diagnosis — 2026-11-01 (done).** `scripts/animation/render_clip.sh`
   now does preflight (memory, disk, no second Blender), freezes the Android emulator for the run (SIGSTOP, resumed on
   exit), runs a 72-frame **check pass with no render** first, then renders under a watchdog with `progress.txt`
   (exit codes 0 ready · 1 check failed · 2 tooling · 3 resources · 4 stall/timeout). The Craft Suite **is** installed

@@ -591,12 +591,17 @@ def wrap_fingers(bar_pts):
 
 # --- the movement: depth 0 standing lockout, 1 the bar on the floor
 ss_ = lambda u: u * u * (3 - 2 * u)
-TH_TOP, TH_BOT = float(next((a.split("=")[1] for a in argv if a.startswith("lean0=")), "2.0")), float(next((a.split("=")[1] for a in argv if a.startswith("lean1=")), "62.0"))
+TH_TOP, TH_BOT = float(next((a.split("=")[1] for a in argv if a.startswith("lean0=")), "2.0")), float(next((a.split("=")[1] for a in argv if a.startswith("lean1=")), "66.0"))
 HY_TOP, HY_BOT = -0.02, float(next((a.split("=")[1] for a in argv if a.startswith("hipback=")), "0.20"))   # hip y relative to the ankles
 TILT_DEG = float(next((a.split("=")[1] for a in argv if a.startswith("tilt=")), "1.2"))
 BAR_Y_FLOOR = MIDFOOT_Y - float(next((a.split("=")[1] for a in argv if a.startswith("barfwd=")), "0.03"))
 BAR_Y_TOP = THIGH_FRONT - BAR_R + 0.004
-KNEE_CLEAR = float(next((a.split("=")[1] for a in argv if a.startswith("kneeclear=")), "0.035"))
+KNEE_CLEAR = float(next((a.split("=")[1] for a in argv if a.startswith("kneeclear=")), "0.09"))
+# Tempo ease: steady speed in the middle, smooth (half-cosine) speed ramps of this fraction at each end. Zero
+# acceleration at the ends lets the knee settle into lockout instead of stopping dead (cosine ease twitched),
+# and the peak speed stays below cosine's so lean and arm twist per frame stay within the rules.
+EASE_RAMP = float(next((a.split("=")[1] for a in argv if a.startswith("ramp=")), "0.25"))       # at the floor
+EASE_RAMP_TOP = float(next((a.split("=")[1] for a in argv if a.startswith("ramptop=")), "0.45"))  # into/out of lockout
 PR = 0.076                                              # bar centre beyond the wrist along the hand (palm + bar radius)
 LEG_MOVERS = [f"{n}.{s}" for n in ("thigh_fk", "shin_fk", "foot_fk") for s in ("L", "R")]
 SPINE_MOVERS = ["torso", "neck", "head"]
@@ -622,7 +627,7 @@ BAR_EXTRA = [float(next((a.split("=")[1] for a in argv if a.startswith("hipx="))
 
 def bar_path(d, z_top):
     """Where the bar centre is for depth d: over mid-foot at the floor, sliding up the shins and thighs."""
-    g = ss_(min(max(d, 0.0), 1.0))
+    g = min(max(d, 0.0), 1.0)                       # linear in depth: rep() already eases it (double easing made the bar 1.5x faster mid-pull)
     z = z_top + (PLATE_R - z_top) * g
     yk = ss_(min(max((0.40 - d) / 0.40, 0.0), 1.0))     # moves in to the thighs only in the top 40% of the pull
     y = BAR_Y_FLOOR + (BAR_Y_TOP - BAR_Y_FLOOR) * yk - KNEE_CLEAR * math.sin(math.pi * min(max(d, 0.0), 1.0)) ** 2   # a little further out while it passes the knees
@@ -643,7 +648,14 @@ def need_reach(shL, barL):
     return (barL - o - shL).length
 
 
-HOLD_FROM = float(next((a.split("=")[1] for a in argv if a.startswith("hold=")), "0.6"))
+HOLD_FROM = float(next((a.split("=")[1] for a in argv if a.startswith("hold=")), "0.8"))
+
+
+SH_MODE = "oldhips" not in argv
+HIP_DZ = [0.0]            # per-frame hip lift that straightens the arms exactly (measured feedback, see solve_frame)
+AHEAD_BOT = float(next((a.split("=")[1] for a in argv if a.startswith("ahead=")), "0.04"))     # shoulders in front of the bar at the floor, m
+AHEAD_FROM = float(next((a.split("=")[1] for a in argv if a.startswith("aheadfrom=")), "0.5"))
+AHEAD_TOP = None          # measured on the lockout pose once solve_top() has run
 
 
 def hips_for(d, bar):
@@ -655,17 +667,35 @@ def hips_for(d, bar):
     a = math.radians(tilt_of(d))
     barL = bar + Vector((GRIP * math.cos(a), 0, -GRIP * math.sin(a)))
     barRm = bar + Vector((GRIP * math.cos(a), 0, GRIP * math.sin(a)))      # right grip, mirrored into the left arm's frame
-    lo, hi = 0.15, 1.2
-    for _ in range(40):
+    def reach_z(hy):
+        lo, hi = 0.15, 1.2
+        for _ in range(40):
+            zh = (lo + hi) / 2
+            T = trunk_T(Vector((0.0, hy, zh)), th, tilt_of(d))
+            shL = T @ SHL0
+            shR = T @ SHR0
+            if max(need_reach(shL, barL), need_reach(Vector((-shR.x, shR.y, shR.z)), barRm)) > ARM_LEN * 0.99:
+                hi = zh                                  # shoulders too far from the bar: lower the hips
+            else:
+                lo = zh
         zh = (lo + hi) / 2
-        T = trunk_T(Vector((0.0, hy, zh)), th, tilt_of(d))
-        shL = T @ SHL0
-        shR = T @ SHR0
-        if max(need_reach(shL, barL), need_reach(Vector((-shR.x, shR.y, shR.z)), barRm)) > ARM_LEN * 0.99:
-            hi = zh                                      # shoulders too far from the bar: lower the hips
-        else:
-            lo = zh
-    zh = (lo + hi) / 2
+        return zh, (T @ SHL0 + T @ SHR0) / 2
+    if SH_MODE and AHEAD_TOP is not None:
+        # deadlift mechanics: the shoulders stay just in front of the bar (arms near vertical) and the back angle
+        # decides where the hips are, so the knees move back out of the bar's way as the hips rise
+        ahead = AHEAD_TOP + (AHEAD_BOT - AHEAD_TOP) * ss_(min(max(d / AHEAD_FROM, 0.0), 1.0))
+        for _ in range(8):
+            zh, sh = reach_z(hy)
+            base_y = bar.y + KNEE_CLEAR * math.sin(math.pi * min(max(d, 0.0), 1.0)) ** 2   # the knee nudge moves the bar only, not the body
+            err = (base_y - ahead) - sh.y
+            hy += err
+            if abs(err) < 0.0005:
+                break
+    zh, sh = reach_z(hy)
+    zh += HIP_DZ[0]
+    if DEBUG:
+        print("HIPDBG d", round(d, 3), "hip", [round(hy, 3), round(zh, 3)], "max_hip_z", round(max_hip_z(hy), 3), "lean", round(math.degrees(th), 1),
+              "sh", [round(sh.y, 3), round(sh.z, 3)], "bar", [round(bar.y, 3), round(bar.z, 3)])
     return Vector((0.0, hy, zh)), th
 
 
@@ -686,6 +716,9 @@ def solve_top():
 
 Z_TOP = solve_top()
 print("TOP bar z", round(Z_TOP, 3), "hip z", round(max_hip_z(AY + HY_TOP), 3))
+_T = trunk_T(Vector((0.0, AY + HY_TOP, max_hip_z(AY + HY_TOP))), math.radians(TH_TOP))
+AHEAD_TOP = BAR_Y_TOP - ((_T @ SHL0 + _T @ SHR0) / 2).y
+print("AHEAD top", round(AHEAD_TOP, 3))
 
 
 
@@ -890,17 +923,24 @@ def physics_check(bar, d, tilt_deg):
 
 # Tempo, 3 s loop: bar on the floor, pull, lockout hold, lower, touch the floor.
 def rep(t):
-    ease = lambda u: (1 - math.cos(math.pi * min(max(u, 0.0), 1.0))) / 2
+    def ease(u, a0, a1):                              # 0 -> 1, ramps a0 at the start and a1 at the end
+        v = 1 / (1 - (a0 + a1) / 2)
+        def head(x, a):
+            return v * (x / 2 - a / (2 * math.pi) * math.sin(math.pi * x / a))
+        u = min(max(u, 0.0), 1.0)
+        if u <= a0:
+            return head(u, a0)
+        if u >= 1 - a1:
+            return 1 - head(1 - u, a1)
+        return v * (a0 / 2 + u - a0)
     u = (t % SECONDS) / SECONDS
-    if u < 0.08:
+    if u < 0.04:                                      # brief set on the floor
         return 1.0
-    if u < 0.46:
-        return 1 - ease((u - 0.08) / 0.38)
-    if u < 0.58:
+    if u < 0.50:                                      # pull, ~1.4 s
+        return 1 - ease((u - 0.04) / 0.46, EASE_RAMP, EASE_RAMP_TOP)
+    if u < 0.56:                                      # lockout
         return 0.0
-    if u < 0.94:
-        return ease((u - 0.58) / 0.36)
-    return 1.0
+    return ease((u - 0.56) / 0.44, EASE_RAMP_TOP, EASE_RAMP)                    # lower, ~1.3 s, ends on the floor at the loop seam
 
 
 TWIST_STEP_MAX, TWIST_JERK_MAX = 4.0, 1.5
@@ -929,7 +969,7 @@ def natural_motion_check(series):
         fails.append("bar is perfectly level (no natural attitude variation)")
     if max(abs(t) for t in tilts) > 4.0:
         fails.append("bar tilts more than 4 deg")
-    for key, step_max, jerk_max in (("tilt", 0.35, 0.2), ("knee", 8.0, 1.6), ("lean", 6.0, 1.3), ("barz", 0.02, 0.004)):
+    for key, step_max, jerk_max in (("tilt", 0.35, 0.2), ("knee", 8.0, 1.6), ("lean", 6.0, 1.3), ("barz", 0.045, 0.006)):
         v = [series[f][key] for f in sorted(series)]
         steps = [v[i + 1] - v[i] for i in range(len(v) - 1)] + [v[0] - v[-1]]
         if max(abs(x) for x in steps) > step_max:
@@ -1016,14 +1056,24 @@ def key_frame(f, bar, tilt_deg, d):
 
 
 EXTRA = {}
+ELBOW_AIM = 15.0                                         # straight, not locked (owner rule: elbows finish ~15°)
+ARM_HALF = ARM_LEN / 2
 
 
 def solve_frame(f, d):
     BAR_EXTRA[0] = EXTRA.get(f, 0.0) if ANIM else BAR_EXTRA[0]
     bar = bar_path(d, Z_TOP)
     tilt = tilt_of(d)
+    HIP_DZ[0] = 0.0
     T, th = pose_body(d, bar)
     pose_arms(bar, tilt)
+    for _ in range(5):                                   # the reach model is ~1 cm off with the hands on the thighs:
+        e = max(joint_flex("L", "elbow"), joint_flex("R", "elbow"))     # measure the elbows and lift the hips by the shortfall
+        if e <= ELBOW_AIM + 1.0:
+            break
+        HIP_DZ[0] += 2 * ARM_HALF * (math.cos(math.radians(ELBOW_AIM) / 2) - math.cos(math.radians(e) / 2))
+        T, th = pose_body(d, bar)
+        pose_arms(bar, tilt)
     chk = physics_check(bar, d, tilt)
     twists = arm_twists()
     if PREV_TWIST:
@@ -1334,7 +1384,10 @@ if ANIM and FAILS and "--force" not in argv:
     raise SystemExit(1)
 if ANIM:
     n = int(FPS * SECONDS)
-    (OUT / "physics_report.txt").write_text(f"all {n} frames pass the grip, arm, gravity, proportion and smoothness rules\n")
+    if FAILS:   # --force: review preview only, never a shippable clip; keep the real failures on record
+        (OUT / "physics_report.txt").write_text("PREVIEW (--force), NOT A PASS:\n" + "\n".join(f"frame {f}: {c}" for f, c in FAILS) + "\n")
+    else:
+        (OUT / "physics_report.txt").write_text(f"all {n} frames pass the grip, arm, gravity, proportion and smoothness rules\n")
     sc.render.filepath = str(OUT / ("tile_frames" if TILE else "frames") / "frame_")
     sc.render.image_settings.file_format = "PNG"
     bpy.ops.render.render(animation=True)

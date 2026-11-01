@@ -32,7 +32,7 @@ say() { echo "$(date +%H:%M:%S) $*" | tee -a "$PROG"; }
 # ---- give Blender the machine: freeze CPU hogs (SIGSTOP is reversible: SIGCONT resumes them exactly as they were)
 PAUSED=""
 if [ "${LIFT_PAUSE_HOGS:-1}" = "1" ]; then
-  PAUSED=$(pgrep -f "qemu-system" | tr '\n' ' ')
+  PAUSED=$(pgrep -f "^[^ ]*qemu-system" | tr '\n' ' ')
   [ -n "$PAUSED" ] && kill -STOP $PAUSED 2>/dev/null
 fi
 cleanup() { [ -n "$PAUSED" ] && kill -CONT $PAUSED 2>/dev/null; [ -n "${BPID:-}" ] && kill "$BPID" 2>/dev/null; true; }
