@@ -70,13 +70,14 @@ ok(ids.includes('bench-press-powerlifting'), 'the bench press clip is bundled');
 ok(ids.includes('dumbbell-bench-press'), 'the dumbbell bench press clip is bundled');
 ok(demo.resolveExerciseDemo('bench-press-powerlifting'), 'the bench press resolves to an asset');
 ok(demo.resolveExerciseDemo('dumbbell-bench-press'), 'the dumbbell bench press resolves to an asset');
+ok(demo.resolveExerciseDemo('barbell-squat'), 'the barbell squat resolves to an asset');
 eq(demo.exerciseDemoCount('dumbbell-bench-press'), 2, 'the dumbbell bench press has two versions');
 eq(demo.resolveExerciseDemos('dumbbell-bench-press').length, 2, 'both dumbbell versions resolve');
 eq(demo.resolveExerciseDemos('bench-press-powerlifting').length, 1, 'the bench press has one version');
-eq(demo.resolveExerciseDemos('barbell-squat').length, 0, 'an exercise without a clip has no versions');
-eq(demo.resolveExerciseDemo('barbell-squat'), null, 'an exercise without a clip resolves to null');
+eq(demo.resolveExerciseDemos('exercise-without-a-clip').length, 0, 'an exercise without a clip has no versions');
+eq(demo.resolveExerciseDemo('exercise-without-a-clip'), null, 'an exercise without a clip resolves to null');
 eq(demo.resolveExerciseDemo(null), null, 'a missing id resolves to null');
-ok(!demo.hasExerciseDemo('barbell-squat'), 'hasExerciseDemo is false for a missing clip');
+ok(!demo.hasExerciseDemo('exercise-without-a-clip'), 'hasExerciseDemo is false for a missing clip');
 ok(demo.hasExerciseDemo('bench-press-powerlifting'), 'hasExerciseDemo is true for the bench press');
 ok(demo.hasExerciseDemo('dumbbell-bench-press'), 'hasExerciseDemo is true for the dumbbell bench press');
 

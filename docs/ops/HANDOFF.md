@@ -2,7 +2,8 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-11-01 — the owner's new video workflow: the video agent produces the clips and
+> Last updated: 2026-11-01 — third movement clip (Barbell Squat, anchor 1/10) approved and bundled;
+> renders now run on the Linux rig (`~/lift/animation-work`, `lift_squat.py`, plain-ffmpeg encoder). Before that: the owner's new video workflow: the video agent produces the clips and
 > syncs them to the demo folder/GitHub, and the app now discovers, matches and streams them
 > automatically, with the bundled clips as the offline fallback. Before that: the second exercise
 > movement clip (Dumbbell Bench Press) approved and bundled with a second demo version, the

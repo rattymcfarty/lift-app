@@ -2,6 +2,12 @@
 
 ## Unreleased (addendum)
 
+- **Barbell Squat demo (pattern anchor 1 of 10).** Third bundled movement clip, `barbell-squat.mp4`
+  (3 s, 720², 413 KB): back squat in the rack kit, bar on the upper back, knees 11° to 128°. Passed
+  `physics_check()` and `natural_motion_check()` on all 72 frames. `test:exercise-demo` now has 111
+  assertions (its "no clip" example is a synthetic id, so it no longer breaks when an exercise gains a clip).
+  Maestro on a release APK was not run (no device on the render machine).
+
 - **Published exercise videos, automatically.** The guide discovers clips the video agent publishes
   to `assets/exercises/demos` on GitHub. One anonymous public GET lists the folder; the file name is
   parsed for the demo version (with equipment suffixes handled), matched to the exercise's display

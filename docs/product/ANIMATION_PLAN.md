@@ -1,10 +1,11 @@
 # Exercise animation plan
 
-**Status 2026-10-31:** 2 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
+**Status 2026-11-01:** 3 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
 
 | KB id | Exercise | Status |
 |---|---|---|
 | `bench-press-powerlifting` | Bench Press - Powerlifting | approved / bundled |
+| `barbell-squat` | Barbell Squat | approved / bundled |
 | `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled — 2 demo versions |
 
 Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon"). An exercise may carry several demo versions; the guide adds a Demo 1 / Demo 2 switcher.
@@ -16,7 +17,7 @@ Every other exercise shows the placeholder tile (primary-muscle icon + "Movement
 > priority for the video agent**; it is no longer a generation queue for this agent. The video agent
 > names files by exercise display name (`Barbell Squat.mp4`, `... - 2.mp4`, `... - Dumbbell-2.mp4`);
 > no app release is needed when a clip lands.
-This document is the queue, the priority order and the review contract for the remaining 579 live exercises.
+This document is the queue, the priority order and the review contract for the remaining 578 live exercises.
 
 ## The review gate (one clip at a time)
 
@@ -45,8 +46,8 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 
 | # | KB id | Exercise | Pattern | Status |
 |---|---|---|---|---|
-| 1 | `barbell-squat` | Barbell Squat | squat | next |
-| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | queued |
+| 1 | `barbell-squat` | Barbell Squat | squat | **done** |
+| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | next |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | **done** |
 | 4 | `overhead-press` | Overhead Press | vertical push | queued |
 | 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued |
@@ -169,7 +170,6 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 ## Current next step
 
-**The video agent's first batch:** the rack kit — `Barbell Squat`, `Front Squat`, `Overhead Press`.
-The app already has the catalogue path; when `Barbell Squat.mp4` (or `Barbell Squat - 2.mp4`) lands
-in `assets/exercises/demos`, the guide matches it by name and shows it without a release. The
-earlier `barbell-squat` stills are review-only and are not registered.
+**Render `barbell-deadlift` (Barbell Deadlift)** — the hinge anchor, floor + barbell kit. The rack kit,
+the Linux render pipeline (`lift_squat.py` as the template) and `natural_motion_check()` now exist.
+Post the MP4 + contact sheet here for review.
