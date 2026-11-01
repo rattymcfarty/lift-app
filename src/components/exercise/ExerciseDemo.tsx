@@ -37,6 +37,10 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import { useTheme, type Theme } from '../../theme';
 import { ActionIcon, TaxonomyIcon } from '../icons';
 import { resolveExerciseDemos } from '../../kb/exerciseDemo';
+import { usePublishedDemoUrls } from '../../kb/VideoCatalogProvider';
+
+/** A bundled Metro asset number, or a published HTTPS URL. */
+type DemoSource = number | string;
 
 export interface ExerciseDemoProps {
   /** The exercise's permanent KB id (seeded rows use it as the row id too). */
@@ -62,7 +66,11 @@ export function ExerciseDemo({
 }: ExerciseDemoProps): JSX.Element {
   const { theme } = useTheme();
   const styles = getStyles(theme);
-  const sources = resolveExerciseDemos(exerciseId);
+  const bundled = resolveExerciseDemos(exerciseId);
+  const published = usePublishedDemoUrls(exerciseName, exerciseId);
+  // Published clips are the source of truth when they exist; bundled clips are
+  // the offline fallback (and the E2E fixture).
+  const sources: readonly DemoSource[] = published.length > 0 ? published : bundled;
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -124,7 +132,7 @@ function VideoDemo({
   exerciseName,
   maxSize,
 }: {
-  sources: readonly number[];
+  sources: readonly DemoSource[];
   exerciseName: string;
   maxSize: number;
 }): JSX.Element {
@@ -139,7 +147,7 @@ function VideoDemo({
     <View style={styles.wrap} testID="exercise-demo">
       <View style={[styles.tile, styles.square, { maxWidth: maxSize }]}>
         <TilePlayer
-          key={selected}
+          key={String(selected)}
           source={selected}
           exerciseName={exerciseName}
           paused={viewerOpen}
@@ -174,7 +182,7 @@ function TilePlayer({
   paused,
   onExpand,
 }: {
-  source: number;
+  source: DemoSource;
   exerciseName: string;
   paused: boolean;
   onExpand: () => void;
@@ -309,7 +317,7 @@ function DemoViewer({
   exerciseName,
   onClose,
 }: {
-  sources: readonly number[];
+  sources: readonly DemoSource[];
   index: number;
   onIndex: (index: number) => void;
   exerciseName: string;
@@ -347,7 +355,7 @@ function DemoViewer({
           </Pressable>
         </View>
         <View style={styles.viewerBody}>
-          <ViewerPlayer key={selected} source={selected} exerciseName={exerciseName} />
+          <ViewerPlayer key={String(selected)} source={selected} exerciseName={exerciseName} />
         </View>
         {multiple ? (
           <VersionSwitcher
@@ -378,7 +386,7 @@ function ViewerPlayer({
   source,
   exerciseName,
 }: {
-  source: number;
+  source: DemoSource;
   exerciseName: string;
 }): JSX.Element {
   const { theme } = useTheme();

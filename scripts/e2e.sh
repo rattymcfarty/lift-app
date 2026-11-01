@@ -27,7 +27,7 @@ for a in "$@"; do [ "$a" = "--build" ] && BUILD=1 || FLOWS+=("$a"); done
 
 if [ "$BUILD" = 1 ]; then
   echo "building release APK (≈5 min)…"
-  bash scripts/build-android-release.sh apk > "$LOG/build.log" 2>&1 || { echo "BUILD FAILED — see $LOG/build.log"; tail -15 "$LOG/build.log"; exit 1; }
+  EXPO_PUBLIC_LIFT_E2E=1 bash scripts/build-android-release.sh apk > "$LOG/build.log" 2>&1 || { echo "BUILD FAILED — see $LOG/build.log"; tail -15 "$LOG/build.log"; exit 1; }
 fi
 APK=android/app/build/outputs/apk/release/app-release.apk
 [ -f "$APK" ] || { echo "no APK at $APK — run with --build"; exit 1; }

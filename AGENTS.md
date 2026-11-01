@@ -34,8 +34,10 @@ Step-by-step playbooks for recurring jobs are **skills** in `.agents/skills/`
   carry · core · mobility. Not a bodybuilding or hype app.
 - **Private by construction:** everything runs on the device. No accounts, no
   servers of ours, no analytics, no crash reporting, no ads. The only network
-  call is an anonymous GET of public knowledge-base JSON (`src/kb/channel.ts`,
-  `src/kb/bundle.ts`). **Never add another network call or SDK that collects data.**
+  calls are anonymous public GETs: the knowledge-base JSON (`src/kb/channel.ts`,
+  `src/kb/bundle.ts`) and the published exercise-video catalogue/MP4s
+  (`src/kb/VideoCatalogProvider.tsx`; owner-approved 2026-11-01). **Never add
+  another network call or SDK that collects data.**
 - **Open source, MIT.** Content in `lift-kb` is CC BY 4.0. Zero fees to users.
 - **User owns their data:** full export/import (Settings → Your data), editable
   plans and programs, custom exercises, no lock-in.
@@ -50,7 +52,15 @@ Step-by-step playbooks for recurring jobs are **skills** in `.agents/skills/`
 | `lift-kb`  | exercise/program content + bundle builder + CI | `~/lift/lift-kb` |
 
 The app ships a **snapshot** of the KB at `assets/kb/snapshot/{bundle,channel}.json`.
-Updating it is the `lift-kb-update` skill. Exercise IDs are permanent: deprecate
+Updating it is the `lift-kb-update` skill.
+
+Exercise demo MP4s live in `assets/exercises/demos/` in two forms: **bundled**
+clips named by permanent KB id (`<kb-id>.mp4`, `<kb-id>__2.mp4`, registered in
+`src/kb/exerciseDemo.ts` and shipped offline) and **published** clips named by
+the exercise display name (`Dumbbell Bench Press - Dumbbell-2.mp4`, produced by
+the video agent, synced to GitHub and discovered at runtime). The app matches
+published files to the guide by name/aliases/plurals and shows every version.
+Published MP4s are excluded from the bundle by `metro.config.js`. Exercise IDs are permanent: deprecate
 with `deprecated` + `replacedBy`, never rename or delete.
 
 ## 4. Stack and map
@@ -69,7 +79,8 @@ src/
   db/                schema.ts, migrations/ (drizzle), client.ts
   data/              repositories.ts (writes), routines.ts, history.ts, settings.ts,
                      profile.ts, customExercises.ts, generatedPlan.ts, export/import/backup*
-  kb/                knowledge-base import, snapshot, taxonomy
+  kb/                knowledge-base import, snapshot, taxonomy, exercise demos:
+                     bundled registry + runtime GitHub catalogue/matcher
   workouts/          idle/lifecycle policy + reconciler (auto-finish, prompts, nudges)
   programs/          program DSL, engine, enrollment, PAR-Q+ safety, user program builder
   stats/             volume, balance, pillars, queries (pure + DB)
@@ -127,9 +138,11 @@ Pure logic (`src/lib`, `src/programs/*Def.ts`, `src/workouts/policy.ts`,
 2. `npm run verify` → **ALL GREEN** (secrets scan, typecheck, all unit tests, typography gate).
 3. UI changes: the relevant Maestro flow passes (`scripts/e2e.sh <flow>`); add or
    extend a flow for new screens. Layout changes checked at the zoom widths.
-4. `CHANGELOG.md` updated; `docs/product/FEATURE_MATRIX.md` if a feature changed;
+4. Video-catalogue changes: `npm run test:video-catalog` and the relevant demo
+   flow; published files stay out of the bundled registry and the Metro bundle.
+5. `CHANGELOG.md` updated; `docs/product/FEATURE_MATRIX.md` if a feature changed;
    `docs/ops/HANDOFF.md` §0 + session log updated.
-5. Commit: imperative subject, short "why" body, the attribution trailer your
+6. Commit: imperative subject, short "why" body, the attribution trailer your
    harness requires (see `docs/ops/AGENT_COLLABORATION.md` §4). Push to `main`
    (no PR flow yet) — or to your claimed branch if you were asked to work on one.
 
@@ -141,6 +154,8 @@ npm run typecheck
 npm run test:plan           # plan generator       npm run test:kb  (needs ../lift-kb/dist built)
 npm run test:ui             # typography gate      npm run test:p7  # workout UX logic
 npm run test:agents         # this agent foundation (files, skills, links) is intact
+npm run test:video-catalog  # published filenames, versions, exercise matching
+npm run test:exercise-demo  # bundled registry + clip contract + demo wiring
 npm run test:backup && npm run test:backup:roundtrip   # export/import format
 npm run build:android       # signed AAB + APK (needs keystore; ~5 min)
 scripts/e2e.sh [--build] [flow ...]     # Maestro on the emulator, PASS/FAIL summary
@@ -152,6 +167,15 @@ scripts/verify-recovery.sh  # fresh clone → install → full test suite
 
 ## 8. Hard-won gotchas (save yourself an hour)
 
+- **Published videos are runtime, not bundled.** Files with display names in
+  `assets/exercises/demos` are deliberately blocked by `metro.config.js`; the
+  app lists them from GitHub, caches the listing for an hour, and streams the
+  raw MP4s. The bundled KB-id clips are the offline fallback. The video agent
+  can add a clip with no app release; just sync the repo. `EXPO_PUBLIC_LIFT_E2E=1`
+  disables the remote catalogue so Maestro uses the bundled fixtures.
+- **GitHub contents API rate limit** is 60/hour unauthenticated; the one-hour
+  AsyncStorage cache keeps normal use well below it. The catalogue URL is
+  `https://api.github.com/repos/rattymcfarty/lift-app/contents/assets/exercises/demos`.
 - **Agent sandboxes kill background processes** when a tool call ends (Claude Code
   does). Boot the emulator, install and run Maestro **inside one shell call** —
   `scripts/e2e.sh` does exactly that. Long-lived servers are capped (~2 h).

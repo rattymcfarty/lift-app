@@ -17,6 +17,7 @@ import { PanelsProvider } from '../src/chrome/panels';
 import { TopBar } from '../src/components/chrome/TopBar';
 import { TabBar } from '../src/components/nav/TabBar';
 import { SidePanels } from '../src/components/chrome/SidePanels';
+import { VideoCatalogProvider } from '../src/kb/VideoCatalogProvider';
 
 /**
  * P5: cap OS dynamic-type scaling at 1.15x app-wide. React Native respects the
@@ -91,8 +92,9 @@ function AppShell() {
   }
 
   return (
-    <PanelsProvider>
-      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <VideoCatalogProvider>
+      <PanelsProvider>
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -109,8 +111,9 @@ function AppShell() {
         {/* Side panels: above the bar so an open panel covers the whole app. */}
         <SidePanels />
         {statusBar}
-      </View>
-    </PanelsProvider>
+        </View>
+      </PanelsProvider>
+    </VideoCatalogProvider>
   );
 }
 

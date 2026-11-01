@@ -13,8 +13,8 @@ LIFT is private by construction. There are no accounts, no sign-in, no
 analytics, no crash reporting, no ads, and no servers of ours. Everything you
 log — workouts, sets, body measurements, routines, personal records — is stored
 in a database on your own device and nowhere else. The only network activity
-is downloading public exercise/program content bundles, which sends us nothing
-about you.
+is downloading public exercise/program content and published exercise-video
+clips, which sends us nothing about you.
 
 ## Data that stays on your device
 
@@ -29,25 +29,34 @@ All training data lives in an on-device SQLite database:
 This data never leaves your device through LIFT. We have no servers that
 receive it, and no third-party SDK in the app collects it.
 
-## The one network call: knowledge-base content sync
+## The public network calls: knowledge-base and exercise-video sync
 
-LIFT downloads public exercise and program content ("knowledge base", KB)
-bundles so the built-in exercise library stays up to date. This is the only
-network activity the app performs:
+LIFT downloads public exercise and program content ("knowledge base", KB) so
+the built-in exercise library stays up to date, and it discovers published
+exercise-video clips so a guide can show a movement demo. These are the only
+network activities the app performs:
 
-- It fetches two public JSON files over HTTPS:
+- **Knowledge base:** two public JSON files over HTTPS —
   `https://rattymcfarty.github.io/lift-kb/channel.json` and the versioned
   bundle it points to.
-- The request is anonymous: no account, no cookies, no auth headers, no query
-  parameters, no device identifiers, and none of your training data is sent.
-- Each bundle is verified by SHA-256 hash and schema validation before use.
-- Honest technical note: like any web request, the hosting provider
-  (GitHub Pages) can see standard connection metadata such as your IP address
-  at the network level. We do not receive, log, or process it — there is
-  nothing on our end to receive it with.
+- **Published exercise videos:** one public GitHub contents listing of
+  `https://api.github.com/repos/rattymcfarty/lift-app/contents/assets/exercises/demos`,
+  cached on the device for one hour; the matching MP4s are streamed from
+  `https://raw.githubusercontent.com/rattymcfarty/lift-app/`.
+- Every request is anonymous: no account, no cookies, no auth headers, no
+  query parameters, no device identifiers, and none of your training data is
+  sent. The video listing carries only the app's public repository path.
+- Each KB bundle is verified by SHA-256 hash and schema validation before use.
+  Video files are public content; the app only plays the files that match the
+  exercise you opened.
+- Honest technical note: like any web request, the hosting providers
+  (GitHub Pages, GitHub API and raw.githubusercontent.com) can see standard
+  connection metadata such as your IP address at the network level. We do not
+  receive, log, or process it — there is nothing on our end to receive it with.
 
-If the download fails (e.g. you are offline), the app keeps working with the
-content snapshot it shipped with.
+If a download fails (e.g. you are offline), the app keeps working with the KB
+snapshot and the bundled exercise clips it shipped with; a published-only clip
+simply falls back to the placeholder.
 
 ## Notifications
 

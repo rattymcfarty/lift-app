@@ -8,19 +8,27 @@
 | `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled — 2 demo versions |
 
 Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon"). An exercise may carry several demo versions; the guide adds a Demo 1 / Demo 2 switcher.
+
+> **Owner workflow change — 2026-11-01.** The video agent now produces the clips and syncs them to
+> `assets/exercises/demos`/GitHub. This app lists that folder at runtime, matches each published
+> file to the exercise by display name/KB id/aliases/plurals, and shows every version automatically
+> (one-hour cache; bundled clips are the offline fallback). This plan remains the **production
+> priority for the video agent**; it is no longer a generation queue for this agent. The video agent
+> names files by exercise display name (`Barbell Squat.mp4`, `... - 2.mp4`, `... - Dumbbell-2.mp4`);
+> no app release is needed when a clip lands.
 This document is the queue, the priority order and the review contract for the remaining 579 live exercises.
 
 ## The review gate (one clip at a time)
 
-1. Render with the `lift-exercise-animation` skill against the exercise's permanent KB id.
-2. The render must pass `physics_check()` **and** `natural_motion_check()`, then encode to the app
-   contract (720², 24 fps, 3 s, H.264 yuv420p, silent, ≤ 500 KB, fast-start).
-3. Post the review demo in the chat: the 3 s MP4 link plus a 12-frame contact sheet. The owner
-   clicks and evaluates the actual render.
-4. On approval: copy to `assets/exercises/demos/<kb-id>.mp4`, regenerate the registry, run
-   `npm run test:exercise-demo` + `npm run verify`, run the guide's Maestro flow on a release APK,
-   update CHANGELOG/HANDOFF/FEATURE_MATRIX, commit and push.
-5. On rejection: iterate on the pose/set; nothing is registered or committed until approved.
+1. The **video agent** renders the loop and validates it (physics, natural motion, 720², 24 fps,
+   3 s, H.264 yuv420p, silent, ≤ 500 KB, fast-start).
+2. The video agent drops the approved MP4 in `assets/exercises/demos` using the exercise display
+   name and syncs GitHub. The **app** lists the folder, matches by name/aliases/plurals and shows
+   every matching version; the one-hour cache picks it up.
+3. Optional bundled/offline clips are copied under the permanent KB id and registered
+   (`node scripts/gen-exercise-demo-registry.mjs`); they must pass `npm run test:exercise-demo` and
+   the natural-motion rule.
+4. `npm run test:video-catalog` pins the published-file naming and matching rules.
 
 **Non-negotiable validation:** the clip must show natural human motion. Equipment cannot be
 perfectly rigid, perfectly straight or perfectly mirrored; `natural_motion_check()` requires a
@@ -161,5 +169,7 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 ## Current next step
 
-**Build the rack kit and render `barbell-squat` (Barbell Squat)** — the squat anchor, owner list
-#1, and the first clip in the rack batch. Post the MP4 + contact sheet here for review.
+**The video agent's first batch:** the rack kit — `Barbell Squat`, `Front Squat`, `Overhead Press`.
+The app already has the catalogue path; when `Barbell Squat.mp4` (or `Barbell Squat - 2.mp4`) lands
+in `assets/exercises/demos`, the guide matches it by name and shows it without a release. The
+earlier `barbell-squat` stills are review-only and are not registered.

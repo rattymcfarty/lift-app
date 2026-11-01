@@ -3,7 +3,7 @@
 > **DRAFT — NOT SUBMITTED. Pending Matt's review.**
 > This file is a working draft of the answers for the Play Console
 > "Data safety" form and the Health apps declaration. It declares only what
-> the app actually does today (v0.1.0, P8-complete; network surface re-audited 2026-10-14: only `src/kb/channel.ts` and `src/kb/bundle.ts` call `fetch`, both anonymous GETs of public KB JSON). Re-verify against the
+> the app actually does today (v0.1.0, P8-complete; network surface re-audited 2026-11-01: `src/kb/channel.ts` / `bundle.ts` fetch public KB JSON, and `src/kb/VideoCatalogProvider.tsx` fetches the public exercise-video catalogue + raw MP4s; all anonymous public GETs, no user data). Re-verify against the
 > shipped build before submitting; if anything below has changed, update this
 > file first.
 
@@ -17,9 +17,9 @@ off the user's device):
 - All user data (workouts, sets, measurements, routines, PRs, program
   progress, PAR-Q+ answers, settings) is stored in an on-device SQLite
   database and is never transmitted off the device by the app.
-- The app's only network activity is downloading public knowledge-base
-  content bundles (anonymous HTTPS GET of public JSON; no user data sent —
-  see `docs/PRIVACY_POLICY.md`).
+- The app's only network activity is downloading public content: knowledge-base
+  JSON (anonymous HTTPS GET) and the published exercise-video catalogue/MP4s
+  (anonymous public GitHub GET; no user data sent — see `docs/PRIVACY_POLICY.md`).
 - No analytics, crash reporting, advertising, or third-party data-collecting
   SDKs are included.
 - No accounts; no sign-in; no server component.
@@ -48,8 +48,8 @@ device.
 
 With no data collected, the follow-up questions are answered accordingly:
 
-- Data encrypted in transit: the only transmission is the anonymous KB
-  content download, which is HTTPS-only. (Play marks this N/A when nothing
+- Data encrypted in transit: the only transmissions are the anonymous KB and
+  exercise-video downloads, which are HTTPS-only. (Play marks this N/A when nothing
   is collected; the HTTPS fact is stated here for the record.)
 - Data cannot be deleted by the user via an account (there are no accounts);
   all data is deleted by uninstalling the app or using the in-app "erase

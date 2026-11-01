@@ -2,9 +2,12 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-10-31 — the second exercise movement clip (Dumbbell Bench Press) approved and
-> bundled with a second demo version, the natural-motion validation added to the animation skill, and the 581-live-exercise
-> animation queue planned in `docs/product/ANIMATION_PLAN.md`. Before that: the first clip
+> Last updated: 2026-11-01 — the owner's new video workflow: the video agent produces the clips and
+> syncs them to the demo folder/GitHub, and the app now discovers, matches and streams them
+> automatically, with the bundled clips as the offline fallback. Before that: the second exercise
+> movement clip (Dumbbell Bench Press) approved and bundled with a second demo version, the
+> natural-motion validation added to the animation skill, and the 581-live-exercise animation queue
+> planned in `docs/product/ANIMATION_PLAN.md`. Before that: the first clip
 > (Bench Press - Powerlifting) in the guide, now full-width with a tap-to-expand full-screen
 > viewer, a platform-safe loop component, a generated clip registry, a placeholder for every
 > other exercise, and the storage plan for future clips. Before that: a bar that never disappears
@@ -17,9 +20,25 @@
 
 ## 0. In-flight work (update before every commit)
 
-> Nothing uncommitted as of 2026-10-31: everything below is committed and pushed (`git log -1`),
+> Nothing uncommitted as of 2026-11-01: everything below is committed and pushed (`git log -1`),
 > `npm run verify` is ALL GREEN, and the device re-run is done (see "Verified at last session"
 > in §1). The durable record of the round is §6 (session log).
+
+- [opencode] **Published video catalogue — 2026-11-01 (owner-directed).** The owner changed the
+  workflow: the video agent now produces every exercise clip and syncs it to the local demo
+  folder/GitHub; this agent's job is to make the clips available in the app, not to generate them.
+  `src/kb/videoCatalog.ts` parses published display-name files (`Dumbbell Bench Press -
+  Dumbbell-2.mp4`), strips the equipment/version, and matches the guide's exercise by display name,
+  KB id, aliases and plurals. `VideoCatalogProvider` lists the public GitHub contents of
+  `assets/exercises/demos` (one anonymous GET, 1 h AsyncStorage cache), filters out the bundled
+  KB-id files and streams the matching raw MP4s through `expo-video`. `ExerciseDemo` uses published
+  URLs when any match exists and falls back to the bundled clips offline; the version switcher
+  shows every matching version. Published display-name MP4s are excluded from the app bundle by
+  `metro.config.js`; `EXPO_PUBLIC_LIFT_E2E=1` disables the remote catalogue so Maestro uses the
+  bundled fixtures. `test:video-catalog` (30 assertions) pins the naming/matching rules;
+  `test:exercise-demo` is 96. Owner-approved second public network call (KB JSON is the other); no
+  analytics, accounts or PII. The squat stills from the earlier attempt are not shipped; the other
+  agent's `Barbell Squat` clip will match automatically.
 
 - [opencode] **Dumbbell Bench Press + animation queue — 2026-10-31 (committed).** The owner
   approved `dumbbell-bench-press`; it is registered in `src/kb/exerciseDemo.ts` with **two demo
@@ -43,10 +62,10 @@
   `expand` ActionIcon marks the affordance. Exercises without a clip get the same full-width tile
   with the primary-muscle icon + "Movement demo coming soon". Clips live in
   `assets/exercises/demos/<kb-id>.mp4`; `scripts/gen-exercise-demo-registry.mjs` regenerates the
-  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (90 assertions)
+  static registry (`src/kb/exerciseDemo.ts`), and `npm run test:exercise-demo` (96 assertions)
   enforces 720² / 24 fps / 3 s / H.264 / yuv420p / silent / ≤ 500 KB plus the KB-id match and the
   expand/close wiring. Storage decision: bundle the small set now (offline, no new network call);
-  433 per-exercise clips (~195 MB) would not ship, so future scale is bundled movement-pattern
+  581 live per-exercise clips (~244 MB) would not ship, so future scale is bundled movement-pattern
   loops + per-exercise overrides hosted on the KB CDN with on-demand cache (owner decision — it
   adds a network call). Device PASS: `exercise-demo` (release APK, Android emulator; the tile
   visibly animates and the viewer opens/closes); Metro restarted with `--clear` after the native
@@ -465,10 +484,14 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ## 2. Next up (priority order)
 
-**Active programme — exercise animations.** The queue is `docs/product/ANIMATION_PLAN.md`:
-2 of 631 clips are done (bench press, dumbbell bench press). The next batch is the **rack kit** —
-`barbell-squat` first, then `front-barbell-squat` and `overhead-press`. Every clip is posted in
-the chat for human review; only approved clips are registered, tested, built and committed.
+**Active programme — published exercise videos.** The owner's 2026-11-01 workflow: the video
+agent produces the clips and syncs them to `assets/exercises/demos`/GitHub; this agent maintains
+the app's automatic catalogue (no animation generation unless the owner asks again). The queue and
+priority order in `docs/product/ANIMATION_PLAN.md` now guides the video agent. The app lists the
+folder, matches each published file to the exercise by name/aliases/plurals, and shows every
+version; the bundled clips remain the offline fallback. The next clips are whatever the video
+agent publishes; the app picks them up after the one-hour catalogue refresh. The squat stills from
+the earlier generation attempt are review-only and are not registered.
 
 00. **Owner actions from `docs/ops/SECRETS_POLICY.md` §6** — GitHub email privacy
     (a personal Gmail address is in 42 + 39 historical commits; decision A/B/C in §4),
@@ -723,6 +746,12 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
 
 ## 4. Decisions
 
+- **Published exercise videos (2026-11-01, owner-approved).** The app lists
+  `assets/exercises/demos` through the public GitHub contents API, caches the listing for one hour,
+  and streams the matching raw MP4s by exercise name; bundled clips are the offline fallback.
+  Display-name published MP4s are excluded from Metro/the bundle; the video agent can add a clip
+  without an app release. `EXPO_PUBLIC_LIFT_E2E=1` disables the remote catalogue for Maestro.
+
 - **2026-10-26 (owner): three main doors on the bar — Train · Analytics · Exercises** (Apple
   Health's shape). Everything else belongs in the top-left menu (features) or the top-right panel
   (settings). Programs therefore became a menu page with its own back arrow; the Train page keeps
@@ -778,6 +807,21 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-11-01 — Published video catalogue (opencode)
+
+- **Owner workflow change:** the video agent generates all clips and syncs them to the local demo
+  folder/GitHub. This agent no longer generates videos; it makes them available automatically.
+- **Catalogue:** `src/kb/videoCatalog.ts` (pure parser/matcher: equipment suffixes, aliases,
+  plurals, versions) + `VideoCatalogProvider` (GitHub contents GET, 1 h AsyncStorage cache, raw
+  MP4 URLs, bundled-file exclusion). `ExerciseDemo` prefers published clips and falls back to the
+  bundled KB-id clips; the Demo switcher shows every matching version.
+- **Build:** display-name published MP4s are blocked from the Metro bundle (`metro.config.js`); the
+  bundled registry/test ignore them. `EXPO_PUBLIC_LIFT_E2E=1` keeps Maestro on the bundled fixtures.
+- **Tests:** `test:video-catalog` 30 assertions; `test:exercise-demo` 96; verify ALL GREEN; both
+  demo Maestro flows PASS on a release build.
+- The earlier `barbell-squat` stills remain review-only; the video agent's squat clip will match
+  automatically when it lands.
 
 ### 2026-10-31 — Dumbbell demo approved; animation queue planned (opencode)
 

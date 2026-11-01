@@ -1,12 +1,20 @@
 # Exercise demo clips
 
-Short, silent movement loops shown at the top of an exercise guide. The first
-two are `bench-press-powerlifting.mp4` and `dumbbell-bench-press.mp4`;
-Dumbbell Bench Press also has a second version, `dumbbell-bench-press__2.mp4`,
-and the guide shows a Demo 1 / Demo 2 switcher. Every other exercise currently
-gets the placeholder tile (its primary-muscle icon + "Movement demo coming
-soon"). The queue and priority order live in
-`docs/product/ANIMATION_PLAN.md`.
+Short, silent movement loops shown at the top of an exercise guide. The guide
+shows a full-width tile with a **Demo 1 / Demo 2** switcher and a full-screen
+viewer; the number of versions is whatever the app finds for that exercise.
+
+There are two ways a clip reaches the app:
+
+| Kind | File name | Where it comes from | Shipped in the app? |
+|---|---|---|---|
+| **Bundled** | `<kb-id>.mp4`, `<kb-id>__2.mp4` | approved clips registered here | yes, offline |
+| **Published** | `<Exercise Name>.mp4`, `<Exercise Name> - 2.mp4` | the video agent, synced to GitHub | no, fetched at runtime |
+
+The two bundled clips today are `bench-press-powerlifting.mp4` and
+`dumbbell-bench-press.mp4` / `__2`. The video agent is filling the same folder
+with display-name versions; the app discovers them automatically and matches
+them to the exercise name.
 
 ## Contract
 
@@ -24,64 +32,65 @@ soon"). The queue and priority order live in
 720 px is deliberate: the tile fills the guide's content width (capped at 420 pt)
 so it is crisp at 2× and upscales about 1.5× on a 3× phone — acceptable for the
 soft studio render. Do not upscale an existing 720 clip to 1080: the bytes grow
-without new detail. If a future pass wants a pixel-perfect full-width tile on
-3× screens, author those clips at 1080² and relax the contract then.
+without new detail.
 
-The guide also opens the clip full screen on tap (the same file, letterboxed on
-black with a close button), so there is no second asset to ship.
+The guide opens the clip full screen on tap (the same file, letterboxed on black
+with a close button), so there is no second asset to ship.
 
-## Adding a clip
+## Publishing a clip (the video agent)
 
-1. Render the loop with the `lift-exercise-animation` skill (the house "neon
-   studio" look: dark set, matte mannequin, orange worked muscles, blue edge,
-   purple neon line).
-2. Name the file after the exercise's **permanent KB id**, not its display
-   name: `assets/exercises/demos/<kb-id>.mp4`. The id is in
-   `assets/kb/snapshot/bundle.json` and the guide resolves the clip by it.
-   A second version of the same exercise is `<kb-id>__2.mp4`, a third is
-   `<kb-id>__3.mp4`; the base file is version 1 and the guide shows a switcher.
-3. Regenerate the static registry (Metro cannot `require()` a dynamic path):
+1. Drop the MP4 in `assets/exercises/demos/` using the **exercise display name**
+   from the app, not the KB id:
+   - `Barbell Squat.mp4` — version 1
+   - `Barbell Squat - 2.mp4` — version 2
+   - `Dumbbell Bench Press - Dumbbell-2.mp4` — version 2 with the equipment word
+   - `Dumbbell Bench Press (2).mp4` — also version 2
+2. Sync the repo to GitHub (`main`). Nothing else is needed: the app lists this
+   folder through the public GitHub contents API, parses the version, normalizes
+   the name (equipment and parentheticals stripped, punctuation removed), and
+   matches the exercise's display name, KB id, aliases and plurals.
+3. The app caches the catalogue for one hour; the next refresh picks the file up
+   on every phone. No app release is required.
+4. The file stays out of the app bundle: `metro.config.js` blocks published
+   (non-KB-id) MP4s. The app streams the raw GitHub URL through `expo-video`.
+5. The **contract above still applies** — the tile is 720², 3 s, silent.
 
-   ```bash
-   node scripts/gen-exercise-demo-registry.mjs
-   ```
+Network/caching: the catalogue is one anonymous public GET of
+`https://api.github.com/repos/rattymcfarty/lift-app/contents/assets/exercises/demos`,
+cached in AsyncStorage for one hour; the videos are public raw GitHub MP4s.
+This is an owner-approved addition to LIFT's network list (the KB JSON is the
+other). No cookies, auth headers, query params or personal data.
 
-4. Run the contract test:
+**E2E:** `scripts/e2e.sh --build` sets `EXPO_PUBLIC_LIFT_E2E=1`, which disables
+the remote catalogue so Maestro always tests the bundled fixtures. The normal
+build keeps the GitHub catalogue on.
 
-   ```bash
-   npm run test:exercise-demo
-   ```
+## Adding a bundled clip (approved, offline)
 
-   It checks the registry against the files, that every id is a real KB
-   exercise, and the size/codec/duration/audio limits.
-5. Every clip must also pass the animation skill's `natural_motion_check()`:
-   the implement needs a small, smooth attitude variation (e.g. a few degrees
-   of inward tilt) and a slight left/right difference. A perfectly rigid or
-   perfectly mirrored implement is rejected before encoding.
+1. Render with the `lift-exercise-animation` skill.
+2. Name the file after the exercise's **permanent KB id**:
+   `assets/exercises/demos/<kb-id>.mp4`; later versions `<kb-id>__2.mp4`.
+3. Regenerate the static registry: `node scripts/gen-exercise-demo-registry.mjs`.
+4. `npm run test:exercise-demo` — registry ↔ files ↔ KB ids and the full
+   codec/duration/audio/size contract.
+5. `npm run test:video-catalog` — published-name parsing and exercise matching.
+6. The clip must pass the animation skill's `natural_motion_check()` before it is
+   committed.
 
-## Multiple demo versions
+## Multiple versions
 
-An exercise can carry more than one loop. `dumbbell-bench-press.mp4` is demo 1
-and `dumbbell-bench-press__2.mp4` is demo 2. The registry stores an array per
-exercise; the guide shows a **Demo 1 / Demo 2** pill row under the tile and in
-the full-screen viewer. The `exercise-demo-dumbbell` Maestro flow switches
-versions, expands, switches back inside the viewer, and closes. Add a version
-by dropping the file and re-running the generator; no code change is needed.
+Bundled versions come from the registry array (`dumbbell-bench-press__2.mp4`).
+Published versions come from the GitHub file names. When published clips exist
+for an exercise the app uses them; the bundled clips remain the offline fallback.
+The version switcher and the full-screen viewer show every matched version.
+Duplicate files are deduped by file name.
 
 ## Where future clips live
 
-- **Bundle the movement-pattern loops.** 8–12 clips (push, pull, squat, hinge,
-  lunge, carry, core, mobility) at ~0.4 MB each is ~4 MB and gives every
-  exercise a moving demo from day one. The KB already carries
-  `movementPattern` for this mapping.
-- **Do not bundle one clip per exercise.** 581 live exercises × ~0.42 MB is
-  ~244 MB (the full 631 catalogue entries would be ~265 MB); app stores and users will not accept that. Bundle the 50 curated
-  foundational clips first (~21 MB), then the movement-pattern loops.
-- **Per-exercise overrides, when they exist, should be hosted** (the KB's own
-  CDN / object storage, same trust domain as `channel.json`) with a manifest and
-  downloaded on demand into `expo-file-system`, cached, with the bundled pattern
-  loop as the offline fallback. That is a network call, so it needs an explicit
-  owner decision — LIFT's default is no new network calls.
-- The KB's `demoMedia.video` field is reserved for those hosted URLs
-  (`https:` only, allowlisted by `assertKbMediaUrl`). Bundled clips stay in this
-  folder + the generated registry, keyed by KB id.
+- **Published clips** are the long tail: the video agent drops them in this
+  folder, syncs to GitHub, and the app streams them. Nothing is bundled.
+- **Bundled clips** are the offline fallback and the E2E fixtures. The 50
+  curated foundational clips (~21 MB) are the bundle target; the rest of the
+  581 live exercises should not be bundled (~244 MB).
+- The KB's `demoMedia.video` field remains reserved for allowlisted `https:`
+  URLs; this GitHub catalogue is separate from that field.

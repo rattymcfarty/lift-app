@@ -2,6 +2,16 @@
 
 ## Unreleased (addendum)
 
+- **Published exercise videos, automatically.** The guide discovers clips the video agent publishes
+  to `assets/exercises/demos` on GitHub. One anonymous public GET lists the folder; the file name is
+  parsed for the demo version (with equipment suffixes handled), matched to the exercise's display
+  name, KB id, aliases and plurals, and every matching version appears in the Demo switcher and
+  full-screen viewer. The listing is cached for an hour; the bundled clips remain the offline
+  fallback. Published MP4s are excluded from the app bundle by `metro.config.js`; the normal build
+  streams them, while the E2E build (`EXPO_PUBLIC_LIFT_E2E=1`) keeps Maestro on the bundled fixtures.
+  `test:video-catalog` (30 assertions) pins the naming/matching rules; `test:exercise-demo` is 96.
+  Owner-approved public GitHub GET; no analytics, accounts or PII.
+
 - **A second demo version for Dumbbell Bench Press.** The guide now carries two loops for the
   same exercise: the original front view and a second, wider camera version (`dumbbell-bench-press__2.mp4`).
   A **Demo 1 / Demo 2** switcher appears under the tile and inside the full-screen viewer; switching

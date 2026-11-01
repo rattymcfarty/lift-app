@@ -50,14 +50,22 @@ const eq = (a, b, m) => {
 /* ---- 1. the registry ---- */
 eq(demo.DEMO_SPEC, { size: 720, fps: 24, seconds: 3, maxBytes: 500_000 }, 'the clip contract is the authored one');
 
-const files = readdirSync(demosDir)
+const BUNDLED_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:__[2-9]\d*)?\.mp4$/;
+const allFiles = readdirSync(demosDir)
   .filter((f) => f.toLowerCase().endsWith('.mp4'))
   .sort();
+const files = allFiles.filter((f) => BUNDLED_RE.test(f));
+const published = allFiles.filter((f) => !BUNDLED_RE.test(f));
 const baseId = (f) => f.replace(/\.mp4$/, '').replace(/__\d+$/, '');
 const ids = [...new Set(files.map(baseId))].sort();
-eq(demo.bundledDemoIds(), ids, 'the generated registry matches the MP4s on disk');
+eq(demo.bundledDemoIds(), ids, 'the generated registry matches the bundled MP4s on disk');
+eq(demo.bundledDemoFileNames(), files, 'the bundled file list matches the KB-id files');
 ok(files.includes('dumbbell-bench-press__2.mp4'), 'the second dumbbell version is bundled');
-ok(!files.some((f) => f.includes(' - ')), 'clip files are named by KB id, not display name');
+ok(!files.some((f) => f.includes(' - ')), 'bundled clip files are named by KB id, not display name');
+for (const f of published) {
+  ok(!files.includes(f), `"${f}" is published, not bundled`);
+}
+console.log(`test:exercise-demo — ${files.length} bundled, ${published.length} published (runtime)`);
 ok(ids.includes('bench-press-powerlifting'), 'the bench press clip is bundled');
 ok(ids.includes('dumbbell-bench-press'), 'the dumbbell bench press clip is bundled');
 ok(demo.resolveExerciseDemo('bench-press-powerlifting'), 'the bench press resolves to an asset');
@@ -144,6 +152,12 @@ ok(/<Modal/.test(component) && /onRequestClose=\{onClose\}/.test(component), 'th
 ok(/exercise-demo-fullscreen/.test(component), 'the full-screen viewer has its own test id');
 ok(/exercise-demo-close/.test(component), 'the full-screen viewer has a close control');
 ok(/name="expand"/.test(component), 'the tile shows the expand affordance');
+
+ok(/usePublishedDemoUrls/.test(component), 'the guide resolves published GitHub demos by name');
+ok(/DemoSource/.test(component), 'published URLs and bundled assets share one source type');
+ok(/published\.length > 0 \? published : bundled/.test(component), 'published demos replace bundled, which remain the offline fallback');
+ok(/useVideoCatalog/.test(readFileSync(join(root, 'src', 'kb', 'VideoCatalogProvider.tsx'), 'utf8')), 'the video catalogue provider exists');
+ok(/VideoCatalogProvider/.test(readFileSync(join(root, 'app', '_layout.tsx'), 'utf8')), 'the app mounts the video catalogue provider');
 
 const flow = readFileSync(join(root, '.maestro', 'exercise-demo.yaml'), 'utf8');
 ok(/id: "exercise-demo"/.test(flow), 'the Maestro flow checks the clip tile');

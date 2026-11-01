@@ -81,6 +81,7 @@
     "test:workout-discard": "node scripts/test-workout-discard.mjs",
     "test:exercise-menu": "node scripts/test-exercise-menu.mjs",
     "test:exercise-demo": "node scripts/test-exercise-demo.mjs",
+    "test:video-catalog": "node scripts/test-video-catalog.mjs",
     "test:companion": "node scripts/test-companion.mjs",
     "test:foundational": "node scripts/test-foundational.mjs",
     "test:markdown": "node scripts/test-markdown.mjs",

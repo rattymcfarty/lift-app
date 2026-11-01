@@ -5,10 +5,16 @@
  *
  * Usage: node scripts/gen-exercise-demo-registry.mjs
  *
- * Naming: <kb-id>.mp4 is demo 1; <kb-id>__2.mp4, <kb-id>__3.mp4 are later
- * versions of the same exercise. An exercise can have several demos; the guide
- * lets the user switch between them. The file name must start with the
- * exercise's permanent KB id, because Metro cannot require a dynamic path.
+ * Two kinds of files live in that folder:
+ *
+ *  - BUNDLED clips named by permanent KB id: <kb-id>.mp4, <kb-id>__2.mp4.
+ *    Metro cannot require a dynamic path, so these are registered statically
+ *    and ship inside the app (offline fallback).
+ *  - PUBLISHED clips named by the exercise display name, e.g.
+ *    "Dumbbell Bench Press - Dumbbell-2.mp4". The video agent adds these and
+ *    syncs the repo; the app discovers them at runtime from GitHub and matches
+ *    them by name. They are deliberately NOT bundled (Metro excludes them via
+ *    metro.config.js) and are not part of the contract test.
  */
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -18,37 +24,41 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const demosDir = join(root, 'assets', 'exercises', 'demos');
 const target = join(root, 'src', 'kb', 'exerciseDemo.ts');
 
-let files = [];
+const BUNDLED_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:__[2-9]\d*)?\.mp4$/;
+
+let allFiles = [];
 try {
-  files = readdirSync(demosDir)
+  allFiles = readdirSync(demosDir)
     .filter((f) => f.toLowerCase().endsWith('.mp4'))
     .sort();
 } catch {
-  files = [];
+  allFiles = [];
+}
+
+const published = allFiles.filter((f) => !BUNDLED_RE.test(f));
+const files = allFiles.filter((f) => BUNDLED_RE.test(f));
+if (published.length) {
+  console.log(`published for runtime (${published.length}): ${published.join(', ')}`);
+}
+
+const bad = files.filter((f) => /__1\.mp4$/.test(f));
+if (bad.length) {
+  console.error(`Later versions start at __2; __1 is the base file:\n  ${bad.join('\n  ')}`);
+  process.exit(1);
 }
 
 const groups = new Map();
-const bad = [];
 for (const f of files) {
   const m = /^([a-z0-9]+(?:-[a-z0-9]+)*?)(?:__(\d+))?\.mp4$/.exec(f);
   if (!m) {
-    bad.push(f);
-    continue;
+    console.error(`Unexpected bundled file name: ${f}`);
+    process.exit(1);
   }
   const version = m[2] ? Number(m[2]) : 1;
-  if (version < 1 || (m[2] && version < 2)) {
-    bad.push(`${f} (later versions start at __2; __1 is the base file)`);
-    continue;
-  }
   const base = m[1];
   if (!groups.has(base)) groups.set(base, []);
   groups.get(base).push({ version, file: f });
 }
-if (bad.length) {
-  console.error(`Clip names must be a lowercase KB id, optionally with __N for a later demo:\n  ${bad.join('\n  ')}`);
-  process.exit(1);
-}
-
 for (const [base, versions] of groups) {
   versions.sort((a, b) => a.version - b.version);
   if (versions[0].version !== 1) {
@@ -64,13 +74,21 @@ for (const [base, versions] of groups) {
 }
 
 const entries = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-const lines = entries.map(([base, versions]) => {
+const registryLines = entries.map(([base, versions]) => {
   const reqs = versions.map(
-    ({ version, file }) => `    require('../../assets/exercises/demos/${file}')`,
+    ({ file }) => `    require('../../assets/exercises/demos/${file}')`,
   );
   return `  '${base}': [\n${reqs.join(',\n')},\n  ],`;
 });
-const block = `// === BEGIN GENERATED REGISTRY ===\nconst REGISTRY: Record<string, number[]> = {\n${lines.join('\n')}\n};\n// === END GENERATED REGISTRY ===`;
+const fileLines = files.map((f) => `  '${f}',`);
+const block = `// === BEGIN GENERATED REGISTRY ===
+const REGISTRY: Record<string, number[]> = {
+${registryLines.join('\n')}
+};
+const BUNDLED_FILES: readonly string[] = [
+${fileLines.join('\n')}
+];
+// === END GENERATED REGISTRY ===`;
 
 const src = readFileSync(target, 'utf8');
 if (!src.includes('// === BEGIN GENERATED REGISTRY ===') || !src.includes('// === END GENERATED REGISTRY ===')) {
@@ -82,8 +100,8 @@ const next = src.replace(
   block,
 );
 if (next === src) {
-  console.log(`demo registry already up to date: ${entries.length} exercise(s), ${files.length} clip(s)`);
+  console.log(`demo registry already up to date: ${entries.length} exercise(s), ${files.length} bundled, ${published.length} published`);
   process.exit(0);
 }
 writeFileSync(target, next);
-console.log(`demo registry regenerated: ${entries.length} exercise(s), ${files.length} clip(s)`);
+console.log(`demo registry regenerated: ${entries.length} exercise(s), ${files.length} bundled, ${published.length} published`);

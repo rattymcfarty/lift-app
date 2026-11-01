@@ -40,6 +40,7 @@ check "test:foundational" "node scripts/test-foundational.mjs"
 # matching "test:exercise-menu" npm script is pending.
 check "test:exercise-menu" "node scripts/test-exercise-menu.mjs"
 check "test:exercise-demo" "npm run test:exercise-demo"
+check "test:video-catalog" "npm run test:video-catalog"
 # Invoked directly: this sandbox's policy blocks edits to package.json, so the
 # matching "test:tab-order" npm script is pending (one line next to test:companion).
 check "test:tab-order" "node scripts/test-tab-order.mjs"

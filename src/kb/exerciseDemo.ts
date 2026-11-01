@@ -1,10 +1,12 @@
 /**
  * Exercise demo video resolution for the LIFT knowledge base.
  *
- * Demo clips are short, silent movement loops shown at the top of an exercise
- * guide. They live in `assets/exercises/demos/<kb-id>.mp4` (demo 1) and
- * `<kb-id>__2.mp4` (a second version), are bundled with the app, and work
- * offline and in Expo Go with no network call.
+ * Bundled demo clips are short, silent movement loops shown at the top of an
+ * exercise guide. They live in `assets/exercises/demos/<kb-id>.mp4` (demo 1)
+ * and `<kb-id>__2.mp4` (a second version), ship inside the app, and work
+ * offline. The separately published clips (display-name files from the video
+ * agent) are discovered from GitHub at runtime by `videoCatalog.ts`; the
+ * bundled clips are the offline fallback.
  *
  * Metro cannot `require()` a dynamic path, so this module keeps a static
  * registry of the clips actually bundled. An exercise with no clip gets the
@@ -38,6 +40,11 @@ const REGISTRY: Record<string, number[]> = {
     require('../../assets/exercises/demos/dumbbell-bench-press__2.mp4'),
   ],
 };
+const BUNDLED_FILES: readonly string[] = [
+  'bench-press-powerlifting.mp4',
+  'dumbbell-bench-press.mp4',
+  'dumbbell-bench-press__2.mp4',
+];
 // === END GENERATED REGISTRY ===
 
 /**
@@ -65,7 +72,12 @@ export function hasExerciseDemo(exerciseId?: string | null): boolean {
   return exerciseDemoCount(exerciseId) > 0;
 }
 
-/** The KB ids that currently have a clip — used by the registry test. */
+/** The KB ids that currently have a bundled clip — used by the registry test. */
 export function bundledDemoIds(): string[] {
   return Object.keys(REGISTRY).sort();
+}
+
+/** The exact bundled file names, so the runtime catalogue can exclude them. */
+export function bundledDemoFileNames(): readonly string[] {
+  return BUNDLED_FILES;
 }

@@ -80,3 +80,14 @@ Brief for an artist or generator: dark navy `#111827`, white + emerald
   without a Mac. Revisit when/if Apple is enrolled.
 - iOS: needs macOS + Xcode or EAS; cannot be built on this Linux rig.
 - Back up `~/lift/secrets/lift-upload.jks` and its password off-rig.
+
+## H10 — Published exercise videos  → approved by the owner (2026-11-01)
+The video agent generates MP4s and syncs them to the local app folder /
+GitHub. The app lists the public `assets/exercises/demos` folder through the
+GitHub contents API (anonymous GET, cached for one hour in AsyncStorage) and
+streams the matching raw MP4s by exercise name; the bundled clips stay the
+offline fallback. This is a second public network call alongside the KB JSON:
+no accounts, cookies, auth headers, query parameters, analytics or PII. The
+published display-name MP4s are excluded from the app bundle by
+`metro.config.js`; `EXPO_PUBLIC_LIFT_E2E=1` disables the remote catalogue for
+Maestro so the flows stay deterministic.
