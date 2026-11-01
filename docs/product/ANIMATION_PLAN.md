@@ -1,11 +1,12 @@
 # Exercise animation plan
 
-**Status 2026-11-01:** 3 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
+**Status 2026-11-01:** 4 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
 
 | KB id | Exercise | Status |
 |---|---|---|
 | `bench-press-powerlifting` | Bench Press - Powerlifting | approved / bundled |
 | `barbell-squat` | Barbell Squat | approved / bundled |
+| `barbell-deadlift` | Barbell Deadlift | approved / bundled (owner override of two smoothness checks) |
 | `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled — 2 demo versions |
 
 Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon"). An exercise may carry several demo versions; the guide adds a Demo 1 / Demo 2 switcher.
@@ -17,7 +18,18 @@ Every other exercise shows the placeholder tile (primary-muscle icon + "Movement
 > priority for the video agent**; it is no longer a generation queue for this agent. The video agent
 > names files by exercise display name (`Barbell Squat.mp4`, `... - 2.mp4`, `... - Dumbbell-2.mp4`);
 > no app release is needed when a clip lands.
-This document is the queue, the priority order and the review contract for the remaining 578 live exercises.
+This document is the queue, the priority order and the review contract for the remaining 577 live exercises.
+
+## What to animate: the KB entry decides
+
+The exercise's file in `lift-kb` (`content/exercises/<kb-id>.md`) is the **only** source of truth for what a clip
+shows: the implement (`equipment`), the worked muscles (`muscles.primary` orange, secondary per the brief), the
+pattern, the instructions, cues and common mistakes. Read it before writing a brief or a script and **build exactly
+what it says; never ask the owner a question the entry already answers.** Where the entry lists several implements
+(`overhead-press`: Dumbbell, Kettlebell), animate the first one; the others are later versions (`<kb-id>__2.mp4`).
+The name alone is not enough: `overhead-press` is the **dumbbell** press (its *progression* is the barbell press,
+which is `military-press-barbell`), and `dumbbell-overhead-press` is a separate dumbbell entry that reuses the same
+motion. Every brief starts with the line "Facts below are taken from the KB entry `<kb-id>`".
 
 ## The review gate (one clip at a time)
 
@@ -109,18 +121,18 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 
 ### Tier 0 — movement-pattern anchors (10 clips)
 
-| # | KB id | Exercise | Pattern | Status |
-|---|---|---|---|---|
-| 1 | `barbell-squat` | Barbell Squat | squat | **done** |
-| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | **done** (owner override of two smoothness checks) |
-| 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | **done** |
-| 4 | `overhead-press` | Overhead Press | vertical push | queued · brief ready |
-| 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued · brief ready |
-| 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | queued · brief ready |
-| 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | queued · brief ready |
-| 8 | `plank` | Plank | core | queued |
-| 9 | `farmer-carry` | Farmer Carry | carry | queued |
-| 10 | `worlds-greatest-stretch` | World's Greatest Stretch | mobility | queued |
+| # | KB id | Exercise | Pattern | Equipment (KB) | Status |
+|---|---|---|---|---|---|
+| 1 | `barbell-squat` | Barbell Squat | squat | Barbell | **done** |
+| 2 | `barbell-deadlift` | Barbell Deadlift | hinge | Barbell | **done** (owner override of two smoothness checks) |
+| 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | Barbell + bench | **done** |
+| 4 | `overhead-press` | Overhead Press | vertical push | Dumbbells (standing); kettlebell = later version | queued · brief ready |
+| 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | Bodyweight, pull-up bar | queued · brief ready |
+| 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | Barbell | queued · brief ready |
+| 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | Barbell | queued · brief ready |
+| 8 | `plank` | Plank | core | Bodyweight, mat | queued |
+| 9 | `farmer-carry` | Farmer Carry | carry | Dumbbells; kettlebell = later version | queued |
+| 10 | `worlds-greatest-stretch` | World's Greatest Stretch | mobility | Bodyweight, mat | queued |
 
 `dumbbell-bench-press` (the horizontal-push dumbbell variant) is also **done**; it is the model for
 equipment variants of an anchor.
@@ -183,11 +195,11 @@ Produced by set kit, not one-by-one from scratch. Set kits, in build order:
 
 | Kit | Serves | Examples |
 |---|---|---|
-| Rack + barbell | squat / press family | back squat, front squat, overhead press |
+| Rack + barbell | squat / barbell press family | back squat, front squat, military press (barbell) |
 | Floor + barbell | hinge / row / curl family | deadlift, RDL, bent-over row, curl |
 | Pull-up bar | vertical pull / hanging core | pull-up, chin-up, hanging knee raise |
 | Mat | core / mobility / bodyweight | plank, side plank, dead bug, bird dog, push-up, glute bridge, stretches |
-| Dumbbells | dumbbell variants | incline press, goblet squat, split squat, lateral raise, reverse fly, farmer carry |
+| Dumbbells | dumbbell variants | overhead press, incline press, goblet squat, split squat, lateral raise, reverse fly, farmer carry |
 | Cable tower | cable family | pulldown, seated row, face pull, pushdown, woodchop, Pallof |
 | Machines | machine family | leg press, leg curl, leg extension, calf raise |
 | Cardio | Tier 3b | treadmill, bike, rower, elliptical, stair, jump rope |
@@ -196,13 +208,13 @@ Produced by set kit, not one-by-one from scratch. Set kits, in build order:
 
 The priority tiers say **what**; the set kits say **how**. The first batches:
 
-1. **Rack batch (3):** `barbell-squat` → `front-barbell-squat` → `overhead-press`.
+1. **Rack batch (2):** `barbell-squat` → `front-barbell-squat`.
 2. **Floor + barbell (4):** `barbell-deadlift` → `romanian-deadlift` → `bent-over-barbell-row` →
    `barbell-curl`.
 3. **Pull-up bar (3):** `pull-up-bodyweight` → `chin-up` → `hanging-knee-raise`.
 4. **Mat (7):** `plank` → `side-plank` → `dead-bug` → `bird-dog` → `push-up` →
    `glute-bridge-bw` → `worlds-greatest-stretch`.
-5. **Dumbbells (7):** `incline-dumbbell-press` → `goblet-squat` → `bulgarian-split-squat-bw` →
+5. **Dumbbells (8):** `overhead-press` (next, Tier 0 anchor) → `incline-dumbbell-press` → `goblet-squat` → `bulgarian-split-squat-bw` →
    `side-lateral-raise` → `reverse-flyes` → `farmer-carry` → `weighted-step-up`.
 6. **Cable (6):** `wide-grip-lat-pulldown` → `seated-cable-rows` → `face-pull` →
    `triceps-pushdown` → `cable-woodchops` → `pallof-press`.
@@ -235,5 +247,5 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 ## Current next step
 
-**Render `overhead-press` (Overhead Press)** — vertical push anchor; brief ready. Open question for the owner:
-barbell (Tier 0 plan) or dumbbell (the KB entry). Post the MP4 + contact sheet here for review.
+**Render `overhead-press` (Overhead Press)** — vertical push anchor, **standing with two dumbbells** per the KB entry;
+brief ready (`docs/product/animation/overhead-press.md`). Post the MP4 + contact sheet here for review.

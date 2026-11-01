@@ -44,7 +44,7 @@
 - [claude] **Barbell Deadlift approved and shipped — 2026-11-01.** `barbell-deadlift.mp4` is the 4th bundled clip
   (registry regenerated, `test:exercise-demo` 123 assertions, verify ALL GREEN). The owner approved it with two
   smoothness checks over their limits (knee reversal, bar-speed jerk); details in `docs/product/ANIMATION_PLAN.md` →
-  "Deadlift: how it was solved". Next clip: `overhead-press` (barbell vs dumbbell needs the owner's answer). Proposal
+  "Deadlift: how it was solved". Next clip: `overhead-press`, standing with two dumbbells as the KB entry says (the plan now states the KB entry decides the implement). Proposal
   `docs/product/animation/PRODUCTION_SYSTEM.md` (template + equipment library + Rigify IK + specs) awaits the owner's go.
 - [claude] **Render pipeline hardened + deadlift diagnosis — 2026-11-01 (done).** `scripts/animation/render_clip.sh`
   now does preflight (memory, disk, no second Blender), freezes the Android emulator for the run (SIGSTOP, resumed on

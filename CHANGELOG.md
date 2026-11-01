@@ -2,6 +2,10 @@
 
 ## Unreleased (addendum)
 
+- **Animation plan follows the KB.** `docs/product/ANIMATION_PLAN.md` now states that the exercise's `lift-kb` entry
+  decides what a clip shows (implement, muscles, cues), adds the KB equipment to every Tier 0 row, and moves
+  `overhead-press` (a dumbbell/kettlebell press in the KB) out of the rack + barbell batch into the dumbbell batch.
+
 - **Barbell Deadlift demo (pattern anchor 2 of 10).** Fourth bundled movement clip, `barbell-deadlift.mp4`
   (3 s, 720², 478 KB): conventional deadlift from the floor, straight arms (elbows ≈ 15°), shoulders just ahead of the
   bar, bar clear of the shins and knees on every frame. **Owner-approved override:** it ships with two smoothness checks
