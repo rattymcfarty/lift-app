@@ -594,6 +594,7 @@ HY_TOP, HY_BOT = -0.02, float(next((a.split("=")[1] for a in argv if a.startswit
 TILT_DEG = float(next((a.split("=")[1] for a in argv if a.startswith("tilt=")), "1.2"))
 BAR_Y_FLOOR = MIDFOOT_Y - float(next((a.split("=")[1] for a in argv if a.startswith("barfwd=")), "0.03"))
 BAR_Y_TOP = THIGH_FRONT - BAR_R + 0.004
+KNEE_CLEAR = float(next((a.split("=")[1] for a in argv if a.startswith("kneeclear=")), "0.035"))
 PR = 0.076                                              # bar centre beyond the wrist along the hand (palm + bar radius)
 LEG_MOVERS = [f"{n}.{s}" for n in ("thigh_fk", "shin_fk", "foot_fk") for s in ("L", "R")]
 SPINE_MOVERS = ["torso", "neck", "head"]
@@ -619,7 +620,7 @@ def bar_path(d, z_top):
     g = ss_(min(max(d, 0.0), 1.0))
     z = z_top + (PLATE_R - z_top) * g
     yk = ss_(min(max((0.40 - d) / 0.40, 0.0), 1.0))     # moves in to the thighs only in the top 40% of the pull
-    y = BAR_Y_FLOOR + (BAR_Y_TOP - BAR_Y_FLOOR) * yk
+    y = BAR_Y_FLOOR + (BAR_Y_TOP - BAR_Y_FLOOR) * yk - KNEE_CLEAR * math.sin(math.pi * min(max(d, 0.0), 1.0)) ** 2   # a little further out while it passes the knees
     return Vector((0.0, y, z))
 
 

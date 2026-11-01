@@ -101,10 +101,10 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 | 1 | `barbell-squat` | Barbell Squat | squat | **done** |
 | 2 | `barbell-deadlift` | Barbell Deadlift | hinge | **in progress** (claude) |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | **done** |
-| 4 | `overhead-press` | Overhead Press | vertical push | queued |
-| 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued |
-| 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | queued |
-| 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | queued |
+| 4 | `overhead-press` | Overhead Press | vertical push | queued · brief ready |
+| 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | queued · brief ready |
+| 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | queued · brief ready |
+| 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | queued · brief ready |
 | 8 | `plank` | Plank | core | queued |
 | 9 | `farmer-carry` | Farmer Carry | carry | queued |
 | 10 | `worlds-greatest-stretch` | World's Greatest Stretch | mobility | queued |
