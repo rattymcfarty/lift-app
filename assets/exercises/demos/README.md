@@ -11,8 +11,8 @@ There are two ways a clip reaches the app:
 | **Bundled** | `<kb-id>.mp4`, `<kb-id>__2.mp4` | approved clips registered here | yes, offline |
 | **Published** | `<Exercise Name>.mp4`, `<Exercise Name> - 2.mp4` | the video agent, synced to GitHub | no, fetched at runtime |
 
-The bundled clips today are `bench-press-powerlifting.mp4`, `barbell-squat.mp4` and
-`dumbbell-bench-press.mp4` / `__2`. The video agent is filling the same folder
+The bundled clips today are `bench-press-powerlifting.mp4`, `barbell-squat.mp4`,
+`barbell-deadlift.mp4`, `dumbbell-bench-press.mp4` / `__2` and `overhead-press.mp4`. The video agent is filling the same folder
 with display-name versions; the app discovers them automatically and matches
 them to the exercise name.
 

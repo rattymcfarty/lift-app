@@ -1,6 +1,13 @@
 # Overhead Press — `overhead-press`
 
-Status: brief   ·   Author: OpenCode helper   ·   Date: 2026-11-01
+Status: approved / bundled (v2, 2026-11-02)   ·   Author: OpenCode helper   ·   Date: 2026-11-01
+
+> **Shipped 2026-11-02.** v2 approved and bundled as `overhead-press.mp4`. Owner feedback applied:
+> heavier 21 cm hex dumbbells, per-side gravity sag and inward turn, the right hand trailing by 0.05 s.
+> The lockout is a **soft lockout at 30°** elbow flexion, not the brief's ~15°: a straighter lockout
+> sits near full extension, where the elbow angle moves too fast for the smoothness rule; 30° is the
+> least-bent passing value and matches the safety note below ("stop short of a pinching lockout").
+> The fixed review-still camera was widened so the dumbbells stay in frame at lockout.
 
 _Facts below are taken from the KB entry `overhead-press` (bundle 0.6.0): name, equipment, primary/secondary muscles, instructions, cues, common mistakes, safety notes._
 

@@ -2,10 +2,18 @@
 
 ## Unreleased (addendum)
 
-- **Overhead Press animation in progress (tooling only).** New `scripts/animation/lift_overhead_press.py`
-  (standing dumbbell press per the KB entry). v1 passed every check; v2, coded for the owner's feedback (heavier
-  dumbbells, natural sag and inward rotation, the right hand trailing slightly), is not yet rendered. Handoff in
-  `docs/ops/HANDOFF.md` §0.
+- **Overhead Press demo (pattern anchor 4 of 10).** Fifth bundled movement clip, `overhead-press.mp4`
+  (3 s, 720², 24 fps, 237 KB): the standing dumbbell press from the KB entry, with the v2 dumbbells
+  (21 cm hex heads, 13 cm grip), a per-side gravity sag and inward turn, and the right hand trailing
+  the left by 0.05 s. All 72 frames pass the grip, arm, gravity, proportion and smoothness checks.
+  The lockout is a **soft lockout at 30°** elbow flexion: at the original 15° the right arm sat on the
+  reach clamp near full extension, and the grip seat (0.73 cm vs 0.70) and elbow twitch (6.55 vs
+  1.5°/frame²) failed; 30° is the least-bent lockout that passes, and it matches the brief's safety note
+  "stop short of a pinching lockout". The review still camera was widened so the dumbbells are not
+  cropped at lockout. `test:exercise-demo` is 139 assertions; the clip is registered and bundled offline.
+
+- **Overhead Press animation plan note.** `docs/product/ANIMATION_PLAN.md` records the v2 solve for the
+  dumbbell family (heavier heads, sag/turn, the 30° soft lockout and why a straighter one fails).
 
 - **Animation plan follows the KB.** `docs/product/ANIMATION_PLAN.md` now states that the exercise's `lift-kb` entry
   decides what a clip shows (implement, muscles, cues), adds the KB equipment to every Tier 0 row, and moves

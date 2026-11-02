@@ -1,6 +1,6 @@
 # Exercise animation plan
 
-**Status 2026-11-01:** 4 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
+**Status 2026-11-02:** 5 of **581 live** exercises (631 catalogue entries; deprecated duplicates are not animated) have an approved, bundled movement clip.
 
 | KB id | Exercise | Status |
 |---|---|---|
@@ -8,6 +8,7 @@
 | `barbell-squat` | Barbell Squat | approved / bundled |
 | `barbell-deadlift` | Barbell Deadlift | approved / bundled (owner override of two smoothness checks) |
 | `dumbbell-bench-press` | Dumbbell Bench Press | approved / bundled — 2 demo versions |
+| `overhead-press` | Overhead Press | approved / bundled (v2, soft lockout) |
 
 Every other exercise shows the placeholder tile (primary-muscle icon + "Movement demo coming soon"). An exercise may carry several demo versions; the guide adds a Demo 1 / Demo 2 switcher.
 
@@ -99,7 +100,7 @@ touch; grip; worked muscles; the camera that shows them; any rule that must be a
 | Bench + rack | skill `lift_toon_scene.py` (bench, in the private package) | `bench-press-powerlifting`, `dumbbell-bench-press` |
 | Rack + barbell on the back | `scripts/animation/lift_squat.py` | `barbell-squat` (done) |
 | Floor + barbell, straight arms | `scripts/animation/lift_deadlift.py` | `barbell-deadlift` (done) |
-| Standing + two dumbbells | `scripts/animation/lift_overhead_press.py` (from `lift_squat.py`: standing legs, `solve_hand()` for a handle at any attitude, `dumbbell_R()` sag/turn, per-side lag) | `overhead-press` (v2 in progress) |
+| Standing + two dumbbells | `scripts/animation/lift_overhead_press.py` (from `lift_squat.py`: standing legs, `solve_hand()` for a handle at any attitude, `dumbbell_R()` sag/turn, per-side lag) | `overhead-press` (done; soft lockout) |
 
 ## Deadlift: how it was solved (2026-11-01, notes for the hinge family)
 
@@ -114,6 +115,25 @@ Shipped with an **owner override** of two smoothness checks (knee reversal 2.3°
 - Open trade-off: softening the knee's second bend (`hold` 0.85–1.0) puts the bar 1 cm into the shins. A direct
   shin-angle solve (knee placed so the shin stays behind the bar) is the next idea for the hinge family.
 
+## Overhead press: how it was solved (2026-11-02, notes for the dumbbell family)
+
+Owner feedback on v1: the dumbbells looked small for his size, and free weights must never look
+perfect. v2 (`lift_overhead_press.py`, approved 2026-11-02):
+- **Heavier heads:** 21 cm hex heads, 13 cm grip (`HANDLE_HALF, PLATE_IN, PLATE_OUT, PLATE_R =
+  0.07, 0.066, 0.175, 0.105`), up from ~12 cm.
+- **Natural attitude:** per-side sag (outer end lower; 1.2/0.6° at the rack, up to 1.8/1.6° mid-press)
+  and turn (inner end forward; 10/7° at the rack opening to 4/2° at lockout); the right hand trails
+  the left by 0.05 s.
+- **Soft lockout at 30°:** the original 15° lockout put the right arm on the 0.995 reach clamp near
+  full extension, where a fraction of a millimetre of handle travel swings the elbow several degrees.
+  The 15° check failed the grip seat (0.73 vs 0.70 cm) and the elbow twitch (6.55 vs 1.5°/frame²);
+  20° was 1.78 and 25° 1.59, so 30° is the least-bent passing lockout. Longer ease ramps do not work:
+  the 1.8° sag already sits at 0.335 of the 0.35°/frame step cap, so slowing the ends speeds the
+  middle and breaks the attitude-step rule. The 30° soft lockout also matches the brief's "stop short
+  of a pinching lockout".
+- **Review stills:** the fixed still camera was cropped at lockout (the dumbbells left the frame);
+  still mode now targets z = 1.2 m at 6.8 m. The tile's auto-framing already included the dumbbells.
+
 ## Priority order
 
 The owner's curated order is `src/lib/foundational.ts` (50 exercises). It is the spine: those are
@@ -127,7 +147,7 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 | 1 | `barbell-squat` | Barbell Squat | squat | Barbell | **done** |
 | 2 | `barbell-deadlift` | Barbell Deadlift | hinge | Barbell | **done** (owner override of two smoothness checks) |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | Barbell + bench | **done** |
-| 4 | `overhead-press` | Overhead Press | vertical push | Dumbbells (standing); kettlebell = later version | **in progress** — v1 rendered, owner asked for heavier dumbbells + natural sag/rotation; v2 coded, not rendered (see HANDOFF §0) |
+| 4 | `overhead-press` | Overhead Press | vertical push | Dumbbells (standing); kettlebell = later version | **done** — v2 approved 2026-11-02 (soft lockout, 30°) |
 | 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | Bodyweight, pull-up bar | queued · brief ready |
 | 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | Barbell | queued · brief ready |
 | 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | Barbell | queued · brief ready |
@@ -215,7 +235,7 @@ The priority tiers say **what**; the set kits say **how**. The first batches:
 3. **Pull-up bar (3):** `pull-up-bodyweight` → `chin-up` → `hanging-knee-raise`.
 4. **Mat (7):** `plank` → `side-plank` → `dead-bug` → `bird-dog` → `push-up` →
    `glute-bridge-bw` → `worlds-greatest-stretch`.
-5. **Dumbbells (8):** `overhead-press` (next, Tier 0 anchor) → `incline-dumbbell-press` → `goblet-squat` → `bulgarian-split-squat-bw` →
+5. **Dumbbells (8):** `overhead-press` (done) → `incline-dumbbell-press` → `goblet-squat` → `bulgarian-split-squat-bw` →
    `side-lateral-raise` → `reverse-flyes` → `farmer-carry` → `weighted-step-up`.
 6. **Cable (6):** `wide-grip-lat-pulldown` → `seated-cable-rows` → `face-pull` →
    `triceps-pushdown` → `cable-woodchops` → `pallof-press`.
@@ -248,7 +268,10 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 ## Current next step
 
-**Finish `overhead-press` v2** (standing, two dumbbells): check, render, post for review — exact steps in
-`docs/ops/HANDOFF.md` §0. Owner feedback that applies to **every dumbbell clip**: realistic, heavy-looking dumbbells
-for this body, and never perfect — a slight gravity sag, a slight inward/outward rotation, the two sides not
-identical, visible effort.
+**`pull-up-bodyweight` (vertical pull, Tier 0 anchor 5 of 10).** Brief is ready in
+`docs/product/animation/pull-up-bodyweight.md`. Build `scripts/animation/lift_pull_up.py` from
+`lift_deadlift.py`: a fixed bar on two uprights, hands as the only support, body travel instead of
+an implement path, elbow flexion 5° → 115°, lats + upper back highlighted, camera from behind at
+yaw 150°. The owner feedback for every dumbbell clip still applies to later dumbbell work: realistic,
+heavy-looking dumbbells, a slight gravity sag and inward rotation, the two sides not identical, and
+visible effort.

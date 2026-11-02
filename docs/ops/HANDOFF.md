@@ -2,8 +2,11 @@
 
 > **Update this file at the end of every working session.** A new agent with zero
 > memory must be able to continue from this file + the repo alone.
-> Last updated: 2026-11-01 — third movement clip (Barbell Squat, anchor 1/10) approved and bundled;
-> renders now run on the Linux rig (`~/lift/animation-work`, `lift_squat.py`, plain-ffmpeg encoder). Before that: the owner's new video workflow: the video agent produces the clips and
+> Last updated: 2026-11-02 — fifth movement clip (Overhead Press v2, anchor 4/10) approved and
+> bundled; the 30° soft lockout and the heavier/sagging dumbbells are recorded in
+> `docs/product/ANIMATION_PLAN.md`. Before that: the fourth clip (Barbell Deadlift) and the third
+> (Barbell Squat) approved and bundled; renders run on the Linux rig
+> (`~/lift/animation-work`, plain-ffmpeg encoder). Before that: the owner's new video workflow: the video agent produces the clips and
 > syncs them to the demo folder/GitHub, and the app now discovers, matches and streams them
 > automatically, with the bundled clips as the offline fallback. Before that: the second exercise
 > movement clip (Dumbbell Bench Press) approved and bundled with a second demo version, the
@@ -21,35 +24,22 @@
 
 ## 0. In-flight work (update before every commit)
 
-> **Handover 2026-11-02 (claude → opencode).** Two items are in flight; take them in this order. Everything
-> else below is committed and pushed.
+> **Handover 2026-11-02 (opencode).** Overhead Press v2 is approved and bundled (5th clip, anchor 4/10);
+> details in §6. In flight now: the Pull-Up clip (anchor 5/10) and the demo thumbnails item below.
 
-- [in flight, unclaimed] **Overhead Press clip v2 — owner feedback on v1 (2026-11-01).** `overhead-press` (KB:
-  standing, two dumbbells). v1 rendered and passed every check (`~/lift/animation-work/out/overhead-press/`), but
-  the owner asked for polish before approval: **(1) heavier dumbbells** (v1 looked tiny for his size), **(2) the
-  dumbbells are never perfect: a slight gravity sag and a slight inward/outward rotation, and the lift should look
-  like effort.** v2 is coded in `scripts/animation/lift_overhead_press.py` (committed, **not yet checked or
-  rendered**):
-  - hex heads 21 cm across, 13 cm grip (`HANDLE_HALF, PLATE_IN, PLATE_OUT, PLATE_R = 0.07, 0.066, 0.175, 0.105`);
-  - `dumbbell_R()`: per-side **sag** (outer end lower, 1.2/0.6° at the rack + up to 1.8/1.6° mid-press) and **turn**
-    (inner end forward, 10/7° at the rack opening to 4/2° at lockout);
-  - the right hand trails the left by `LAG["R"] = 0.05` s;
-  - `natural_motion_check` also limits turn (≤ 15°, ≤ 0.6°/frame, jerk ≤ 0.2) and elbow smoothness.
-  **Next steps:**
-  1. Fast check (≈ 5 min, no render) — needs a shell that can run Blender (the owner's OpenCode session or
-     Claude Code; the sandboxed `scripts/delegate.sh` helper cannot):
-     `blender -b --factory-startup --disable-autoexec ~/lift/animation-work/assets/character/blender/Blender.blend --python scripts/animation/lift_overhead_press.py -- /tmp/ohp check style=neon`
-     → `/tmp/ohp/physics_report.txt` must say "all 72 frames pass". Likely risks: the bigger heads near the head
-     (`head_gap` ≥ 2 cm) and the sag/turn step limits; tune `SAG_AMP`/`TURN_*` or `rx=` (rack width), never the rules.
-  2. Stills to eyeball: `-- /tmp/s 0.0` and `-- /tmp/s 1.0` (rack / lockout).
-  3. Render: `scripts/animation/render_clip.sh scripts/animation/lift_overhead_press.py overhead-press`
-     (pauses the emulator, writes `~/lift/animation-work/out/overhead-press/{overhead-press.mp4,contact.png}`).
-  4. Post the MP4 + contact sheet to the owner. **Only after explicit approval:** copy to
-     `assets/exercises/demos/overhead-press.mp4`, `node scripts/gen-exercise-demo-registry.mjs`,
-     `npm run test:exercise-demo`, `npm run verify`, update CHANGELOG / FEATURE_MATRIX / ANIMATION_PLAN (Tier 0 row 4
-     → done, 5 of 581) / this file, commit, push.
-  Pipeline how-to: `scripts/animation/README.md`; plan + rules: `docs/product/ANIMATION_PLAN.md` (the KB entry
-  decides what a clip shows); brief: `docs/product/animation/overhead-press.md`.
+- [in progress, opencode] **Pull-Up clip (Tier 0 anchor 5 of 10).** Brief
+  `docs/product/animation/pull-up-bodyweight.md`. Build `scripts/animation/lift_pull_up.py` from
+  `lift_deadlift.py`: a fixed bar on two uprights (the hands are the only support), the body travels
+  instead of an implement path, elbows 5° → 115°, lats + upper back highlighted, camera from behind
+  (yaw 150°). Check with
+  `blender -b --factory-startup --disable-autoexec ~/lift/animation-work/assets/character/blender/Blender.blend --python scripts/animation/lift_pull_up.py -- /tmp/pullup check style=neon`;
+  render with `scripts/animation/render_clip.sh scripts/animation/lift_pull_up.py pull-up-bodyweight`;
+  post the MP4 + contact sheet. **Only after owner approval:** copy to
+  `assets/exercises/demos/pull-up-bodyweight.mp4`, `node scripts/gen-exercise-demo-registry.mjs`,
+  `npm run test:exercise-demo`, `npm run verify`, update CHANGELOG / FEATURE_MATRIX / ANIMATION_PLAN
+  (Tier 0 row 5 → done, 6 of 581) / this file, commit, push.
+  Pipeline how-to: `scripts/animation/README.md`; plan + rules: `docs/product/ANIMATION_PLAN.md` (the
+  KB entry decides what a clip shows); brief: `docs/product/animation/pull-up-bodyweight.md`.
 
 - [in flight, unclaimed] **Demo thumbnails in the exercise lists (owner request 2026-11-01).** Branch
   `delegate/list-video-thumbs-ds` (worktree `~/lift/delegations/list-video-thumbs-ds`, OpenCode wrote it, lead
@@ -61,8 +51,8 @@
   `exercise-demo` FAIL (`exercise-demo-placeholder` not visible) — not yet diagnosed; the second may be because
   the flow's placeholder exercise now has a clip (the deadlift shipped). Logs were in `/tmp/lift-e2e-183013`.
   **Next:** diagnose the two flows (compare against `main` without the branch), fix, commit the jpgs + flow on the
-  branch, merge to main after `npm run verify`, push. The overhead-press clip must be added to the registry after
-  it is approved, which regenerates its thumbnail too.
+  branch, merge to main after `npm run verify`, push. The overhead-press clip is now approved and bundled; the
+  branch's generator will create its thumbnail too.
 
 - [opencode] **Published video catalogue — 2026-11-01 (owner-directed).** The owner changed the
   workflow: the video agent now produces every exercise clip and syncs it to the local demo
@@ -543,14 +533,13 @@ Full feature-by-feature status: `docs/product/FEATURE_MATRIX.md`.
 
 ## 2. Next up (priority order)
 
-**Active programme — published exercise videos.** The owner's 2026-11-01 workflow: the video
-agent produces the clips and syncs them to `assets/exercises/demos`/GitHub; this agent maintains
-the app's automatic catalogue (no animation generation unless the owner asks again). The queue and
-priority order in `docs/product/ANIMATION_PLAN.md` now guides the video agent. The app lists the
-folder, matches each published file to the exercise by name/aliases/plurals, and shows every
-version; the bundled clips remain the offline fallback. The next clips are whatever the video
-agent publishes; the app picks them up after the one-hour catalogue refresh. The squat stills from
-the earlier generation attempt are review-only and are not registered.
+**Active programme — exercise animations (owner asked again 2026-11-02).** The 2026-11-01 workflow
+(published clips discovered from GitHub) still handles the long tail, but the owner has asked for
+the Tier 0 pattern anchors to be produced here again. Overhead Press v2 is approved and bundled
+(anchor 4/10); the next clip is Pull-Up (anchor 5/10), brief ready. The queue and priority order in
+`docs/product/ANIMATION_PLAN.md` are the source of truth; the app lists the folder, matches each
+published file by name/aliases/plurals, and keeps the bundled clips as the offline fallback. The
+squat stills from the earlier generation attempt are review-only and are not registered.
 
 00. **Owner actions from `docs/ops/SECRETS_POLICY.md` §6** — GitHub email privacy
     (a personal Gmail address is in 42 + 39 historical commits; decision A/B/C in §4),
@@ -866,6 +855,23 @@ Standing rule: **the agent does not enroll in, pay for, or submit anything to a 
   `work/`, `drive-catalog`.
 
 ## 6. Session log (newest first)
+
+### 2026-11-02 — Overhead Press v2 approved and bundled (opencode)
+
+- **Approved:** the owner reviewed the rendered v2 and said "Very good". `overhead-press.mp4` is the
+  fifth bundled clip (3 s, 720², 24 fps, 237 KB); registry regenerated, `test:exercise-demo` 139
+  assertions, `test:video-catalog` 30, `npm run verify` ALL GREEN.
+- **v2 solve:** 21 cm hex heads, 13 cm grip, per-side sag (1.2/0.6° at the rack → 1.8/1.6° mid-press)
+  and turn (10/7° at the rack → 4/2° at lockout), the right hand trailing by 0.05 s.
+- **Soft lockout:** the 15° lockout failed the right grip seat (0.73 vs 0.70 cm) and the elbow twitch
+  (6.55 vs 1.5°/frame²) because the arm sat on the 0.995 reach clamp near full extension. 20° was 1.78,
+  25° 1.59, and 30° passes; longer ease ramps break the tilt step cap (the 1.8° sag is already at
+  0.335 of 0.35°/frame). The 30° soft lockout matches the brief's "stop short of a pinching lockout".
+- **Stills:** the fixed review camera cropped the dumbbells at lockout; still mode now targets z=1.2 m
+  at 6.8 m. The tile auto-framing was already correct.
+- **Next:** Pull-Up (anchor 5/10), brief ready; build `scripts/animation/lift_pull_up.py`.
+- OpenCode ran Blender in this session (the owner moved the session to the main repo); the
+  `scripts/delegate.sh` helper sandbox still cannot.
 
 ### 2026-11-01 — Published video catalogue (opencode)
 

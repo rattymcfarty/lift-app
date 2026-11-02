@@ -45,6 +45,9 @@ const REGISTRY: Record<string, number[]> = {
     require('../../assets/exercises/demos/dumbbell-bench-press.mp4'),
     require('../../assets/exercises/demos/dumbbell-bench-press__2.mp4'),
   ],
+  'overhead-press': [
+    require('../../assets/exercises/demos/overhead-press.mp4'),
+  ],
 };
 const BUNDLED_FILES: readonly string[] = [
   'barbell-deadlift.mp4',
@@ -52,6 +55,7 @@ const BUNDLED_FILES: readonly string[] = [
   'bench-press-powerlifting.mp4',
   'dumbbell-bench-press.mp4',
   'dumbbell-bench-press__2.mp4',
+  'overhead-press.mp4',
 ];
 // === END GENERATED REGISTRY ===
 

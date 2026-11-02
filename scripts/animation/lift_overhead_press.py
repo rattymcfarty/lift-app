@@ -6,7 +6,8 @@ Run headless (embedded scripts in the asset stay disabled):
   blender -b --factory-startup --disable-autoexec CHAR.blend --python lift_overhead_press.py -- OUT_DIR [P|tile|check]
 P is the press position, 0 = dumbbells at the shoulders (rack), 1 = lockout overhead. "tile" renders the app tile
 (lift_palette.json "tile"), "check" solves and checks all 72 frames without rendering (writes physics_report.txt).
-Options: rx= rz= ry= (rack handle offset from the shoulder joint, m), etop= (elbow at lockout, deg), yaw= pitch=,
+Options: rx= rz= ry= (rack handle offset from the shoulder joint, m), etop= (elbow at lockout, deg; 30 = soft
+lockout, 15 = straight but the elbow solve is twitchy near full extension), yaw= pitch=,
 --debug, --force (render a review preview past failed checks; the report keeps the failures).
 Asset licence: ElegantMesh Extended Use License (RenderHub), commercial use allowed.
 """
@@ -698,7 +699,7 @@ SIDE = {"L": 1.0, "R": -1.0}
 RX = float(next((a.split("=")[1] for a in argv if a.startswith("rx=")), "0.27"))
 RY = float(next((a.split("=")[1] for a in argv if a.startswith("ry=")), "0.12"))
 RZ = float(next((a.split("=")[1] for a in argv if a.startswith("rz=")), "0.28"))
-ELBOW_TOP = float(next((a.split("=")[1] for a in argv if a.startswith("etop=")), "15"))
+ELBOW_TOP = float(next((a.split("=")[1] for a in argv if a.startswith("etop=")), "30"))
 TOP_IN = 0.03                                           # handles finish 3 cm inside the shoulder joints
 RACK = {s: SH0[s] + Vector((SIDE[s] * RX, -RY, RZ)) for s in SH0}
 TOP_H = [0.55]
@@ -735,7 +736,9 @@ def dumbbell_R(side, p):
 
 
 def calibrate_lockout():
-    """Lockout height: arms straight but not locked (elbows finish at ELBOW_TOP)."""
+    """Lockout height: a soft lockout, elbows finishing at ELBOW_TOP (30 deg). Straighter (15 deg) puts the arm
+    near full extension, where a millimetre of handle travel swings the elbow several degrees and the smoothness
+    rule fails; the brief's safety note also says to stop short of a pinching lockout."""
     lo, hi = 0.35, 0.80
     for _ in range(24):
         TOP_H[0] = (lo + hi) / 2
@@ -1148,7 +1151,7 @@ if TILE:
     cam_data.ortho_scale = max(max(us) - min(us), max(vs) - min(vs)) * 1.04
     cam.location = centre + zc * (depth + 8.0)
 else:
-    cam.location = Vector((0.0, AY, 0.95)) + view * 5.4
+    cam.location = Vector((0.0, AY, 1.2)) + view * 6.8   # stills must show the dumbbells at lockout too
 cam_data.clip_end = 40.0
 cam.matrix_world = Matrix.Translation(cam.location) @ Matrix((xc, yc, zc)).transposed().to_4x4()
 if not NEON:
