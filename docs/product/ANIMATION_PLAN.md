@@ -99,6 +99,7 @@ touch; grip; worked muscles; the camera that shows them; any rule that must be a
 | Bench + rack | skill `lift_toon_scene.py` (bench, in the private package) | `bench-press-powerlifting`, `dumbbell-bench-press` |
 | Rack + barbell on the back | `scripts/animation/lift_squat.py` | `barbell-squat` (done) |
 | Floor + barbell, straight arms | `scripts/animation/lift_deadlift.py` | `barbell-deadlift` (done) |
+| Standing + two dumbbells | `scripts/animation/lift_overhead_press.py` (from `lift_squat.py`: standing legs, `solve_hand()` for a handle at any attitude, `dumbbell_R()` sag/turn, per-side lag) | `overhead-press` (v2 in progress) |
 
 ## Deadlift: how it was solved (2026-11-01, notes for the hinge family)
 
@@ -126,7 +127,7 @@ pattern has a credible demo, then the rest of the 50 in the owner's order, then 
 | 1 | `barbell-squat` | Barbell Squat | squat | Barbell | **done** |
 | 2 | `barbell-deadlift` | Barbell Deadlift | hinge | Barbell | **done** (owner override of two smoothness checks) |
 | 3 | `bench-press-powerlifting` | Bench Press - Powerlifting | horizontal push | Barbell + bench | **done** |
-| 4 | `overhead-press` | Overhead Press | vertical push | Dumbbells (standing); kettlebell = later version | queued · brief ready |
+| 4 | `overhead-press` | Overhead Press | vertical push | Dumbbells (standing); kettlebell = later version | **in progress** — v1 rendered, owner asked for heavier dumbbells + natural sag/rotation; v2 coded, not rendered (see HANDOFF §0) |
 | 5 | `pull-up-bodyweight` | Pull-Up | vertical pull | Bodyweight, pull-up bar | queued · brief ready |
 | 6 | `bent-over-barbell-row` | Bent-Over Barbell Row | horizontal pull | Barbell | queued · brief ready |
 | 7 | `barbell-walking-lunge` | Barbell Walking Lunge | lunge | Barbell | queued · brief ready |
@@ -247,5 +248,7 @@ Each batch is submitted for review **in the foundational order**, even when prod
 
 ## Current next step
 
-**Render `overhead-press` (Overhead Press)** — vertical push anchor, **standing with two dumbbells** per the KB entry;
-brief ready (`docs/product/animation/overhead-press.md`). Post the MP4 + contact sheet here for review.
+**Finish `overhead-press` v2** (standing, two dumbbells): check, render, post for review — exact steps in
+`docs/ops/HANDOFF.md` §0. Owner feedback that applies to **every dumbbell clip**: realistic, heavy-looking dumbbells
+for this body, and never perfect — a slight gravity sag, a slight inward/outward rotation, the two sides not
+identical, visible effort.

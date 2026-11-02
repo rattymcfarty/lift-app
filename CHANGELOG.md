@@ -2,6 +2,11 @@
 
 ## Unreleased (addendum)
 
+- **Overhead Press animation in progress (tooling only).** New `scripts/animation/lift_overhead_press.py`
+  (standing dumbbell press per the KB entry). v1 passed every check; v2, coded for the owner's feedback (heavier
+  dumbbells, natural sag and inward rotation, the right hand trailing slightly), is not yet rendered. Handoff in
+  `docs/ops/HANDOFF.md` §0.
+
 - **Animation plan follows the KB.** `docs/product/ANIMATION_PLAN.md` now states that the exercise's `lift-kb` entry
   decides what a clip shows (implement, muscles, cues), adds the KB equipment to every Tier 0 row, and moves
   `overhead-press` (a dumbbell/kettlebell press in the KB) out of the rack + barbell batch into the dumbbell batch.
